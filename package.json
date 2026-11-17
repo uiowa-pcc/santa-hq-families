@@ -1,7 +1,0 @@
-{
-  "name": "santa-hq-families",
-  "private": true,
-  "type": "module",
-  "scripts": {"build": "node scripts/prepare-assets.mjs", "test": "node tests/worker.test.mjs"},
-  "engines": {"node": ">=20"}
-}
