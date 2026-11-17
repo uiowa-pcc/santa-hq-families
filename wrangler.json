@@ -1,0 +1,20 @@
+{
+  "name": "santa-hq-families",
+  "main": "worker.js",
+  "compatibility_date": "2026-11-16",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/api/*"
+    ]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "santa-hq-families",
+      "database_id": "ad508fad-17a4-4d6e-b223-2d73f8c3c6c8",
+      "migrations_dir": "migrations"
+    }
+  ]
+}
