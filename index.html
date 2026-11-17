@@ -294,6 +294,27 @@ body.kid-open{background:#fff9f9}.kid-portal{background:#fffaf9!important;color:
 @media(max-width:760px){.idea-recipient-grid,.idea-deciding-items{grid-template-columns:1fr}.idea-recipient-both{grid-column:auto}.idea-recipient-card{padding:15px}.idea-playground{margin-top:22px}.paste-sorter-card{padding:13px}.paste-sorter-card .row-2{grid-template-columns:1fr 1fr}.modal-footer.paste-sorter-footer{gap:8px;padding-bottom:calc(13px + env(safe-area-inset-bottom))}.modal-footer.paste-sorter-footer button{flex:1;font-size:12px;padding:11px 9px}.paste-review-recipient{padding:10px}}
 @media(max-width:390px){.paste-sorter-card .row-2{grid-template-columns:1fr}.paste-gift-row{gap:8px}.paste-review-price{font-size:11px}}
 
+/* Quick-sort: one calm card, tap targets instead of drop-down menus. */
+.pg-choices{display:flex;flex-wrap:wrap;gap:7px}
+.pg-fieldset{border:0;margin:0 0 17px;padding:0;min-width:0}
+.pg-fieldset legend{font-weight:800;color:#59536d;font-size:12px;padding:0;margin:0 0 8px}
+.pg-choices .gp-choice{display:inline-flex;cursor:pointer;flex:1 1 auto;min-width:calc(33% - 7px)}
+.pg-choices .gp-choice input{position:absolute;opacity:0;width:1px;height:1px}
+.pg-choices .gp-choice span{display:flex;align-items:center;justify-content:center;text-align:center;width:100%;min-height:43px;padding:9px 12px;background:#fff;border:1.5px solid #e2dfea;border-radius:12px;font-size:12px;color:#696277;font-weight:800;line-height:1.3}
+.pg-choices .gp-choice input:checked+span{background:#ede8ff;border-color:#8771d4;color:#5541a8;box-shadow:inset 0 0 0 1px #8771d4}
+.pg-choices .gp-choice input:focus-visible+span{outline:3px solid #e6b660;outline-offset:2px}
+.pg-card-topline{font-size:11px;color:#867e91;margin:0 0 15px}
+.pg-extra{margin-top:8px}
+.pg-extra summary{cursor:pointer;font-size:12px;font-weight:800;color:#6755b2;padding:5px 0}
+.pg-extra .pg-choices{margin:8px 0 4px}
+.pg-price-area{margin-bottom:12px;max-width:260px}
+.pg-notes-area{border-top:1px solid #f0edf4;padding-top:10px;margin-top:9px}
+.pg-notes-area textarea{width:100%;margin-top:6px;border:1px solid #dedce8;background:#fff;border-radius:11px;padding:10px;font:inherit;color:var(--ink)}
+.pg-batch .pg-choices .gp-choice{min-width:calc(32% - 7px)}
+.tp-calendar-intro{font-size:12px;color:#746998;line-height:1.5;margin:8px 0 13px}
+@media(max-width:760px){.pg-choices .gp-choice span{min-height:46px;padding:9px 7px}.pg-choices .gp-choice{min-width:calc(33% - 6px)}.pg-batch .pg-choices .gp-choice{min-width:calc(48% - 5px)}.paste-sorter-card{padding:16px}}
+@media(max-width:355px){.pg-choices .gp-choice{min-width:calc(50% - 5px)}}
+
 /* Santa HQ Traditions planner — accessible drag and tap scheduling */
 .tp-overview{display:flex;flex-wrap:wrap;gap:9px;margin:14px 0 17px}.tp-overview>span{background:#fff;border:1px solid #e9e6f3;border-radius:12px;padding:10px 14px;color:#656887;font-size:12px}.tp-overview strong{font-size:18px;color:#4e479f;margin-right:3px}
 .tp-suggestions{display:flex;flex-wrap:wrap;align-items:center;gap:12px;background:#eeebff;border:1px solid #dfdcf6;border-radius:19px;padding:14px 18px;margin:18px 0}.tp-suggestions>div:first-child{display:grid;gap:3px;min-width:130px}.tp-suggestions strong{font-size:13px}.tp-suggestions span{font-size:11px;color:#777298}.tp-suggestion-list{display:flex;gap:7px;flex-wrap:wrap;flex:1}.tp-suggest{border:1px solid #dfd8f3;background:white;color:#6555ad;border-radius:12px;padding:8px 10px;font-size:11px;font-weight:800}
@@ -463,6 +484,39 @@ body:not(.family-authenticated) .app,body:not(.family-authenticated) .mobile-nav
 .cp-modal-context{font-size:13px;color:#6c6880;margin:0;padding:10px 12px;background:#f4f0ff;border-radius:10px}
 .cp-shop-row .cp-iconbutton{flex:none}
 @media(max-width:550px){.cp-item{align-items:flex-start}.cp-task-shop-add{font-size:11px}.cp-shop-row{flex-wrap:wrap}.cp-shop-row .cp-shop-details{flex-basis:50%}}
+
+/* Kid-first Idea Playground: three visible placement lanes, each independent of purchase stage. */
+.idea-playground .sectionhead{align-items:flex-start}
+.idea-playground .sectiondesc{max-width:680px;line-height:1.55}
+.idea-playground .idea-recipient-grid{grid-template-columns:minmax(0,1fr);gap:18px}
+.idea-playground .idea-recipient-card{padding:20px 21px;border-color:#e6e4f2;border-radius:23px}
+.idea-playground .idea-recipient-head{margin-bottom:2px}
+.idea-playground .idea-recipient-head h3{font-family:'Outfit',sans-serif!important;font-size:22px;letter-spacing:-.4px}
+.idea-playground .idea-recipient-symbol{border-radius:15px;overflow:hidden}
+.idea-playground .idea-quick-actions{margin:10px 0 18px}
+.idea-playground .idea-quick-actions .secondary{flex:0 1 auto;min-width:95px;padding:9px 12px;font-size:11px;min-height:37px}
+.idea-playground .gp-kid-boards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;gap:12px;margin-top:0}
+.idea-playground .gp-board-lane{border:1px solid #e9e5f1;border-radius:17px;padding:12px 11px;min-width:0;display:flex;flex-direction:column;background:#fbfaff}
+.idea-playground .gp-board-lane[data-placement="undecided"]{background:#f6f2ff;border-color:#e8e0fa}
+.idea-playground .gp-board-lane[data-placement="stocking"]{background:#fff4f6;border-color:#f4e1e8}
+.idea-playground .gp-board-lane[data-placement="tree"]{background:#fffbf3;border-color:#f0e6d4}
+.idea-playground .gp-board-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;min-height:61px;margin:0 0 10px}
+.idea-playground .gp-board-head h4{font:800 15px/1.2 'Outfit',sans-serif;margin:0;color:#31334f}
+.idea-playground .gp-board-head p{font-size:10px;line-height:1.4;color:#81819b;margin:4px 0 0}
+.idea-playground .gp-board-count{min-width:25px;height:25px;display:grid;place-items:center;border-radius:50px;background:#fff;border:1px solid #e7e4ed;color:#61597e;font-size:11px;font-weight:800;flex:none}
+.idea-playground .idea-recipient-items{align-content:start;flex:1;gap:8px}
+.idea-playground .gp-lane-empty{margin:0;padding:16px 10px;min-height:68px;display:grid;place-items:center;text-align:center;font-size:11px;line-height:1.45;color:#8e8ba0;border:1px dashed #dbd7e5;background:#ffffff99;border-radius:11px}
+.idea-playground .gp-idea-row{background:#fff;border:1px solid #eeeaf3;border-radius:13px;padding:11px;gap:9px}
+.idea-playground .gp-idea-text strong{line-height:1.3;overflow-wrap:anywhere}
+.idea-playground .gp-idea-placement{grid-column:1/-1;gap:4px}
+.idea-playground .gp-move-label{font-size:10px;color:#878299;font-weight:800;margin-right:3px}
+.idea-playground .gp-place-btn{font-size:10px;padding:6px 8px;min-height:31px;line-height:1.1}
+.idea-playground .gp-place-btn.active{color:#4d439b;background:#eeebff;border-color:#ada2e2}
+.idea-playground .gp-idea-actions{gap:6px}
+.idea-playground .gp-idea-actions .gp-purchase{max-width:100%}
+.idea-playground .idea-deciding{margin-top:18px}
+@media(max-width:1000px){.idea-playground .gp-kid-boards{grid-template-columns:1fr 1fr}.idea-playground .gp-board-lane[data-placement="undecided"]{grid-column:1/-1}}
+@media(max-width:700px){.idea-playground .gp-kid-boards{grid-template-columns:minmax(0,1fr);gap:10px}.idea-playground .gp-board-lane[data-placement="undecided"]{grid-column:auto}.idea-playground .idea-recipient-card{padding:15px}.idea-playground .gp-board-head{min-height:0}.idea-playground .gp-board-lane{padding:12px}.idea-playground .idea-quick-actions{gap:5px}.idea-playground .idea-quick-actions .secondary{flex:1 1 90px;min-width:0;padding:9px 7px;font-size:10px}.idea-playground .gp-lane-empty{min-height:47px;padding:10px}}
 </style>
 </head>
 <body><section id="familyGate" role="region" aria-label="Family account sign in"></section>
@@ -661,7 +715,7 @@ async function addQuickIdea(e){
 }
 function openRecipientQuickAdd(kid='unassigned',category='Regular gift'){
  if(!validRecipient(kid))kid='unassigned';
- if(!categories.includes(category))category='Regular gift';
+ if(!categories.includes(category)&&category!=='undecided')category='Regular gift';
  modalOpen('Add a gift idea',`<form id="recipientQuickForm" class="gp-quick-form">
  <div class="field"><label for="recipientQuickName">What is the gift?</label><input id="recipientQuickName" maxlength="160" required placeholder="e.g. Unicorn pajamas"></div>
  <fieldset class="gp-choice-field"><legend>For whom?</legend><div class="gp-choices">${quickRecipientChoices('quickKid',kid)}</div></fieldset>
@@ -686,7 +740,7 @@ async function changeIdeaPlacement(id,place){
  if(!g||!['stocking','tree','undecided'].includes(place))return;
  if(giftPlacement(g)===place&&g.giftPlacement===place)return;
  const updated={...applyPlacement(g,place),updatedAt:new Date().toISOString()};
- try{await putGift(updated);appState.gifts=appState.gifts.map(x=>x.id===id?updated:x);render();await cloudPutGift(updated);showToast('Gift placement updated');}
+ try{await putGift(updated);appState.gifts=appState.gifts.map(x=>x.id===id?updated:x);render();await cloudPutGift(updated);showToast(`Moved to ${place==='undecided'?'Ideas':place==='stocking'?'Stocking':'Under the tree'}`);}
  catch(err){console.error(err);showToast('Could not update placement.');}
 }
 let duplicateSourceId=null;
@@ -732,25 +786,30 @@ function purchaseButton(g,compact=false){
 function ideaPlaygroundCard(g,unassigned=false){
  const placement=giftPlacement(g);
  return `<article class="gp-idea-row" data-idea-id="${escapeHTML(g.id)}"><div class="gp-idea-text"><strong>${escapeHTML(g.name)}</strong><small>${giftPriceLabel(g)} · ${escapeHTML(g.status)}${g.category==='Big gift'?' · Big gift':g.category==='Experience'?' · Experience':''}</small></div>
- <div class="gp-idea-placement" role="group" aria-label="Placement for ${escapeHTML(g.name)}">${[['stocking','Stocking'],['tree','Under the tree'],['undecided','Undecided']].map(([value,label])=>`<button type="button" class="gp-place-btn ${placement===value?'active':''}" aria-pressed="${placement===value}" data-action="idea-placement" data-id="${escapeHTML(g.id)}" data-category="${value}">${label}</button>`).join('')}</div>
+ <div class="gp-idea-placement" role="group" aria-label="Move ${escapeHTML(g.name)} to a different spot"><span class="gp-move-label">Move to</span>${[['undecided','Ideas'],['stocking','Stocking'],['tree','Tree']].map(([value,label])=>`<button type="button" class="gp-place-btn ${placement===value?'active':''}" aria-pressed="${placement===value}" data-action="idea-placement" data-id="${escapeHTML(g.id)}" data-category="${value}">${label}</button>`).join('')}</div>
  <div class="gp-idea-actions">${purchaseButton(g,true)}<button type="button" class="tp-small" data-action="duplicate" data-id="${escapeHTML(g.id)}">Duplicate</button><button type="button" class="tp-small" data-action="edit" data-id="${escapeHTML(g.id)}">Edit</button></div>
- ${unassigned?`<div class="idea-assign"><small>For:</small>${[...childIds(),'both'].map(k=>`<button type="button" class="small-action" data-action="idea-assign" data-id="${escapeHTML(g.id)}" data-kid="${k}">${escapeHTML(kidName(k))}</button>`).join('')}</div>`:''}</article>`;
+ ${unassigned?`<div class="idea-assign"><small>Assign to:</small>${[...childIds(),'both'].map(k=>`<button type="button" class="small-action" data-action="idea-assign" data-id="${escapeHTML(g.id)}" data-kid="${k}">${escapeHTML(kidName(k))}</button>`).join('')}</div>`:''}</article>`;
 }
 function playgroundSort(a,b){
  return (bought(a)?1:0)-(bought(b)?1:0)||String(a.name||'').localeCompare(String(b.name||''),undefined,{sensitivity:'base'});
 }
 function ideaPlaygroundSection(k){
  const gifts=appState.gifts.filter(g=>g.kid===k),name=kidName(k),purchased=gifts.filter(bought).length;
- const groups=[['stocking','Stocking'],['tree','Under the tree'],['undecided','Undecided']];
- return `<section class="idea-recipient-card idea-recipient-${k}"><div class="idea-recipient-head"><span class="idea-recipient-symbol">${k==='both'?'✦':childChoiceIcon(k)}</span><div><h3>${escapeHTML(name)}</h3><p>${gifts.length} gift${gifts.length===1?'':'s'} · ${purchased} purchased</p></div></div>
- <div class="idea-quick-actions"><button type="button" class="secondary" data-action="idea-quick" data-kid="${k}" data-category="Stocking">+ Stocking</button><button type="button" class="secondary" data-action="idea-quick" data-kid="${k}" data-category="Regular gift">+ Under the tree</button></div>
- <div class="gp-place-groups">${gifts.length?groups.map(([place,label])=>{const matches=gifts.filter(g=>giftPlacement(g)===place).sort(playgroundSort);if(!matches.length)return '';return `<div class="gp-place-group"><h4>${label} <span>${matches.length}</span></h4><div class="idea-recipient-items">${matches.map(g=>ideaPlaygroundCard(g)).join('')}</div></div>`}).join(''):'<p class="idea-recipient-empty">Nothing here yet. Add a gift above.</p>'}</div></section>`;
+ // Placement is separate from shopping stage: gifts stay in these groups when purchased.
+ const groups=[
+  ['undecided','Ideas to sort','For this child, but not placed yet','No ideas waiting to be sorted.'],
+  ['stocking','Stocking','Little surprises','Nothing for the stocking yet.'],
+  ['tree','Under the tree','Presents and experiences','Nothing under the tree yet.']
+ ];
+ return `<section class="idea-recipient-card idea-recipient-${escapeHTML(k)}" data-idea-child="${escapeHTML(k)}"><div class="idea-recipient-head"><span class="idea-recipient-symbol">${k==='both'?'✦':childChoiceIcon(k)}</span><div class="gp-recipient-name"><h3>${escapeHTML(name)}</h3><p>${gifts.length} gift${gifts.length===1?'':'s'} · ${purchased} purchased</p></div></div>
+ <div class="idea-quick-actions" aria-label="Add gifts for ${escapeHTML(name)}"><button type="button" class="secondary" data-action="idea-quick" data-kid="${escapeHTML(k)}" data-category="undecided">+ Idea</button><button type="button" class="secondary" data-action="idea-quick" data-kid="${escapeHTML(k)}" data-category="Stocking">+ Stocking</button><button type="button" class="secondary" data-action="idea-quick" data-kid="${escapeHTML(k)}" data-category="Regular gift">+ Under the tree</button></div>
+ <div class="gp-place-groups gp-kid-boards">${groups.map(([place,label,hint,empty])=>{const matches=gifts.filter(g=>giftPlacement(g)===place).sort(playgroundSort);return `<section class="gp-place-group gp-board-lane" data-placement="${place}" aria-label="${escapeHTML(name)}: ${label}"><header class="gp-board-head"><div><h4>${label}</h4><p>${hint}</p></div><span class="gp-board-count">${matches.length}</span></header><div class="idea-recipient-items">${matches.length?matches.map(g=>ideaPlaygroundCard(g)).join(''):`<p class="gp-lane-empty">${empty}</p>`}</div></section>`}).join('')}</div></section>`;
 }
 function ideaPlayground(){
  const unassigned=appState.gifts.filter(g=>g.kid==='unassigned').sort(playgroundSort),total=appState.gifts.length;
- return `<section class="idea-playground" aria-label="Idea Playground"><div class="sectionhead"><div><div class="eyebrow">YOUR ONE GIFT LIST</div><h2 class="sectiontitle">Idea Playground</h2><p class="sectiondesc">Ideas and purchased gifts stay here. Move things between Stocking, Tree and Undecided without losing them.</p></div><span class="gp-count-pill">${total} gifts</span></div>
+ return `<section class="idea-playground" aria-label="Idea Playground"><div class="sectionhead"><div><div class="eyebrow">ONE PLACE FOR ALL YOUR GIFTS</div><h2 class="sectiontitle">Idea Playground</h2><p class="sectiondesc">First choose who it's for. Then keep it as an idea, put it in a stocking, or move it under the tree. Purchased gifts stay visible.</p></div><span class="gp-count-pill">${total} gifts</span></div>
  <div class="idea-recipient-grid">${[...childIds(),'both'].map(ideaPlaygroundSection).join('')}</div>
- ${unassigned.length?`<section class="idea-deciding plan-zone"><div class="idea-deciding-head"><div><h3>Choose a recipient</h3><p>These gifts still need a child or family assigned.</p></div><span class="plan-zone-count">${unassigned.length}</span></div><div class="idea-deciding-items">${unassigned.map(g=>ideaPlaygroundCard(g,true)).join('')}</div></section>`:''}
+ ${unassigned.length?`<section class="idea-deciding plan-zone"><div class="idea-deciding-head"><div><h3>Still deciding who it's for</h3><p>Choose a child or the family to move each gift to their board.</p></div><span class="plan-zone-count">${unassigned.length}</span></div><div class="idea-deciding-items">${unassigned.map(g=>ideaPlaygroundCard(g,true)).join('')}</div></section>`:''}
  </section>`;
 }
 async function moveToPlan(id,lane,beforeId=null){
@@ -982,26 +1041,40 @@ function traditionsPage(){
 
 function openTradition(item={},suggestedName='',initialDate=''){
   modalOpen(item.id?'Edit tradition':'Add tradition',`<form id="traditionForm">
-    <input type="hidden" name="id" value="${escapeHTML(item.id||'')}">
+    <input type="hidden" name="traditionId" value="${escapeHTML(item.id||'')}">
     <div class="field"><label for="traditionName">What do you want to do?</label><input id="traditionName" name="name" required maxlength="160" value="${escapeHTML(item.name||suggestedName)}"></div>
     <div class="field"><label for="traditionPriority">How important is it?</label><select id="traditionPriority" name="priority">${traditionPriorities.map((label,i)=>`<option value="${i}" ${i===Number(item.priority??1)?'selected':''}>${label}</option>`).join('')}</select></div>
+    <p class="tp-calendar-intro">Add it to your checklist now, or schedule it on the calendar. It stays on the checklist either way.</p>
     <div class="row-2"><div class="field"><label for="traditionDate">Date (optional)</label><input id="traditionDate" name="date" type="date" value="${escapeHTML(item.date||initialDate)}"></div>
     <div class="field"><label for="traditionTime">Time (optional)</label><input id="traditionTime" name="time" type="time" value="${escapeHTML(item.time||'')}"></div></div>
     <div class="field"><label for="traditionNotes">Notes, location, or what you'll need</label><textarea id="traditionNotes" name="notes" rows="3" maxlength="1000" placeholder="Supplies, ideas, where to go…">${escapeHTML(item.notes||'')}</textarea></div>
-  </form>`,`${item.id?`<button class="outline" data-action="tradition-delete" data-id="${escapeHTML(item.id)}">Delete</button>`:''}<button class="primary" type="submit" form="traditionForm">Save tradition</button>`);
+  </form>`,`${item.id?`<button class="outline" data-action="tradition-delete" data-id="${escapeHTML(item.id)}">Delete</button>`:''}<button class="secondary" type="submit" form="traditionForm" name="calendarNext" value="list">Save to checklist</button><button class="primary" type="submit" form="traditionForm" name="calendarNext" value="calendar">Save & add to calendar →</button>`);
   document.getElementById('traditionName')?.focus();
 }
 function updateTraditions(items){settings.traditions=items;saveSettingsLocal();modalClose();render();}
 function saveTradition(event){
   event.preventDefault();const form=new FormData(event.target),name=String(form.get('name')||'').trim();
   if(!name){showToast('Enter a tradition name.');return;}
-  const items=settings.traditions||[],old=items.find(t=>t.id===form.get('id'));
+  const items=settings.traditions||[],old=items.find(t=>t.id===form.get('traditionId'));
   const item={...old,id:old?.id||makeId(),name,priority:Number(form.get('priority')),date:String(form.get('date')||''),time:String(form.get('time')||''),notes:String(form.get('notes')||'').trim(),done:old?.done||false};
-  updateTraditions(items.filter(t=>t.id!==item.id).concat(item));showToast('Tradition saved');
+  const wantCalendar=event.submitter?.value==='calendar';
+  // A saved date should be visible immediately, even when the user was viewing another month.
+  if(item.date&&/^\d{4}-\d{2}-\d{2}$/.test(item.date)){
+   appState.traditionMonth=item.date.slice(0,7);
+   appState.traditionSelectedId=null;
+  }else if(wantCalendar){
+   // Next tap on a calendar day schedules the newly created tradition without removing it from the checklist.
+   appState.traditionSelectedId=item.id;
+  }else if(appState.traditionSelectedId===item.id){appState.traditionSelectedId=null;}
+  appState.holidayView='traditions';
+  updateTraditions(items.filter(t=>t.id!==item.id).concat(item));
+  showToast(item.date?`${name} added to ${traditionDateLabel(item.date)}`:wantCalendar?'Tap a day on the calendar to schedule it':'Added to your checklist');
+  if(wantCalendar||item.date){requestAnimationFrame(()=>document.querySelector('.tp-calendar-panel')?.scrollIntoView({behavior:'smooth',block:'nearest'}));}
 }
 function traditionSchedule(id,date){
   const items=settings.traditions||[],item=items.find(t=>t.id===id);if(!item)return;
   if(date!==''&&!/^\d{4}-\d{2}-\d{2}$/.test(date))return;
+  if(date)appState.traditionMonth=date.slice(0,7);
   appState.traditionSelectedId=null;updateTraditions(items.map(t=>t.id===id?{...t,date}:t));
   showToast(date?`${item.name} added to ${traditionDateLabel(date)}`:`${item.name} removed from the calendar`);
 }
@@ -1072,20 +1145,26 @@ function parsePastedGifts(draft){
 function pastedGiftKey(gift){
  return `${gift.kid}:${String(gift.name||'').trim().replace(/\s+/g,' ').toLowerCase()}`;
 }
+function pasteTapChoice(field,value,label,checked){
+ return `<label class="gp-choice"><input type="radio" name="${field}" value="${escapeHTML(value)}" ${checked?'checked':''}><span>${escapeHTML(label)}</span></label>`;
+}
+function pasteRecipientChoices(field,current){
+ return [...configuredChildren().map(c=>[c.id,c.name]),['both',sharedLabel()]].map(([key,name])=>pasteTapChoice(field,key,name,current===key)).join('');
+}
 function openPasteGifts(draft='',kid='1'){
  pasteSession=null;
- const choices=[...childIds(),'both'].map(k=>`<option value="${k}" ${k===kid?'selected':''}>${escapeHTML(kidName(k))}</option>`).join('');
- modalOpen('Paste gift ideas',`<form id="pasteGiftForm">
-  <div class="field"><label for="pasteGiftKid">Default recipient for this batch</label><select id="pasteGiftKid">${choices}</select></div>
-  <div class="field"><label for="pasteGiftText">One gift per line</label><textarea id="pasteGiftText" rows="8" required placeholder="Puzzle\n✓ Art supplies | Purple set\nStocking stickers">${escapeHTML(draft)}</textarea>
-   <small class="paste-sorter-note">Start a line with ✓ to mark it Bought. Add notes after |. You can change the recipient, category, and cost on each card.</small></div>
- </form>`,`<button type="button" class="secondary" data-action="close">Cancel</button><button class="primary" type="submit" form="pasteGiftForm">Start sorting</button>`);
+ const recipient=validRecipient(kid)?kid:childIds()[0];
+ modalOpen('Paste gift ideas',`<form id="pasteGiftForm" class="pg-batch">
+  <fieldset class="pg-fieldset"><legend>Who are these ideas for?</legend><div class="pg-choices">${pasteRecipientChoices('pasteGiftKid',recipient)}</div></fieldset>
+  <div class="field"><label for="pasteGiftText">Paste one gift per line</label><textarea id="pasteGiftText" rows="7" required placeholder="Puzzle\n✓ Art supplies | Purple set\nStocking stickers">${escapeHTML(draft)}</textarea>
+   <small class="paste-sorter-note">✓ means already bought · Add notes after | · You can change anything on each card.</small></div>
+ </form>`,`<button type="button" class="secondary" data-action="close">Cancel</button><button class="primary" type="submit" form="pasteGiftForm">Start sorting →</button>`);
  document.getElementById('pasteGiftText')?.focus();
 }
 function beginPasteSort(event){
  event.preventDefault();
  const draft=document.getElementById('pasteGiftText')?.value||'';
- const kid=document.getElementById('pasteGiftKid')?.value||'1';
+ const kid=document.querySelector('#pasteGiftForm input[name="pasteGiftKid"]:checked')?.value||childIds()[0];
  const parsed=parsePastedGifts(draft);
  if(!parsed.length){showToast('Paste at least one gift idea.');return;}
  pasteSession={defaultKid:kid,index:0,cards:parsed.map(gift=>({...gift,cardId:makeId(),kid,category:'Regular gift',price:null,visited:false,saved:false})),choices:{}};
@@ -1098,9 +1177,9 @@ function capturePasteCard(){
  if(!form.reportValidity())return false;
  const name=document.getElementById('pasteCardName')?.value.trim();
  const price=document.getElementById('pasteCardPrice')?.value;
- const kid=document.getElementById('pasteCardKid')?.value;
- const category=document.getElementById('pasteCardCategory')?.value;
- const status=document.getElementById('pasteCardStatus')?.value;
+ const kid=document.querySelector('#pasteCardForm input[name="pasteKid"]:checked')?.value;
+ const category=document.querySelector('#pasteCardForm input[name="pasteCategory"]:checked')?.value;
+ const status=document.querySelector('#pasteCardForm input[name="pasteStatus"]:checked')?.value;
  if(!name||!validRecipient(kid)||!categories.includes(category)||!stages.includes(status))return false;
  card.name=name;card.notes=document.getElementById('pasteCardNotes')?.value.trim()||'';
  card.kid=kid;card.category=category;card.price=price===''?null:cents(price);card.status=status;card.visited=true;
@@ -1108,21 +1187,27 @@ function capturePasteCard(){
 }
 function renderPasteCard(){
  const session=pasteSession,card=currentPasteCard();if(!session||!card)return;
- const i=session.index,total=session.cards.length;
- const percent=100*(i+1)/total;
- const select=(items,current)=>items.map(v=>`<option value="${escapeHTML(v[0])}" ${v[0]===current?'selected':''}>${escapeHTML(v[1])}</option>`).join('');
- const kidOptions=[...configuredChildren().map(c=>[c.id,c.name]),['both',sharedLabel()]];
+ const i=session.index,total=session.cards.length,percent=100*(i+1)/total;
+ const categoryMain=[['Stocking','Stocking'],['Regular gift','Under the tree'],['Big gift','Big gift']];
+ const categoryExtra=[['Experience','Experience'],['Shared / family','Shared / family']];
+ const statusMain=[['Idea','Idea'],['To buy','Ready to buy'],['Bought','Bought ✓']];
+ const statusExtra=[['Ordered','Ordered'],['Arrived','Arrived'],['Wrapped','Wrapped']];
+ const choiceSet=(field,items,current)=>items.map(([value,label])=>pasteTapChoice(field,value,label,value===current)).join('');
  modalOpen('Sort your gift ideas',`<div class="paste-sorter-progress"><div class="paste-sorter-progress-head"><span>Gift ${i+1} of ${total}</span><span>${Math.round(percent)}% sorted</span></div><div class="paste-sorter-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${i+1}"><span style="width:${percent}%"></span></div></div>
-  <form id="pasteCardForm" class="paste-sorter-card">
-   <div class="field"><label for="pasteCardName">Gift name *</label><input id="pasteCardName" maxlength="160" required value="${escapeHTML(card.name)}"></div>
-   <div class="field"><label for="pasteCardNotes">Notes (optional)</label><textarea id="pasteCardNotes" rows="2" placeholder="Color, size, where to look…">${escapeHTML(card.notes)}</textarea></div>
-   <div class="row-2"><div class="field"><label for="pasteCardKid">Recipient</label><select id="pasteCardKid">${select(kidOptions,card.kid)}</select></div>
-    <div class="field"><label for="pasteCardCategory">Category</label><select id="pasteCardCategory">${select(categories.map(c=>[c,c]),card.category)}</select></div></div>
-   <div class="row-2"><div class="field"><label for="pasteCardPrice">Price ($) · optional</label><input id="pasteCardPrice" type="number" min="0" step=".01" placeholder="Price TBD" value="${card.price===null?'':escapeHTML(card.price)}"></div>
-    <div class="field"><label for="pasteCardStatus">Status</label><select id="pasteCardStatus">${select(stages.map(v=>[v,v]),card.status)}</select></div></div>
-   ${card.copyPair?`<div class="paste-duplicate-message">Separate stocking copy ${card.copyRole==='first'?1:2} of 2. You can change the details and price independently.${card.copyRole==='second'?'<button type="button" class="plain-btn" data-action="paste-remove-copy">Remove this copy</button>':''}</div>`:
-    childIds().length===2?`<button type="button" class="paste-stocking-duplicate" data-action="paste-duplicate">Duplicate for both stockings · ${escapeHTML(kidName(childIds()[0]))} + ${escapeHTML(kidName(childIds()[1]))}</button>`:''}}
-  </form>`,`<button type="button" class="secondary" data-action="paste-back" ${i===0?'disabled':''}>Back</button><button type="button" class="secondary" data-action="paste-default-rest">Use defaults for the rest</button><button type="button" class="primary" data-action="paste-next">${i===total-1?'Review batch':'Next'}</button>`);
+ <form id="pasteCardForm" class="paste-sorter-card">
+  <div class="field"><label for="pasteCardName">Gift idea</label><input id="pasteCardName" maxlength="160" required value="${escapeHTML(card.name)}"></div>
+  <fieldset class="pg-fieldset"><legend>Who is it for?</legend><div class="pg-choices">${pasteRecipientChoices('pasteKid',card.kid)}</div></fieldset>
+  <fieldset class="pg-fieldset"><legend>Where does it go?</legend><div class="pg-choices">${choiceSet('pasteCategory',categoryMain,card.category)}</div>
+   <details class="pg-extra" ${categoryExtra.some(x=>x[0]===card.category)?'open':''}><summary>Experience or shared / family gift</summary><div class="pg-choices">${choiceSet('pasteCategory',categoryExtra,card.category)}</div></details>
+  </fieldset>
+  <fieldset class="pg-fieldset"><legend>Shopping progress</legend><div class="pg-choices">${choiceSet('pasteStatus',statusMain,card.status)}</div>
+   <details class="pg-extra" ${statusExtra.some(x=>x[0]===card.status)?'open':''}><summary>Ordered, arrived, or wrapped</summary><div class="pg-choices">${choiceSet('pasteStatus',statusExtra,card.status)}</div></details>
+  </fieldset>
+  <div class="field pg-price-area"><label for="pasteCardPrice">Price (optional)</label><input id="pasteCardPrice" inputmode="decimal" type="number" min="0" step=".01" placeholder="Add later" value="${card.price===null?'':escapeHTML(card.price)}"></div>
+  <details class="pg-extra pg-notes-area" ${card.notes?'open':''}><summary>${card.notes?'Notes · '+escapeHTML(card.notes.slice(0,30)):'Add a note (optional)'}</summary><textarea id="pasteCardNotes" rows="2" placeholder="Size, color, store…">${escapeHTML(card.notes)}</textarea></details>
+  ${card.copyPair?`<div class="paste-duplicate-message">Separate stocking gift ${card.copyRole==='first'?1:2} of 2. You can edit each gift independently.${card.copyRole==='second'?'<button type="button" class="plain-btn" data-action="paste-remove-copy">Remove copy</button>':''}</div>`:
+   childIds().length===2?`<button type="button" class="paste-stocking-duplicate" data-action="paste-duplicate">Duplicate for both stockings · ${escapeHTML(kidName(childIds()[0]))} + ${escapeHTML(kidName(childIds()[1]))}</button>`:''}
+ </form>`,`<button type="button" class="secondary" data-action="paste-back" ${i===0?'disabled':''}>Back</button><button type="button" class="secondary" data-action="paste-default-rest">Use defaults</button><button type="button" class="primary" data-action="paste-next">${i===total-1?'Review gifts':'Next →'}</button>`);
  document.getElementById('modalFooter')?.classList.add('paste-sorter-footer');
  document.getElementById('pasteCardName')?.focus({preventScroll:true});
 }
@@ -1284,7 +1369,7 @@ async function cloudSignOut(){if(appState.cloud){await appState.cloud.authm.sign
 function saveCloudConfig(e){e.preventDefault();const apiKey=document.getElementById('firebaseApi').value.trim(),projectId=document.getElementById('firebaseProject').value.trim(),authDomain=document.getElementById('firebaseDomain').value.trim(),appId=document.getElementById('firebaseApp').value.trim(),familyId=document.getElementById('familyId').value.trim();if(!apiKey||!projectId||!authDomain||!appId||!familyId){showToast('Fill in all connection details first.');return}settings.firebase={apiKey,projectId,authDomain,appId};settings.familyId=familyId;saveSettingsLocal();showToast('Family connection saved. Sign in with Google.');render();if(appState.cloud)location.reload();else initCloud()}
 function copyInvite(){if(!settings.firebase||!settings.familyId)return;if(location.protocol==='file:'){showToast('Host this app online to create a working partner link.');return}const payload=btoa(unescape(encodeURIComponent(JSON.stringify({firebase:settings.firebase,familyId:settings.familyId}))));let u=location.origin+location.pathname+'#invite='+encodeURIComponent(payload);navigator.clipboard?.writeText(u).then(()=>showToast('Partner link copied '),()=>prompt('Copy this partner link:',u))||prompt('Copy this partner link:',u)}
 function actionHandler(e){const el=e.target.closest('[data-action]');if(!el)return;const action=el.dataset.action,id=el.dataset.id;if(action.startsWith('tradition-')){traditionAction(action,id,el);return;}if(action.startsWith('holiday-')){holidayAction(action,el);return;}switch(action){case 'morning-size':appState.morningCompact=!appState.morningCompact;render();break;case 'morning-prices':appState.morningPrices=!appState.morningPrices;render();break;case 'plan-menu':planMoveMenu(id);break;case 'plan-move':{const lane=el.dataset.lane;modalClose();moveToPlan(id,lane);break}case 'plan-up':shiftPlanCard(id,-1);break;case 'plan-down':shiftPlanCard(id,1);break;case 'nav':navigate(el.dataset.page);break;case 'enter-kid':enterKid();break;case 'change-pin':{if(settings.grownupPin&&prompt('Current PIN:')!==settings.grownupPin){showToast('Incorrect PIN.');break}const pin=prompt('Set a new 4–6 digit PIN:');if(pin===null)break;if(!/^\d{4,6}$/.test(pin)){showToast('Choose 4–6 digits.');break}settings.grownupPin=pin;saveSettingsLocal();showToast('Kid View PIN updated');break}case 'exit-kid':exitKid();break;case 'child-add':addChildSettings();break;case 'child-remove':removeChildSettings(el.dataset.kid);break;case 'kid-select':resetKidDraft();appState.kidSelected=el.dataset.kid;renderKidPortal();break;case 'kid-choice':appState.kidChoice=el.dataset.choice;document.querySelectorAll('.kid-topic').forEach(b=>b.classList.toggle('active',b.dataset.choice===appState.kidChoice));break;case 'kid-mode':resetKidDraft();appState.kidMode=el.dataset.mode;renderKidPortal();break;case 'kid-record':if(kidRecorder?.state==='recording')finishKidRecording();else startKidRecording();break;case 'kid-redo-record':resetKidDraft();renderKidPortal();break;case 'kid-dictate':kidDictate();break;case 'kid-color':kidDrawColor=el.dataset.color;document.querySelectorAll('.kid-color').forEach(b=>b.classList.toggle('active',b.dataset.color===kidDrawColor));break;case 'kid-undo':case 'kid-clear':kidCanvasAction(action);break;case 'kid-insert':{const input=document.getElementById('kidMessage');if(input)input.value+=(input.value?' ':'')+el.dataset.text.replace(/^[^ ]+ /,'');break}case 'kid-again':renderKidPortal();break;case 'delete-mail':deleteKidLetter(id);break;case 'reply-mail':replyMail(id);break;case 'read-mail':{const m=appState.messages.find(x=>x.id===id);if(m){putMail({...m,read:true}).then(render)}break}case 'gift-view':appState.giftView=el.dataset.view;render();break;case 'gift-ready':setGiftStatus(id,'To buy');break;case 'gift-go-shopping':appState.page='traditions';appState.holidayView='shopping';render();break;case 'shop-check':{const gift=appState.gifts.find(g=>g.id===id);if(gift&&gift.status==='To buy')setGiftStatus(id,'Bought');break;}case 'shop-undo':{const gift=appState.gifts.find(g=>g.id===id);if(gift&&gift.status==='Bought')setGiftStatus(id,'To buy');break;}case 'paste-gifts':openPasteGifts();break;case 'paste-back':pasteNavigate(-1);break;case 'paste-next':pasteNavigate(1);break;case 'paste-default-rest':pasteUseDefaults();break;case 'paste-duplicate':pasteDuplicateStockings();break;case 'paste-remove-copy':pasteRemoveCopy();break;case 'paste-review-back':pasteReviewBack();break;case 'paste-save':savePastedGifts();break;case 'idea-quick':openRecipientQuickAdd(el.dataset.kid,el.dataset.category);break;case 'idea-assign':assignIdeaRecipient(id,el.dataset.kid);break;case 'add':openRecipientQuickAdd();break;case 'add-detailed':{const seed={name:document.getElementById('recipientQuickName')?.value.trim()||'',kid:document.querySelector('#recipientQuickForm input[name="quickKid"]:checked')?.value||'unassigned',category:categoryFromPlacement(document.querySelector('#recipientQuickForm input[name="quickPlace"]:checked')?.value||'undecided'),price:document.getElementById('recipientQuickPrice')?.value||'',notes:document.getElementById('recipientQuickNotes')?.value||''};openGift(null,seed);break}case 'duplicate':openDuplicateGift(id);break;case 'idea-placement':changeIdeaPlacement(id,el.dataset.category);break;case 'close':modalClose();break;case 'edit':openGift(appState.gifts.find(g=>g.id===id));break;case 'delete':deleteGift(id);break;case 'next':advanceGift(id,el.dataset.next);break;case 'open-link':{let g=appState.gifts.find(x=>x.id===id);if(safeLink(g?.link))window.open(g.link,'_blank','noopener,noreferrer');break}case 'export':exportJSON();break;case 'csv':exportCSV();break;case 'import':document.getElementById('importFile')?.click();break;case 'clear':if(appState.online){showToast('Disconnect family sync before clearing local gifts.');return}if(confirm('Delete all gift records saved on this device? Export a backup first if you want one.'))replaceGifts([]).then(()=>{appState.gifts=[];render();showToast('Device data cleared')});break;case 'generate-id':document.getElementById('familyId').value='northpole-'+makeId().slice(0,16);break;case 'signin':cloudSignIn();break;case 'signout':cloudSignOut();break;case 'invite':copyInvite();break}}
-async function boot(){try{db=await initDB();appState.gifts=await readGifts()}catch(e){alert('This browser could not open its local gift database. Please try Safari or Chrome, or host this app online.');return}try{settings={...DEFAULT,...JSON.parse(localStorage.getItem('santa_hq_settings_'+(window.SANTA_FAMILY_ID||'guest'))||'{}')}}catch{}appState.messages=await loadMail();processIncoming();render();document.addEventListener('click',actionHandler);document.addEventListener('pointerdown',planningPointerDown,{passive:false});document.getElementById('mobileAdd').addEventListener('click',()=>openRecipientQuickAdd());document.getElementById('overlay').addEventListener('click',e=>{if(e.target.id==='overlay')modalClose()});document.addEventListener('keydown',e=>{if(e.key==='Escape')modalClose()});document.addEventListener('submit',e=>{if(e.target.id==='holidayTaskForm')saveHolidayTask(e);if(e.target.id==='holidaySupplyForm')saveHolidaySupply(e);if(e.target.id==='traditionForm')saveTradition(e);if(e.target.id==='pasteGiftForm')beginPasteSort(e);if(e.target.id==='pasteCardForm'){e.preventDefault();pasteNavigate(1)}if(e.target.id==='recipientQuickForm')saveRecipientQuickIdea(e);if(e.target.id==='duplicateGiftForm')saveDuplicateGift(e);if(e.target.id==='ideaQuickForm')addQuickIdea(e);if(e.target.id==='familyForm')saveFamily(e);if(e.target.id==='firebaseForm')saveCloudConfig(e);if(e.target.id==='kidMessageForm'){void submitKidMessage(e);} if(e.target.id==='replyMailForm'){e.preventDefault();const id=document.getElementById('replyId')?.value,msg=appState.messages.find(m=>m.id===id);if(msg){putMail({...msg,reply:document.getElementById('santaReply').value.trim(),read:true}).then(()=>{modalClose();render();showToast('Santa’s reply is ready ')})}}});document.addEventListener('change',e=>{if(e.target.matches('[data-gift-stage]')){setGiftStatus(e.target.dataset.id,e.target.value);}if(e.target.matches('[data-paste-entry]')){pasteReviewChoices();updatePasteReviewTotals()}if(e.target.id==='filterKid'){appState.filterKid=e.target.value;render()}if(e.target.id==='filterStatus'){appState.filterStatus=e.target.value;render()}if(e.target.id==='filterCat'){appState.filterCat=e.target.value;render()}if(e.target.id==='kidMediaFile')kidMediaPick(e.target.files?.[0]);if(e.target.id==='importFile'&&e.target.files[0])importJSON(e.target.files[0])});document.addEventListener('input',e=>{if(e.target.id==='searchInput'){appState.search=e.target.value;const grid=document.getElementById('giftResults');if(grid)grid.innerHTML=filteredGifts().length?giftListRows(filteredGifts()):'<p class="gp-no-results">No matching gifts.</p>'}});if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});if(appState.fromSharedLink){openGift(null,appState.fromSharedLink);appState.fromSharedLink=null}}
+async function boot(){try{db=await initDB();appState.gifts=await readGifts()}catch(e){alert('This browser could not open its local gift database. Please try Safari or Chrome, or host this app online.');return}try{settings={...DEFAULT,...JSON.parse(localStorage.getItem('santa_hq_settings_'+(window.SANTA_FAMILY_ID||'guest'))||'{}')}}catch{}appState.messages=await loadMail();processIncoming();render();document.addEventListener('click',actionHandler);document.addEventListener('pointerdown',planningPointerDown,{passive:false});document.getElementById('mobileAdd').addEventListener('click',()=>openRecipientQuickAdd());document.getElementById('overlay').addEventListener('click',e=>{if(e.target.id==='overlay')modalClose()});document.addEventListener('keydown',e=>{if(e.key==='Escape')modalClose()});document.addEventListener('submit',e=>{if(e.target.id==='holidayTaskForm')saveHolidayTask(e);if(e.target.id==='holidaySupplyForm')saveHolidaySupply(e);if(e.target.getAttribute('id')==='traditionForm')saveTradition(e);if(e.target.id==='pasteGiftForm')beginPasteSort(e);if(e.target.id==='pasteCardForm'){e.preventDefault();pasteNavigate(1)}if(e.target.id==='recipientQuickForm')saveRecipientQuickIdea(e);if(e.target.id==='duplicateGiftForm')saveDuplicateGift(e);if(e.target.id==='ideaQuickForm')addQuickIdea(e);if(e.target.id==='familyForm')saveFamily(e);if(e.target.id==='firebaseForm')saveCloudConfig(e);if(e.target.id==='kidMessageForm'){void submitKidMessage(e);} if(e.target.id==='replyMailForm'){e.preventDefault();const id=document.getElementById('replyId')?.value,msg=appState.messages.find(m=>m.id===id);if(msg){putMail({...msg,reply:document.getElementById('santaReply').value.trim(),read:true}).then(()=>{modalClose();render();showToast('Santa’s reply is ready ')})}}});document.addEventListener('change',e=>{if(e.target.matches('[data-gift-stage]')){setGiftStatus(e.target.dataset.id,e.target.value);}if(e.target.matches('[data-paste-entry]')){pasteReviewChoices();updatePasteReviewTotals()}if(e.target.id==='filterKid'){appState.filterKid=e.target.value;render()}if(e.target.id==='filterStatus'){appState.filterStatus=e.target.value;render()}if(e.target.id==='filterCat'){appState.filterCat=e.target.value;render()}if(e.target.id==='kidMediaFile')kidMediaPick(e.target.files?.[0]);if(e.target.id==='importFile'&&e.target.files[0])importJSON(e.target.files[0])});document.addEventListener('input',e=>{if(e.target.id==='searchInput'){appState.search=e.target.value;const grid=document.getElementById('giftResults');if(grid)grid.innerHTML=filteredGifts().length?giftListRows(filteredGifts()):'<p class="gp-no-results">No matching gifts.</p>'}});if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});if(appState.fromSharedLink){openGift(null,appState.fromSharedLink);appState.fromSharedLink=null}}
 
 /* Christmas Plans: all household tasks live in the existing synced profile record. */
 const CHRISTMAS_EVE_DEFAULTS=[
