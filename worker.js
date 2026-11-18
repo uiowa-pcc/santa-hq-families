@@ -89,6 +89,58 @@ async function acceptInvitation(db,token,userId){
   await db.prepare("INSERT OR IGNORE INTO memberships(user_id,household_id,role) VALUES(?,?,'parent')").bind(userId,invite.household_id).run();
   return invite.household_id;
 }
+// Retailer price checks are optional and authenticated. Never fetch arbitrary gift URLs.
+// AMAZON: Keepa (paid/token-limited); BEST BUY: official Products API (developer key).
+// Quotes are returned to the client; they do NOT modify gift budgets or place orders.
+function detectPriceProduct(link){
+  let u;try{u=new URL(String(link||''))}catch{return null}
+  if(u.protocol!=='https:'||u.username||u.password||u.port)return null;
+  const host=u.hostname.toLowerCase();
+  if(host==='amazon.com'||host==='www.amazon.com'||host==='smile.amazon.com'){
+    const asin=u.pathname.match(/\/(?:dp|gp\/product|gp\/aw\/d)\/([A-Z0-9]{10})(?:\/|$)/i)?.[1]||u.searchParams.get('asin');
+    return asin&&/^[A-Z0-9]{10}$/i.test(asin)?{store:'Amazon',id:asin.toUpperCase()}:null;
+  }
+  if(host==='bestbuy.com'||host==='www.bestbuy.com'){
+    const sku=u.pathname.match(/\/(\d{6,9})\.p(?:\/|$)/)?.[1]||u.searchParams.get('skuId');
+    return sku&&/^\d{6,9}$/.test(sku)?{store:'Best Buy',id:sku}:null;
+  }
+  return null;
+}
+async function fetchPriceQuote(product,env,requestFetch=fetch){
+  if(!product)return {error:'Automatic refresh is not available for this retailer or link. Open the store to check its price.',status:422};
+  const now=new Date().toISOString();
+  if(product.store==='Amazon'){
+    if(!env.KEEPA_API_KEY)return {error:'Amazon refresh needs a Keepa API key set by the Santa HQ owner. Use View at store meanwhile.',status:503};
+    const u=new URL('https://api.keepa.com/product');u.searchParams.set('key',env.KEEPA_API_KEY);u.searchParams.set('domain','1');u.searchParams.set('asin',product.id);u.searchParams.set('stats','1');u.searchParams.set('history','0');
+    const res=await requestFetch(u.toString(),{headers:{Accept:'application/json'},signal:AbortSignal.timeout(10000)});
+    if(!res.ok)return {error:res.status===429?'Amazon price source is rate-limited; try again later.':'Amazon price source is temporarily unavailable.',status:502};
+    const data=await res.json();
+    if(data.error)return {error:'Amazon price source could not complete the lookup.',status:502};
+    const stats=data.products?.find(p=>String(p.asin||'').toUpperCase()===product.id)?.stats;
+    const current=stats?.current;
+    if(!Array.isArray(current))return {error:'No recent Amazon price was returned. Open the store to check.',status:422};
+    // Keepa price-type indexes: 0=Amazon, 1=marketplace NEW. -1 means no offer.
+    const amazon=Number(current[0]),newOffer=Number(current[1]);
+    const amount=Number.isFinite(amazon)&&amazon>0?amazon:Number.isFinite(newOffer)&&newOffer>0?newOffer:null;
+    if(amount===null)return {error:'No available new-item price was returned for this product.',status:422};
+    const source=Number.isFinite(amazon)&&amazon>0?'Keepa · Amazon offer':'Keepa · marketplace new offer';
+    return {price:amount/100,currency:'USD',checkedAt:now,source,note:'Keepa prices may be delayed and exclude shipping or taxes.'};
+  }
+  if(product.store==='Best Buy'){
+    if(!env.BEST_BUY_API_KEY)return {error:'Best Buy refresh needs a Best Buy developer API key set by the Santa HQ owner.',status:503};
+    const u=new URL(`https://api.bestbuy.com/v1/products(sku=${product.id})`);
+    u.searchParams.set('format','json');u.searchParams.set('show','sku,name,salePrice,onlineAvailability');u.searchParams.set('apiKey',env.BEST_BUY_API_KEY);
+    const res=await requestFetch(u.toString(),{headers:{Accept:'application/json'},signal:AbortSignal.timeout(10000)});
+    if(!res.ok)return {error:'Best Buy price source is temporarily unavailable.',status:502};
+    const data=await res.json(),item=data.products?.find(p=>String(p.sku)===product.id);
+    const price=Number(item?.salePrice);
+    if(!item||!Number.isFinite(price)||price<=0)return {error:'No current Best Buy price was returned for this product.',status:422};
+    return {price,currency:'USD',checkedAt:now,source:'Best Buy Products API',note:'Price may vary by location, membership, or promotion.'};
+  }
+  return {error:'This store is not supported for price refresh.',status:422};
+}
+export { detectPriceProduct,fetchPriceQuote };
+
 async function handleApi(request,env,url){
   if(!env.DB||!env.PASSWORD_PEPPER)return error('Server setup is incomplete. Ask the site administrator to configure DB and PASSWORD_PEPPER.',503);
   const db=env.DB,path=url.pathname,method=request.method;
@@ -370,6 +422,23 @@ async function handleApi(request,env,url){
     await db.prepare('UPDATE sessions SET household_id=? WHERE token_hash=?').bind(houseId,me.token_hash).run();
     const newUser=await session(request,db);
     return json({ok:true,...await who(db,newUser)});
+  }
+  if(path==='/api/private/price-check'&&method==='POST'){
+    const body=await bodyJSON(request),giftId=String(body.giftId||'');
+    if(!giftId||giftId.length>160)return error('Select a gift to check.',400);
+    // Only the signed-in household's gift URL can be checked. Never accept an arbitrary URL.
+    const record=await db.prepare("SELECT data FROM records WHERE household_id=? AND kind='gift' AND id=? AND deleted=0").bind(family,giftId).first();
+    if(!record?.data)return error('Gift not found in your family.',404);
+    let gift;try{gift=JSON.parse(record.data)}catch{return error('Gift record is unavailable.',422)}
+    if(!gift.watchDeal)return error('Turn on Deal Watch for this gift first.',422);
+    const product=detectPriceProduct(gift.link);
+    if(!product)return error('Automatic refresh is not available for this store or product link. Use View at store.',422);
+    if((product.store==='Amazon'&&!env.KEEPA_API_KEY)||(product.store==='Best Buy'&&!env.BEST_BUY_API_KEY)){
+      return error(`${product.store} price lookup has not been configured by the Santa HQ owner. Use View at store for now.`,503);
+    }
+    if(!await guardLimit(db,'price-check',family,50,3600000))return error('Price refresh limit reached for your family. Try again in an hour.',429);
+    const quote=await fetchPriceQuote(product,env);
+    return quote.error?error(quote.error,quote.status||422):json({ok:true,...quote});
   }
   if(path==='/api/private/state'&&method==='GET'){
     const rows=await db.prepare('SELECT kind,id,data,deleted,updated_at FROM records WHERE household_id=? ORDER BY updated_at').bind(family).all();
