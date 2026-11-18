@@ -1,5 +1,5 @@
 /* Santa HQ family edition. Never cache account, gift, invitation, or claim API responses. */
-const CACHE='santa-hq-v25-clear-kid-boards';
+const CACHE='santa-hq-v26-deal-watch-shopping';
 const CORE=['./','./index.html','./family-sync.js','./family-hq.js','./family.html','./hunt.html','./hunt.js','./hunt-photos.webp','./elf-avatars.webp'];
 const OPTIONAL=['./manifest.webmanifest','./icon-192.png','./icon-512.png','./art/crayons.svg','./art/elf.svg','./art/letter.svg','./art/mailbox.svg','./art/microphone.svg','./art/ornament.svg','./art/present.svg','./art/santa-full.svg','./art/santa-peek.svg','./art/stocking.svg','./art/tree.svg'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(async cache=>{await cache.addAll(CORE);await Promise.all(OPTIONAL.map(a=>cache.add(a).catch(()=>{})))}));self.skipWaiting()});
