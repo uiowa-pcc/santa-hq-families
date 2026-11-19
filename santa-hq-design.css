@@ -1,0 +1,317 @@
+/* Santa HQ · Christmas Magic design system — visual layer only.
+   Data, gifts, family permissions and Cloudflare storage remain unchanged. */
+:root {
+  --cream:#fbf8ff; --white:#fff; --ink:#46263e; --muted:#81738a;
+  --green:#6d5bc2; --deep:#34213e; --red:#ce354c; --palered:#fff0f3;
+  --lightgreen:#eaf5ed; --gold:#e9ad59; --softgold:#fff3dd;
+  --line:#ece5f2; --shadow:0 10px 30px rgba(81,48,102,.09);
+  --radius:22px;
+  --hq-purple:#7865c9; --hq-lavender:#f3edff; --hq-pink:#fae8ef;
+  --hq-mint:#eaf5ed; --hq-cream:#fff4e6; --hq-snow:#f9f7ff;
+  --hq-red:#c93448; --hq-ink:#48243d; --hq-muted:#776a81;
+  --hq-border:#eee6f3; --hq-radius:22px; --hq-shadow:0 9px 23px rgba(69,31,83,.07);
+}
+body {background:linear-gradient(165deg,#fcfaff 0%,#f9f5ff 42%,#fdfaff 100%);color:var(--hq-ink)}
+body, input, textarea, select, button {font-family:'DM Sans',system-ui,sans-serif}
+body :is(h1,h2,h3,h4,.heading,.sectiontitle,.kid-name,.hero h2,.modal-header h2){font-family:'Outfit','DM Sans',system-ui,sans-serif!important;letter-spacing:-.55px}
+button{transition:background .14s ease,transform .14s ease,box-shadow .14s ease}
+:where(button,a,input,textarea,select):focus-visible{outline:3px solid #bc99ed;outline-offset:3px}
+:where(button,.primary,.secondary,.nav-btn,.small-action,.plain-btn){touch-action:manipulation}
+.app{grid-template-columns:230px minmax(0,1fr)}
+.sidebar{background:#32233e;padding:25px 15px 17px;border-right:1px solid #55425f;color:#fff7ff}
+.sidebar .logo{padding:6px 9px 12px;gap:10px}
+.sidebar .logo-mark{width:43px;height:43px;background:#fff4ee;border-radius:16px;box-shadow:none}
+.sidebar .logo strong{color:#fff;font-size:24px;letter-spacing:-.9px}
+.sidebar .logo small{color:#e3d2ed;letter-spacing:1px}
+.sidebar .side-nav{gap:5px}
+.sidebar .nav-btn{border-radius:15px;min-height:51px;color:#f3e8f5;font-size:12px;padding:13px 14px}
+.sidebar .nav-btn svg{width:20px;height:20px;color:#e1c9e3}
+.sidebar .nav-btn.active{background:#fff4fa;color:#9e304d;box-shadow:0 3px 8px #150c281b}
+.sidebar .nav-btn.active svg{color:var(--hq-red)}
+.sidebar .nav-btn:not(.active):hover{background:#53405c}
+.side-kid-launch{background:#554060;border:1px solid #786181;border-radius:17px;color:#fff}
+.side-kid-launch small{color:#eddbf3}
+.elf-card{background:#4b3955;border-color:#715d7b}
+.topbar{background:#fffdffeb;height:73px;border-bottom:1px solid #efe8f1;backdrop-filter:blur(12px)}
+.topbar-title{color:#6c4a71}
+.topbar .top-setting{background:#fff6f9;border:1px solid #f1e0e9;color:#7a5174;border-radius:13px}
+.topbar .top-kid{border-radius:14px;background:#fae7ee;color:#a93c5a}
+.countdown{background:#fff2f4;color:#9f3453;border:1px solid #f4dfe6;font-size:11px;padding:8px 12px}
+.content{max-width:1260px;padding:30px clamp(17px,3.5vw,55px) 106px}
+.eyebrow{color:#a36c9e;letter-spacing:1.2px;font-size:10px}
+.heading{color:var(--hq-ink);font-size:clamp(29px,3.7vw,42px)!important;line-height:1.07}
+.sub,.sectiondesc,.quiet,.helper{color:var(--hq-muted);line-height:1.55}
+.headrow{margin:0 0 22px;align-items:center}
+.headrow .sub{font-size:13px;max-width:660px}
+.sectiontitle{color:var(--hq-ink);font-size:21px}
+.primary,.secondary,.small-action{border-radius:14px;min-height:43px;letter-spacing:-.1px}
+.primary{color:white;background:var(--hq-red);border:1px solid var(--hq-red);box-shadow:0 6px 14px #c9344820;padding:11px 17px}
+.primary:hover{background:#ae2840;transform:translateY(-1px);box-shadow:0 10px 19px #c9344826}
+.secondary{background:white;border:1px solid #e6d8ed;color:#60426f;box-shadow:0 3px 9px #40234b08;padding:10px 15px}
+.secondary:hover{background:#faf4ff;border-color:#d7c5e3}
+.plain-btn{color:#9b3e65;font-weight:800}
+.small-action{color:#674d83;background:#f5eefc}
+:where(.panel,.settings-card,.cp-panel,.dw-section,.idea-recipient-card,.gift-card,.mail-card,.kid-card,.gp-idea-capture,.tp-board,.tp-calendar,.tp-card){
+  border-color:var(--hq-border)!important;box-shadow:var(--hq-shadow);border-radius:var(--hq-radius)
+}
+:where(.field input,.field select,.field textarea,.cp-modal-form input,.cp-modal-form select,.cp-modal-form textarea,.fa-form input){
+  background:#fff!important;border:1px solid #e6dfec!important;border-radius:12px!important;min-height:44px;color:#482b48!important
+}
+/* HOME — one hero, four large destinations and three small status links. */
+.gp-home-clean{max-width:1140px;margin:auto}
+.gp-home-clean .hq-hero{min-height:305px;display:flex;align-items:center;position:relative;overflow:hidden;padding:38px 40px;
+  background:radial-gradient(ellipse at 78% 28%,#fff8fe 0%,transparent 55%),linear-gradient(117deg,#f7ecff 0%,#f0e8ff 56%,#e8e0ff 100%);
+  border:1px solid #e6d9f2;border-radius:30px;box-shadow:0 16px 34px #76619915;color:var(--hq-ink)
+}
+.gp-home-clean .hq-hero:before{content:'';position:absolute;right:-8%;bottom:-67px;width:86%;height:145px;background:#ffffffe0;transform:rotate(-5deg);border-radius:50% 50% 0 0;pointer-events:none}
+.gp-home-clean .hq-hero:after{content:'';position:absolute;right:17%;top:12%;width:160px;height:160px;border:1px solid #fff9;border-radius:50%;box-shadow:0 0 0 29px #ffffff28,0 0 0 64px #ffffff14;pointer-events:none}
+.hq-hero .hero-copy{max-width:66%;z-index:2;position:relative}
+.hq-hero .hq-hello{font-size:10px;letter-spacing:1.45px;text-transform:uppercase;font-weight:800;color:#845a98;display:inline-block;margin-bottom:15px}
+.hq-hero .hq-home-title{font:900 clamp(30px,3.8vw,51px)/1.08 'Outfit',system-ui,sans-serif!important;letter-spacing:-1.8px;margin:0 0 22px}
+.hq-hero .hq-home-title span{display:block;color:var(--hq-ink)}
+.hq-hero .hq-home-title span+span{color:var(--hq-red)}
+.hq-hero .hq-sleeps{display:inline-flex;align-items:center;gap:10px;background:#fff8fbee;padding:10px 16px;border:1px solid white;border-radius:999px;box-shadow:0 5px 19px #66458e12;color:#5a3d66;font-size:12px;font-weight:800}
+.hq-hero .hq-sleeps svg{width:18px;height:18px;color:var(--hq-red)}
+.hq-hero .hq-santa-figure{position:absolute;right:0;bottom:-5px;width:42%;height:101%;max-height:340px;object-fit:contain;object-position:bottom center;filter:drop-shadow(0 11px 14px #71549d1c);z-index:1;pointer-events:none}
+.hq-hero .hq-hero-spark{position:absolute;right:34%;top:13%;font:900 35px Georgia,serif;color:#dfaa59;z-index:2}
+.hq-hero .hq-hero-spark.two{right:7%;top:18%;font-size:23px;color:#fff}
+.hq-home-intro{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:28px 0 13px}
+.hq-home-intro h2{font:900 20px 'Outfit',sans-serif;margin:0;color:var(--hq-ink)}
+.hq-home-intro p{font-size:12px;margin:4px 0 0;color:var(--hq-muted)}
+.hq-quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.hq-destination{appearance:none;border:1px solid #f0e4ed;background:#fff;border-radius:23px;padding:19px 18px;display:flex;align-items:center;gap:14px;min-height:113px;text-align:left;box-shadow:var(--hq-shadow);color:var(--hq-ink);position:relative}
+.hq-destination:hover{transform:translateY(-2px);box-shadow:0 14px 26px #4c285518}
+.hq-destination img{width:65px;height:65px;object-fit:contain;flex:none}
+.hq-destination .hq-label{flex:1;min-width:0;display:grid;gap:4px}
+.hq-destination strong{font:900 clamp(16px,1.65vw,22px)/1.15 'Outfit',sans-serif;letter-spacing:-.45px}
+.hq-destination small{font-size:11px;color:#746776;line-height:1.4}
+.hq-destination .hq-chevron{font:900 28px 'Outfit',sans-serif;color:#b84361;margin-left:auto;flex:none}
+.hq-destination.pink{background:linear-gradient(130deg,#ffe9ef,#fff5f8);border-color:#ffdde7}
+.hq-destination.mint{background:linear-gradient(130deg,#eaf6ec,#f7fff9);border-color:#dcefe0}
+.hq-destination.lavender{background:linear-gradient(130deg,#f1e8ff,#f9f5ff);border-color:#eae0fb}
+.hq-destination.cream{background:linear-gradient(130deg,#fff1e2,#fffaf2);border-color:#f5e6d4}
+.hq-status-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:16px 0 0}
+.hq-status{appearance:none;text-align:left;background:#fff;border:1px solid #eee5f1;border-radius:20px;padding:13px 14px;display:flex;align-items:center;gap:10px;box-shadow:var(--hq-shadow);color:var(--hq-ink);min-height:88px}
+.hq-status:hover{background:#faf5ff;transform:translateY(-1px)}
+.hq-status img{width:43px;height:43px;object-fit:contain;flex:none}
+.hq-status span{display:grid;gap:2px;min-width:0}
+.hq-status strong{font:900 13px/1.17 'Outfit',sans-serif}
+.hq-status small{color:var(--hq-muted);font-weight:700;font-size:11px}
+.hq-home-bottom{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;margin:16px 0 0}
+.hq-home-next{padding:13px 15px;border:1px solid #eee3ed;background:#fff;border-radius:15px;display:flex;align-items:center;gap:9px;flex:1 1 260px;color:#5a4260;font-size:12px}
+.hq-home-next button{margin-left:auto;white-space:nowrap}
+.hq-budget-details{background:#fff;border:1px solid #f0e9f2;border-radius:22px;margin:22px 0 0;padding:0 17px;box-shadow:0 5px 21px #4b2d5509}
+.hq-budget-details summary{cursor:pointer;list-style:none;font:900 14px 'Outfit',sans-serif;color:#5a3e63;display:flex;align-items:center;justify-content:space-between;min-height:51px}
+.hq-budget-details summary::-webkit-details-marker{display:none}
+.hq-budget-details summary:after{content:'+';font:800 22px Outfit,sans-serif;color:#ad6489}
+.hq-budget-details[open] summary:after{content:'−'}
+.hq-budget-details .kid-grid{margin:7px 0 17px}
+.hq-budget-details .kid-card{box-shadow:none}
+/* Gifts: a clear capture step, then per-child boards, with purchased status unchanged. */
+.gp-tabs{display:inline-flex!important;background:#f1ebf8!important;border:1px solid #e7dff0!important;border-radius:16px!important;padding:5px!important;gap:5px!important;max-width:100%;margin:5px 0 19px!important}
+.gp-tabs button{border:0!important;border-radius:12px!important;min-height:40px;padding:9px 16px!important;color:#745b80!important;background:transparent!important;white-space:normal;font-weight:800}
+.gp-tabs button.selected{background:#fff!important;color:var(--hq-red)!important;box-shadow:0 3px 9px #7455841f!important}
+.gp-toolbar{display:flex;gap:9px;flex-wrap:wrap;margin:0 0 8px}
+.gp-idea-capture{background:#fff!important;border:1px solid #eee6f1!important;padding:20px!important;max-width:none!important}
+.gp-idea-capture .primary{width:100%;max-width:210px}
+.gp-choice span,.pg-choices .gp-choice span{border:1px solid #ebe0ef!important;background:#fff!important;color:#644b6e!important;border-radius:12px!important;min-height:41px;display:inline-flex;align-items:center}
+.gp-choice input:checked+span,.pg-choices .gp-choice input:checked+span{background:#f9e7ef!important;border-color:#d77b96!important;color:#9c3154!important;box-shadow:0 0 0 1px #d77b9640}
+.idea-playground .idea-recipient-grid{gap:16px}
+.idea-playground .idea-recipient-card{background:#fff!important;border-radius:25px!important;padding:19px!important}
+.idea-playground .idea-recipient-symbol{border-radius:17px;width:55px;height:55px;flex:none;display:grid;place-items:center;background:#f5effd}
+.idea-playground .idea-recipient-head h3{font-size:21px!important;color:var(--hq-ink)}
+.idea-playground .idea-quick-actions .secondary{font-size:12px;min-height:40px;border-radius:13px;background:#fff9fd}
+.idea-playground .gp-kid-boards{gap:9px}
+.idea-playground .gp-board-lane{border-radius:17px!important;padding:12px!important;box-shadow:none}
+.idea-playground .gp-board-lane[data-placement="undecided"]{background:#f5efff!important;border-color:#e6daf4!important}
+.idea-playground .gp-board-lane[data-placement="stocking"]{background:#fff0f3!important;border-color:#f4dbe5!important}
+.idea-playground .gp-board-lane[data-placement="tree"]{background:#fff6e9!important;border-color:#f5e6d3!important}
+.idea-playground .gp-board-head h4{font-size:14px!important;color:#4c3058}
+.idea-playground .gp-idea-row{border:1px solid #ede6f1!important;box-shadow:0 3px 7px #4c284d0c;border-radius:13px!important}
+.idea-playground .gp-place-btn{border-radius:9px!important;min-height:33px}
+.idea-playground .gp-place-btn.active{background:#fbe8f1!important;color:#9b3454!important;border-color:#dda5bd!important}
+.idea-playground .gp-lane-empty{background:#ffffff91}
+.gp-compare,.morning-page{background:#fff8fc5c;border-radius:19px}
+.morning-summary,.morning-card,.gp-many-child{border-color:#eae1f0!important;box-shadow:0 6px 16px #653e6810;border-radius:17px!important}
+/* Christmas plans: use the same visual cards and light hierarchy. */
+.cp-page{color:var(--hq-ink)}
+.cp-switch{background:#f3edf9;gap:7px!important;padding:5px!important;border-radius:17px;border:1px solid #ebe3f2}
+.cp-switch button{background:transparent!important;border:0!important;border-radius:12px!important;color:#674f70!important;font-weight:800;font-size:12px!important}
+.cp-switch button[aria-pressed="true"]{background:#fff!important;color:#bd3956!important;box-shadow:0 3px 10px #6b4f7920!important}
+.cp-dash-stats>*,.cp-shopping-stats>*,.cp-panel{background:#fff!important;border:1px solid var(--hq-border)!important;box-shadow:var(--hq-shadow)!important;border-radius:20px!important}
+.cp-dash-stats>button{cursor:pointer}
+.cp-dash-stats strong,.cp-shopping-stats strong{color:#a43d5d!important}
+.cp-panel{padding:clamp(16px,2vw,24px)!important}
+.cp-top h2{font:900 21px 'Outfit',sans-serif!important;color:var(--hq-ink)}
+.cp-dash-toolbar{gap:9px}
+.cp-game-highlight{background:linear-gradient(115deg,#f1e7ff,#fff4ed)!important;border:1px solid #e9d8f6!important;border-radius:24px!important;box-shadow:var(--hq-shadow);padding:22px!important}
+.cp-game-highlight h2{color:var(--hq-ink)!important}
+.cp-game-icon{background:#fff1fb!important;color:#c43d67!important;border:1px solid #ead9e8}
+.cp-choice button{border-radius:16px!important}
+.cp-choice button[aria-pressed="true"]{background:#fff0f5!important;border-color:#de9fb4!important;color:#9a3151!important}
+.cp-shop-row{background:#fff;border-color:#eee5ef;border-radius:13px}
+.cp-shop-row input[type=checkbox],.cp-item input[type=checkbox],.tp-checkbox{accent-color:var(--hq-red);min-height:18px;min-width:18px}
+.cp-shop-row:has(input:checked),.cp-item:has(input:checked){background:#f9f5fa}
+.dw-section{background:#fff!important}
+.dw-refresh{background:var(--hq-red)!important;border-color:var(--hq-red)!important}
+/* Traditions: checklist is always permanent; calendar is a separate assignment. */
+.tp-overview{margin:12px 0 21px}
+.tp-card{background:#fff!important;box-shadow:0 3px 12px #50395c0c!important}
+.tp-card.tp-completed{opacity:.77}
+.tp-card .tp-small,.tp-actions .tp-small{border-radius:11px}
+.tp-calendar{background:#fff!important}
+.tp-day{border-radius:9px!important}
+.tp-day.tp-today{outline-color:#d36b92!important}
+.tp-day-item{background:#f9e7ef!important;color:#9d3b5c!important}
+/* Santa mail and Kid View. */
+.mail-hero{background:linear-gradient(125deg,#f6eaff,#fff0f0)!important;border:1px solid #eadff1;border-radius:25px!important;box-shadow:var(--hq-shadow)}
+.mail-hero h2,.mail-card strong{color:var(--hq-ink)}
+.mail-hero h2 span{color:var(--hq-red)!important}
+.mail-card{background:#fff!important}
+.mail-card.new{border-color:#ddb6d0!important;background:#fffaff!important}
+.kid-portal{background:#fcf9ff!important}
+.kid-sky{background:linear-gradient(137deg,#f2e4ff,#fff0f1)!important}
+.kid-choice,.kid-person{border-radius:20px!important}
+.kid-choice.active,.kid-person.active{background:#fff0f4!important;border-color:#d88fac!important}
+.kid-send{background:var(--hq-red)!important}
+/* Settings, family sharing, auth — same controls, without exposing hidden legacy sync. */
+.settings-grid{gap:16px}
+.settings-card{background:white!important}
+.settings-card h3{font:900 21px 'Outfit',sans-serif;color:var(--hq-ink)}
+.settings-card>p{color:var(--hq-muted)}
+.settings-card:has(#firebaseForm){display:none!important}
+.mf-choice-card,.mf-favorites,.mf-profile{border-color:var(--hq-border)!important;border-radius:19px!important}
+.mf-item{border-radius:13px}
+.mf-item:has(input:checked){background:#fff1f5!important;border-color:#eac6d6!important}
+#familyGate{background:linear-gradient(135deg,#faf6ff,#fff6f6)!important}
+.fa-shell{background:#fff!important;border-color:#eee3f1!important;box-shadow:0 22px 60px #633c7e1b!important;border-radius:27px!important}
+.fa-shell h1{color:var(--hq-ink)!important}
+.fa-submit{width:100%}
+.fa-art{gap:12px}
+.fa-wordmark{color:#51304e!important}
+.fa-wordmark span{color:var(--hq-red)!important}
+.fa-count-buttons button.active{background:#fae6f0!important;color:#a03453!important;border-color:#d9a3bb!important}
+.fa-form .fa-signup-icons input:checked+.elf-avatar{box-shadow:0 0 0 2px #c891ad!important}
+/* Modal style: buttons instead of dropdowns for primary decisions, details secondary. */
+.overlay{backdrop-filter:blur(5px);background:#241a2fad}
+.modal{border-radius:25px!important;background:#faf7ff!important}
+.modal-header,.modal-footer{background:#fff!important;border-color:#f0e7f1!important}
+.modal-header h2{color:var(--hq-ink);font-size:22px!important}
+.modal-inner .field>label,.pg-fieldset legend{color:#624d69;font-size:12px;font-weight:800}
+.pg-fieldset{border-color:#efe6f2!important;border-radius:14px!important;background:#fff!important}
+.paste-sorter-card{background:transparent}
+.paste-sorter-bar span,.progress .bar,.cp-track span{background:#c7476b!important}
+/* Native-feeling responsive mobile shell. */
+@media(max-width:1100px){.app{grid-template-columns:205px minmax(0,1fr)}.content{padding-left:24px;padding-right:24px}}
+@media(max-width:760px){
+  .app{display:block}.sidebar{display:none}
+  .topbar{height:66px;padding:0 16px}
+  .mobile-top-logo{font:900 21px 'Outfit',sans-serif;color:#4a294c}
+  .mobile-brand-art img{height:34px;width:34px;object-fit:contain}
+  .content{padding:18px 14px calc(104px + env(safe-area-inset-bottom))}
+  .mobile-nav{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;padding:8px 6px calc(8px + env(safe-area-inset-bottom));background:#fffbffec;backdrop-filter:blur(16px);border-top:1px solid #f0e8f1;box-shadow:0 -7px 23px #40264d15;justify-content:stretch;overflow:visible!important}
+  .mobile-nav .nav-btn{width:100%;min-width:0!important;max-width:100%;height:56px;padding:4px 0!important;border-radius:14px;gap:4px;color:#786b84;font-size:9px!important;line-height:1.12;text-align:center;white-space:normal}
+  .mobile-nav .nav-btn span{overflow-wrap:normal;max-width:100%}
+  .mobile-nav .nav-btn svg{width:21px;height:21px;flex:none}
+  .mobile-nav .nav-btn.active{background:#ffe9f0!important;color:#b72f4c!important}
+  .mobile-nav .nav-btn.active svg{color:#c93448}
+  .mobile-add{height:51px;width:51px;right:15px;bottom:calc(84px + env(safe-area-inset-bottom));background:#c93448!important;border-radius:17px!important;box-shadow:0 8px 21px #c9344840}
+  .gp-home-clean .hq-hero{min-height:287px;padding:25px 21px;border-radius:27px}
+  .hq-hero .hero-copy{max-width:72%}
+  .hq-hero .hq-home-title{font-size:clamp(26px,7.4vw,38px)!important;letter-spacing:-1.35px;margin:0 0 16px}
+  .hq-hero .hq-hello{font-size:9px;margin-bottom:11px}
+  .hq-hero .hq-sleeps{font-size:10px;padding:9px 10px;gap:6px}
+  .hq-hero .hq-sleeps svg{width:15px;height:15px}
+  .hq-hero .hq-santa-figure{right:-10px;width:49%;height:85%;bottom:-7px;max-height:280px}
+  .hq-home-intro{margin:22px 2px 12px}
+  .hq-quick-grid{gap:10px}
+  .hq-destination{padding:14px 12px;min-height:101px;gap:8px;border-radius:20px;flex-wrap:wrap;align-content:center}
+  .hq-destination img{height:50px;width:49px}
+  .hq-destination strong{font-size:16px}
+  .hq-destination small{display:none}
+  .hq-destination .hq-chevron{font-size:18px;margin-left:auto}
+  .hq-status-grid{gap:7px;margin-top:11px}
+  .hq-status{min-height:98px;padding:9px 6px;border-radius:16px;display:flex;flex-direction:column;text-align:center;justify-content:center;gap:5px}
+  .hq-status img{height:32px;width:34px}
+  .hq-status span{gap:3px}.hq-status strong{font-size:11px}.hq-status small{font-size:10px}
+  .hq-budget-details{margin-top:14px}
+  .headrow{margin-bottom:19px}
+  .heading{font-size:30px!important}
+  .cp-switch{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px!important}
+  .cp-switch button{min-height:45px}
+  .cp-dash-stats{gap:9px}
+  .cp-game-highlight{padding:14px!important}
+  .gp-idea-capture{padding:15px!important}
+  .gp-tabs{width:100%;display:flex!important}
+  .gp-tabs button{flex:1;min-width:0}
+  .idea-playground .idea-recipient-card{padding:14px!important}
+  .idea-playground .gp-kid-boards{grid-template-columns:minmax(0,1fr)}
+  .overlay .modal{border-radius:24px 24px 0 0!important}
+}
+@media(max-width:385px){
+ .hq-hero .hero-copy{max-width:78%}
+ .hq-hero .hq-home-title{font-size:25px!important}
+ .hq-hero .hq-santa-figure{width:45%;right:-16px}
+ .hq-destination img{width:43px;height:43px}.hq-destination strong{font-size:14px}
+ .hq-status strong{font-size:10px}
+ .mobile-nav .nav-btn{font-size:8px!important}
+}
+@media(prefers-reduced-motion:reduce){.hq-destination,.hq-status,.primary,.secondary{transition:none!important;transform:none!important}}
+/* Public gift list, visually separate from the adult planner but with same design tokens. */
+body.santa-family-list{background:linear-gradient(155deg,#fcf8ff,#fff8fc);color:var(--hq-ink)}
+.santa-family-list .shell{max-width:1020px;padding-top:24px}
+.santa-family-list .top{border-bottom:1px solid #eee5f0;margin-bottom:18px}
+.santa-family-list .brand{color:var(--hq-ink);font-weight:900}
+.santa-family-list .brand span{color:var(--hq-red)}
+.santa-family-list .top a{color:#a53a5d;border:1px solid #e9d9e5;background:#fff;border-radius:12px;padding:10px 13px;text-decoration:none}
+.santa-family-list .hero{color:var(--hq-ink);background:linear-gradient(120deg,#f4eaff,#fff1f5)!important;border:1px solid #edddf1;border-radius:27px;box-shadow:var(--hq-shadow)}
+.santa-family-list .hero h1{font-weight:900;color:var(--hq-ink)}
+.santa-family-list .hero p{color:#735e79}
+.santa-family-list .eyebrow{color:#9f537c}
+.santa-family-list .card{border-color:#eee4f0;border-radius:22px;box-shadow:var(--hq-shadow)}
+.santa-family-list .card h2{color:var(--hq-ink);font-weight:900}
+.santa-family-list .gift button{background:var(--hq-red);border-radius:12px}
+.santa-family-list .gift button:disabled{background:#e9e2ed;color:#8a7c91}
+.santa-family-list .gift-category h3{color:#975779}
+.santa-family-list .profile-cards{gap:13px}
+.santa-family-list .profile-card{border-color:#eee5f1!important;border-radius:16px!important}
+/* Guest hunt: no account, same playful premium holiday aesthetic. */
+body.santa-hunt{background:linear-gradient(145deg,#f8efff,#fff9f5);color:var(--hq-ink)}
+.santa-hunt .shell{max-width:1060px}
+.santa-hunt .brand{color:var(--hq-ink)}
+.santa-hunt .tag{background:#fce8ef;color:#a63c61}
+.santa-hunt .hero{background:linear-gradient(120deg,#f4e9ff,#fff1ee)!important;color:var(--hq-ink);border:1px solid #e9dcf0;border-radius:27px;box-shadow:var(--hq-shadow)}
+.santa-hunt .hero h1{color:var(--hq-ink)}
+.santa-hunt .hero p{color:#775f80}
+.santa-hunt .card,.santa-hunt .panel{border-color:var(--hq-border)!important;border-radius:22px!important;box-shadow:var(--hq-shadow)}
+.santa-hunt button.primary,.santa-hunt .primary{background:var(--hq-red)!important;border-radius:13px}
+.santa-hunt .clue{border-radius:17px!important}
+.santa-hunt .clue:has(input:checked){border-color:#df9cb4!important;background:#fff2f6!important}
+/* Final phone polish: no crowded header, no floating control hiding Home cards. */
+@media(max-width:760px){
+  .topbar .countdown,.topbar .top-kid{display:none!important}
+  .mobile-top-logo{white-space:nowrap;flex:none}
+  .topbar-actions{margin-left:auto;gap:8px}
+  .hq-hero .hero-copy{max-width:80%}
+  .hq-hero .hq-home-title{font-size:clamp(23px,6.3vw,30px)!important}
+  .hq-hero .hq-home-title span{white-space:nowrap}
+  body:not(:has(#content .idea-playground)) .mobile-add{display:none!important}
+}
+@media(max-width:385px){.hq-hero .hq-home-title{font-size:22px!important}}
+/* Legacy styles hid the sidebar from 761–940px without showing mobile navigation. */
+@media(min-width:761px) and (max-width:940px){
+  .app{display:grid!important;grid-template-columns:205px minmax(0,1fr)!important}
+  .sidebar{display:flex!important;width:auto;min-width:0}
+  .mobile-nav{display:none!important}
+  .main{min-width:0}
+  .content{padding:24px 18px 72px}
+  .hq-hero .hero-copy{max-width:73%}
+  .hq-hero .hq-home-title{font-size:clamp(27px,3.4vw,37px)!important}
+  .hq-destination{padding:13px;gap:8px}
+  .hq-destination img{width:43px;height:43px}
+  .hq-destination strong{font-size:15px}
+  .hq-destination small{font-size:10px}
+}
+/* Shared Santa HQ artwork in the brand and family account screens. */
+.sidebar .logo-mark img,.mobile-brand-art img,.fa-art img{width:100%!important;height:100%!important;object-fit:cover;border-radius:12px}
+.fa-art img{width:48px!important;height:48px!important;border-radius:14px}

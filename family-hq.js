@@ -4,7 +4,7 @@
 if(typeof render!=='function'||!window.SantaFamilies)return;
 const E=v=>escapeHTML(String(v??''));
 const current={ideas:[],bag:[],shareId:'',claims:[],loaded:false,loading:false,dirty:false,error:''};
-if(!navItems.some(x=>x[0]==='family'))navItems.splice(navItems.length-1,0,['family','gift','Family list']);
+if(!navItems.some(x=>x[0]==='family'))navItems.splice(navItems.length-1,0,['family','users','Family List']);
 function placement(g){return ({Stocking:'Stocking','Regular gift':'Under the tree','Big gift':'Big gift',Experience:'Experience','Shared / family':'Shared / family'})[g.category]||'Under the tree'}
 function eligible(type){return appState.gifts.filter(g=>type==='ideas'?['Idea','To buy'].includes(g.status):['Bought','Ordered','Arrived','Wrapped'].includes(g.status))}
 function giftsByRecipient(gs){return [...configuredChildren().map(c=>[c.id,c.name]),['both',sharedLabel()],['unassigned','Still deciding']].map(([id,name])=>[name,gs.filter(g=>g.kid===id)]).filter(([,items])=>items.length)}

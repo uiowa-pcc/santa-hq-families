@@ -32,8 +32,9 @@
 .elf-avatar[data-elf="elf-classic"]{background-position:100.00000% 100.00000%!important}
 .child-list-icon.elf-avatar{width:47px!important;height:47px!important;border-radius:15px}
 @media(max-width:650px){.child-list-icon.elf-avatar{width:42px!important;height:42px!important}}
-</style></head>
-<body><main class="shell"><header class="top"><div class="brand">santa hq<span>.</span></div><a href="./">Make your own Santa HQ</a></header><div id="area">Opening this family's gift list…</div><p class="status">Only gifts approved by the family are shown here. Private Santa HQ plans stay private.</p></main>
+</style><link rel="stylesheet" href="./santa-hq-design.css">
+</head>
+<body class="santa-family-list"><main class="shell"><header class="top"><div class="brand">santa hq<span>.</span></div><a href="./">Make your own Santa HQ</a></header><div id="area">Opening this family's gift list…</div><p class="status">Only gifts approved by the family are shown here. Private Santa HQ plans stay private.</p></main>
 <script>
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const id=new URLSearchParams(location.hash.slice(1)).get('list')||'';

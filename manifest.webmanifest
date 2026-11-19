@@ -1,0 +1,25 @@
+{
+  "id": "./",
+  "name": "Santa HQ \u2014 Christmas Planner",
+  "short_name": "Santa HQ",
+  "description": "One cozy place for Christmas gifts, traditions, Santa Mail, and family plans.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fbf8ff",
+  "theme_color": "#fbf8ff",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

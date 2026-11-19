@@ -60,7 +60,7 @@ function gate(){
     title=mode==='verified'?'Email confirmed!':'Check your email';lede=mode==='verified'?'Your email address is verified. Sign in to your family’s planner.':'If the account exists, a link is on its way. Check your inbox and spam folder.';
     footer='<div class="fa-bottom"><button type="button" data-fa="signin">Back to sign in</button></div>';
   }
-  G.innerHTML=`<div class="fa-shell"><div class="fa-art"><img src="./art/santa-peek.svg" alt="" onerror="this.style.display='none'"><span class="fa-wordmark">santa hq<span>.</span></span></div>
+  G.innerHTML=`<div class="fa-shell"><div class="fa-art"><img src="./icon-192.png" alt="" onerror="this.style.display='none'"><span class="fa-wordmark">santa hq<span>.</span></span></div>
     <span class="fa-kicker">YOUR FAMILY'S LITTLE NORTH POLE</span><h1>${title}</h1><p class="fa-lede">${lede}</p>${fields}${footer}<div class="fa-private">🔒 Gift lists are private to your family. Relatives only see what you choose to share.</div></div>`;
 }
 function updateStatus(){

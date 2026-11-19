@@ -1,6 +1,6 @@
 /* Santa HQ family edition. Never cache account, gift, invitation, or claim API responses. */
-const CACHE='santa-hq-v28-clear-navigation-lights';
-const CORE=['./','./index.html','./family-sync.js','./family-hq.js','./family.html','./hunt.html','./hunt.js','./hunt-photos.webp','./elf-avatars.webp'];
+const CACHE='santa-hq-v29-christmas-magic-design';
+const CORE=['./','./index.html','./santa-hq-design.css','./santa-home.webp','./family-sync.js','./family-hq.js','./family.html','./hunt.html','./hunt.js','./hunt-photos.webp','./elf-avatars.webp'];
 const OPTIONAL=['./manifest.webmanifest','./icon-192.png','./icon-512.png','./art/crayons.svg','./art/elf.svg','./art/letter.svg','./art/mailbox.svg','./art/microphone.svg','./art/ornament.svg','./art/present.svg','./art/santa-full.svg','./art/santa-peek.svg','./art/stocking.svg','./art/tree.svg'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(async cache=>{await cache.addAll(CORE);await Promise.all(OPTIONAL.map(a=>cache.add(a).catch(()=>{})))}));self.skipWaiting()});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('santa-hq-')&&k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim()});
