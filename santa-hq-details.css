@@ -1,0 +1,309 @@
+/* Santa HQ · Christmas Magic — detailed screens
+   Complements santa-hq-design.css. Presentation only: no data or account changes. */
+:root {
+  --hq-card:#ffffff;
+  --hq-heading:#48243d;
+  --hq-soft-ink:#66576e;
+  --hq-soft-border:#ede5f1;
+  --hq-blush:#fff1f4;
+  --hq-violet:#f3edff;
+  --hq-sage:#eff8ef;
+  --hq-butter:#fff7e8;
+  --hq-elevation:0 10px 27px rgba(82,47,93,.072);
+}
+/* Cross-page foundation: same hierarchy, same form fields, same tappable surfaces. */
+#content .headrow{margin-bottom:22px;align-items:center}
+#content .headrow>.primary{flex:none}
+#content .headrow .heading{letter-spacing:-1.05px}
+#content .headrow .sub{max-width:660px;font-size:13px}
+#content :is(.sectionhead,.cp-top,.tp-section-top,.tp-calendar-head){gap:16px}
+#content :is(.sectionhead h2,.cp-top h2,.tp-section-top h2,.tp-calendar-head h2){font-family:Outfit,'DM Sans',sans-serif;font-size:20px;letter-spacing:-.5px;color:var(--hq-heading)}
+#content .primary,#content .secondary,#content .small-action,#content .tp-small,#content .cp-edit,#content .gp-purchase{font-family:'DM Sans',system-ui,sans-serif}
+#content :is(.primary,.secondary,.small-action,.tp-small,.cp-edit,.gp-purchase,.gp-place-btn,.gp-tabs button,.cp-switch button){min-height:40px;display:inline-flex;align-items:center;justify-content:center;touch-action:manipulation}
+#content :is(.tp-small,.cp-edit){border:1px solid #e9deee;border-radius:12px;background:#faf5ff;color:#674b77;padding:8px 12px;font-size:11px;font-weight:800}
+#content :is(.tp-small,.cp-edit):hover{background:#f2e8fa;border-color:#dbcbe3}
+#content :is(.tp-small,.cp-edit,.gp-place-btn,.cp-switch button)[aria-pressed=true]{background:#fbeaf0;color:#a72f4c;border-color:#dfb6c6}
+#content .gp-count-pill,#content .cp-count{background:#fff1f5;border:1px solid #f3dfe9;border-radius:20px;color:#a94365;padding:4px 9px;font-size:11px;font-weight:800}
+#content :is(.cp-empty,.tp-empty,.gp-no-results){background:#fffbff;border:1px dashed #dfd0e7;border-radius:17px;color:#8d7d92;padding:23px;font-size:12px;line-height:1.5}
+#content :is(.cp-panel,.tp-board,.tp-calendar-panel,.idea-recipient-card,.gp-many-child,.gp-many-shared){border-radius:24px!important;box-shadow:var(--hq-elevation);background:#fff}
+/* PLAN GIFTS — per-child boards with 3 actual destinations instead of a wall of pills. */
+#content .idea-playground{margin-top:8px}
+#content .idea-playground .sectionhead{border:1px solid #eee4f2;border-radius:22px;padding:17px 19px;background:linear-gradient(110deg,#f8f2ff,#fff8fb);margin-bottom:17px}
+#content .idea-playground .sectiontitle{font-size:22px}
+#content .idea-playground .sectiondesc{margin-top:5px;font-size:12px}
+#content .idea-playground .idea-recipient-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:19px}
+#content .idea-recipient-card{padding:21px 22px!important;overflow:hidden;position:relative}
+#content .idea-recipient-card:before{content:'';position:absolute;left:0;right:0;top:0;height:5px;background:linear-gradient(90deg,#b9a2e7,#f5b2c5,#f5d39c)}
+#content .idea-recipient-head{display:flex;align-items:center;gap:13px;padding-bottom:14px;border-bottom:1px solid #f1eaf3}
+#content .idea-recipient-symbol{height:59px;width:59px;display:grid;place-items:center;background:#f7efff;border-radius:20px;font-size:28px;flex:none;box-shadow:inset 0 0 0 1px #e8dff1}
+#content .idea-recipient-symbol .elf-avatar{width:55px!important;height:55px!important;border-radius:17px}
+#content .gp-recipient-name h3{font:900 24px Outfit,sans-serif!important;margin:0 0 2px;color:#43263d}
+#content .gp-recipient-name p{font-size:12px;color:#86778d}
+#content .idea-quick-actions{gap:8px;flex-wrap:wrap;margin:13px 0 16px}
+#content .idea-quick-actions .secondary{background:#fff!important;border-color:#ecdeeb;min-height:39px;border-radius:12px;color:#884e73!important;padding:8px 13px}
+#content .idea-quick-actions .secondary:hover{background:#fff1f6!important}
+#content .gp-kid-boards{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:stretch}
+#content .gp-board-lane{border-radius:19px;border:1px solid #e8dff3;padding:13px 11px;box-shadow:none;min-width:0;overflow:hidden}
+#content .gp-board-lane[data-placement=undecided]{background:#f7f2ff;border-color:#e8ddfa}
+#content .gp-board-lane[data-placement=stocking]{background:#fff1f5;border-color:#f4dfe7}
+#content .gp-board-lane[data-placement=tree]{background:#fff8ed;border-color:#f1e6d4}
+#content .gp-board-head{display:flex;align-items:center;justify-content:space-between;gap:7px;min-height:50px;border-bottom:1px solid #ffffffb8;padding:0 2px 10px;margin-bottom:12px}
+#content .gp-board-head h4{font:900 15px Outfit,sans-serif!important;letter-spacing:-.35px;display:flex;align-items:center;gap:7px}
+#content .gp-board-head h4:before{content:'';width:28px;height:28px;flex:none;border-radius:10px;background:#fff center/20px 20px no-repeat;box-shadow:0 2px 6px #5b31590d}
+#content .gp-board-lane[data-placement=stocking] .gp-board-head h4:before{background-image:url('./art/stocking.svg')}
+#content .gp-board-lane[data-placement=tree] .gp-board-head h4:before{background-image:url('./art/present.svg')}
+#content .gp-board-lane[data-placement=undecided] .gp-board-head h4:before{background-image:url('./art/ornament.svg')}
+#content .gp-board-head p{font-size:10px;color:#8b7d93;margin-top:3px}
+#content .gp-board-count{background:#fff;border-color:#eee4f0;min-width:28px;height:28px;color:#74557d}
+#content .gp-board-lane .idea-recipient-items{gap:10px}
+#content .gp-idea-row{background:#fff;border:1px solid #ede5ef;box-shadow:0 4px 10px #68416a09;border-radius:15px;padding:12px;gap:11px}
+#content .gp-idea-text strong{font:800 13px/1.38 'DM Sans',sans-serif;color:#453049}
+#content .gp-idea-text small{font-size:10px;line-height:1.5;color:#887991}
+#content .gp-idea-placement{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;align-items:stretch;border-top:1px solid #f2ecf4;padding-top:9px}
+#content .gp-move-label{grid-column:1/-1;font-size:10px;margin-bottom:2px;color:#8b7c91}
+#content .gp-place-btn{border:1px solid #e8dfe9;color:#775d80;background:#fbf8fc;border-radius:10px;min-width:0;min-height:34px;padding:6px 2px;font-size:10px;font-weight:800;text-align:center}
+#content .gp-place-btn.active{background:#fbe6ef!important;border-color:#daa8bf!important;color:#aa355c!important;box-shadow:inset 0 0 0 1px #fff}
+#content .gp-place-btn.active:before{content:'✓ ';font-weight:900}
+#content .gp-idea-actions{gap:5px;display:flex;align-items:center;flex-wrap:wrap}
+#content .gp-idea-actions .tp-small{min-height:34px;font-size:10px;padding:7px 9px}
+#content .gp-idea-actions .gp-purchase{border-radius:11px!important;min-height:36px;font-size:10px;padding:8px 10px}
+#content .gp-purchase:not(.is-purchased):not(.is-shopping){background:#ce354c!important;color:#fff!important;border-color:#ce354c!important}
+#content .gp-purchase.is-shopping{background:#fff4e7!important;color:#905f39!important;border-color:#f3ddc3!important}
+#content .gp-purchase.is-purchased{background:#edf7f0!important;color:#3a7656!important;border-color:#d0ead8!important}
+#content .gp-lane-empty{font-size:11px;border:1px dashed #e0d3e8;background:#ffffffaa;border-radius:13px;padding:15px 9px;min-height:65px;color:#94869c}
+#content .idea-deciding{border-radius:22px;border:1px solid #eee5f2;background:#fff;padding:20px}
+#content .idea-assign{gap:6px}
+/* COMPARE GIFTS — clean overview, no additional gift records. */
+#content .gp-helper{padding:12px 15px;border:1px solid #e9e0f1;background:#faf5ff;border-radius:14px;line-height:1.5;margin:6px 0 17px;color:#736580}
+#content .morning-page .morning-snapshot{gap:12px}
+#content .morning-snapshot > *,#content .plan-score{border-radius:21px!important;background:#fff!important;border:1px solid #eee4f0!important;box-shadow:var(--hq-elevation);padding:16px}
+#content .morning-section-title{margin:24px 0 13px;border-bottom:1px solid #f0e7ef;padding-bottom:8px}
+#content .morning-section-title h2{color:#55344b;font-size:21px}
+#content .morning-column-heads{gap:12px}
+#content .morning-colhead{border-radius:15px;background:#f8effe;border:1px solid #eae0f3;padding:10px}
+#content .morning-colhead.two{background:#fff1f6;border-color:#f4dfe8}
+#content .plan-card{background:white;border:1px solid #ede4ef;box-shadow:0 5px 14px #6541680c;border-radius:15px;overflow:hidden}
+#content .plan-card-photo{background:#faf4ff;border-radius:12px}
+#content .plan-card-name{font-size:12px;color:#49364f;line-height:1.4}
+#content .plan-card-info small{font-size:10px;color:#958599}
+#content .plan-card .plan-move{border:1px solid #e8dce9;background:#faf5fb;border-radius:9px;color:#785f80}
+#content .gp-many-compare{gap:14px}
+#content .gp-many-child,#content .gp-many-shared{padding:18px!important;border:1px solid var(--hq-border)!important}
+#content .gp-many-child h3{font:900 21px Outfit,sans-serif;color:var(--hq-heading)}
+/* CHRISTMAS PLANS — dashboard and linked to-do list with clear checkable rows. */
+#content .cp-switch{background:#f3ecf9;padding:6px;border-radius:17px;border:1px solid #eadff1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;overflow:visible;white-space:normal}
+#content .cp-switch button{border:0;background:transparent;color:#775d80;min-height:44px;border-radius:12px;font-size:11px;white-space:normal;padding:7px 9px}
+#content .cp-switch button[aria-pressed=true]{background:#fff!important;color:#b43555!important;box-shadow:0 4px 11px #62376214;border-color:transparent}
+#content .cp-dash-stats>*,#content .cp-shopping-stats>*{border-color:#ebe2ef;border-radius:20px;box-shadow:0 5px 18px #54335a0b}
+#content .cp-dash-stats>*:nth-child(1),#content .cp-shopping-stats>*:nth-child(1){background:#f4ecff}
+#content .cp-dash-stats>*:nth-child(2),#content .cp-shopping-stats>*:nth-child(2){background:#fff0f5}
+#content .cp-dash-stats>*:nth-child(3){background:#eef8ef}
+#content .cp-dash-stats strong,#content .cp-shopping-stats strong{color:#703e76}
+#content .cp-dashboard .cp-panel,#content .cp-page>.cp-panel{margin:16px 0}
+#content .cp-panel{border-color:#eee4f2!important;padding:21px}
+#content .cp-panel .cp-top{align-items:center}
+#content .cp-top h2{margin:0;font:900 21px Outfit,sans-serif;color:#482b45}
+#content .cp-top p{font-size:12px;color:#84758a;max-width:580px}
+#content .cp-list,#content .cp-shop-items{display:grid;gap:9px;margin-top:15px}
+#content .cp-item,#content .cp-shop-row{background:#fff;border:1px solid #f0e7ef;border-radius:15px;padding:12px 13px;box-shadow:0 2px 9px #6e416008;display:flex;align-items:center;gap:11px;margin:0}
+#content .cp-item.is-done{opacity:1;background:#f9faf9;border-color:#e5ece4}
+#content .cp-item.is-done .cp-task-name{color:#858b85}
+#content .cp-check,#content .tp-checkbox,#content .cp-shop-row>input[type=checkbox]{appearance:none;-webkit-appearance:none;width:23px;height:23px;min-width:23px;border:2px solid #d9c9df;border-radius:8px;background:#fff;display:grid;place-items:center;cursor:pointer;flex:none;margin:0;transition:background .15s,border-color .15s}
+#content .cp-check:checked,#content .tp-checkbox:checked,#content .cp-shop-row>input[type=checkbox]:checked{background:#a35ab2;border-color:#a35ab2}
+#content .cp-check:checked:after,#content .tp-checkbox:checked:after,#content .cp-shop-row>input[type=checkbox]:checked:after{content:'✓';font-size:15px;font-weight:900;color:white;line-height:1}
+#content .cp-check:focus-visible,#content .tp-checkbox:focus-visible,#content .cp-shop-row>input[type=checkbox]:focus-visible{outline:3px solid #ca9de3;outline-offset:2px}
+#content .cp-item-main,#content .cp-shop-details{flex:1;min-width:0}
+#content .cp-task-name,#content .cp-shop-details strong{font-weight:800;font-size:13px;color:#513a50;line-height:1.35}
+#content .cp-detail,#content .cp-shop-details small{color:#8b7e91;font-size:11px;line-height:1.4}
+#content .cp-linked-items{gap:6px;margin-top:8px}
+#content .cp-linked-chip{border:1px solid #e8def0;background:#f7f2ff;color:#765b89;border-radius:100px;padding:5px 10px;font-size:10px}
+#content .cp-linked-chip.is-bought{background:#edf8f0;color:#49775b;border-color:#d1ebd8}
+#content .cp-task-shop-add{min-height:32px;padding:6px 0;color:#a14264;font-size:11px}
+#content .cp-edit{flex:none;min-height:35px}
+#content .cp-iconbutton{flex:none;min-width:33px;height:35px;border-radius:9px;color:#9d7994}
+#content .cp-iconbutton:hover{background:#fff0f3;color:#b52c4d}
+#content .cp-progress-head{color:#765b82}
+#content .cp-progress-head strong{color:#b33d5d}
+#content .cp-track{background:#f3e9f2;height:11px}
+#content .cp-track span{background:linear-gradient(90deg,#c65e8c,#ce354c)!important}
+#content .cp-grid{gap:14px}
+#content .cp-grid>.cp-panel{margin:0!important}
+#content .cp-task-phase{display:inline-flex;background:#f4ebff;border-radius:10px;padding:6px 10px;color:#7d5696;margin:0 0 10px;font-size:10px}
+#content .cp-grid>.cp-panel:nth-child(2) .cp-task-phase{background:#fff1eb;color:#a96b4d}
+#content .cp-shopping-stats{margin:17px 0 20px}
+#content .cp-shop-row{border:1px solid #f0e8ef!important}
+#content .cp-shop-price{font:900 13px Outfit,sans-serif;color:#8e5068}
+#content .cp-purchased{background:#fbfefc!important;border-color:#dfede2!important}
+#content .cp-purchased .cp-shop-row{background:#f9fdf9}
+#content .cp-dash-toolbar{gap:8px}
+#content .cp-dashboard .cp-grid>div{border-radius:16px;background:#fbf7ff}
+#content .cp-game-highlight{background:linear-gradient(110deg,#f2e8ff,#fff0f2)!important;border:1px solid #e8d9ef!important;border-radius:22px;box-shadow:var(--hq-elevation);align-items:center}
+#content .cp-game-copy h2{font:900 21px Outfit,sans-serif;color:#573752}
+#content .cp-hunt-hero{background:linear-gradient(115deg,#eee6ff,#fff3ed)!important;border:1px solid #e9ddef;border-radius:23px}
+#content .cp-hunt-ready{background:#f6f0ff;border-color:#e5d6f1;border-radius:18px}
+#content .cp-choice button{border-radius:15px!important;min-height:74px;background:#fff;color:#63466d}
+#content .cp-choice button[aria-pressed=true]{background:#fff1f6;color:#ab3b5d;border-color:#dcb0c2}
+/* TRADITIONS — visually linked checklist and calendar, both persist. */
+#content .tp-overview{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 15px}
+#content .tp-overview span{background:#fff;border:1px solid #eee4f1;border-radius:16px;padding:11px 15px;box-shadow:0 5px 14px #684d6c0b;color:#85738a;font-size:12px}
+#content .tp-overview strong{color:#a7476c;font:900 20px Outfit,sans-serif}
+#content .tp-layout{grid-template-columns:minmax(285px,.95fr) minmax(0,1.3fr);gap:15px;align-items:start}
+#content .tp-board,#content .tp-calendar-panel{padding:20px;border:1px solid #eee2f1;box-shadow:var(--hq-elevation);border-radius:23px}
+#content .tp-board{background:linear-gradient(180deg,#fffcff 0%,#fff 150px)}
+#content .tp-calendar-panel{background:#fff}
+#content .tp-section-top h2,#content .tp-calendar-head h2{font:900 21px Outfit,sans-serif;margin:0 0 5px;color:#4d2f49}
+#content .tp-section-top p,#content .tp-calendar-head p{font-size:11px;color:#8a7e90;line-height:1.45}
+#content .tp-priority-group{margin:15px 0}
+#content .tp-group-head{background:#f6efff;border:1px solid #eae0f5;border-radius:12px;padding:9px 11px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+#content .tp-group-head h3{margin:0;font:900 13px Outfit,sans-serif;color:#76518a}
+#content .tp-group-head span{min-width:25px;text-align:center;background:#fff;border-radius:50px;padding:3px 6px;color:#9e6298;font-size:11px;font-weight:800}
+#content .tp-priority-group:has(.tp-p0) .tp-group-head{background:#fff0f5;border-color:#f5dce6}
+#content .tp-priority-group:has(.tp-p0) .tp-group-head h3{color:#a33d60}
+#content .tp-priority-group:has(.tp-p2) .tp-group-head{background:#f6f7f5;border-color:#e8ebe3}
+#content .tp-card.tp-check-card{border:1px solid #eee5ef;border-radius:14px;background:#fff;padding:12px;margin:8px 0 0;box-shadow:0 4px 11px #623b6210}
+#content .tp-card.tp-selected{border-color:#c99ed2!important;background:#fff8fd!important;box-shadow:0 0 0 2px #f2dcee}
+#content .tp-card.tp-completed{background:#f8fcf9;border-color:#e0ebe1}
+#content .tp-check-line{display:flex;align-items:flex-start;gap:11px}
+#content .tp-checkbox{margin-top:1px}
+#content .tp-card-main{min-width:0;flex:1}
+#content .tp-title-row strong{color:#543b53;font-size:13px;line-height:1.35}
+#content .tp-card.tp-completed .tp-title-row strong{color:#8b958e;text-decoration:line-through}
+#content .tp-metadata{margin-top:6px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;color:#938695;font-size:10px}
+#content .tp-priority{border:1px solid #f0dce6;background:#fff5f8;color:#a34c70;border-radius:9px;padding:5px 8px;font-size:10px;font-weight:800}
+#content .tp-priority.tp-p1{background:#f3edff;border-color:#e6dcf4;color:#7857a2}
+#content .tp-priority.tp-p2{background:#f1f6ef;border-color:#dfeada;color:#62836a}
+#content .tp-date{background:#f5f0ff;border-radius:9px;padding:5px 8px;color:#6a537c;font-weight:800}
+#content .tp-notes{font-size:11px;color:#8e8491}
+#content .tp-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+#content .tp-check-actions .tp-small{min-height:34px;padding:6px 10px;font-size:10px}
+#content .tp-check-actions .tp-small.active{background:#f7e6f2;border-color:#ddbad1;color:#a13f71}
+#content .tp-selected-note{padding:12px 14px;background:#fff0f6;border:1px solid #f0d9e8;border-radius:14px;color:#8a4165;font-size:12px}
+#content .tp-selected-note button{border:0;background:#fff;border-radius:9px;color:#9b436d;font-weight:800;padding:6px 8px}
+#content .tp-calendar-head{border-bottom:1px solid #f0e7f1;padding-bottom:15px;margin-bottom:13px}
+#content .tp-month-nav{display:flex;align-items:center;gap:7px}
+#content .tp-month-nav strong{font:900 13px Outfit,sans-serif;color:#59415c;min-width:116px}
+#content .tp-month-nav button{width:36px;height:36px;border:1px solid #ecdfec;background:#faf5ff;border-radius:12px;color:#9c4b74;font-size:21px;line-height:1}
+#content .tp-weekheads{color:#968698;font-size:10px;font-weight:900;letter-spacing:.45px}
+#content .tp-day{background:#fcfaff;border:1px solid #eee5f2;min-height:79px;min-width:0;padding:5px;display:flex;flex-direction:column;align-items:stretch;gap:3px;border-radius:11px;overflow:hidden;text-align:left;color:#5f4969}
+#content .tp-day:hover{background:#f5eeff;border-color:#d7c2e6;box-shadow:inset 0 0 0 1px #e5d9f2}
+#content .tp-day.tp-outside{opacity:.38;background:#faf9fc}
+#content .tp-day.tp-today{box-shadow:inset 0 0 0 2px #c9799c;border-color:#d698b2;background:#fff7fa}
+#content .tp-day-number{font-size:11px;font-weight:900;color:#645366;align-self:flex-start;margin:1px 2px}
+#content .tp-day.tp-today .tp-day-number{background:#c93448;border-radius:30px;padding:2px 6px;color:#fff}
+#content .tp-day-items{display:grid;gap:3px;min-width:0;width:100%}
+#content .tp-day-item{min-width:0;max-width:100%;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#8d3d64;background:#ffe7f1;border-radius:6px;padding:3px 4px}
+#content .tp-day-item.tp-complete{color:#4f805e;background:#e8f5ea;text-decoration:line-through}
+#content .tp-more{font-size:9px;color:#917c95;padding-left:3px}
+#content .tp-hint{padding:11px 13px;border:1px solid #eee4f1;border-radius:11px;background:#faf7ff;font-size:11px;color:#866b8c;line-height:1.5}
+#content .tp-inspiration{background:#fff;border:1px solid #ede5f0;border-radius:13px;margin-top:15px;padding:11px 13px}
+#content .tp-inspiration summary{font-size:12px;font-weight:800;color:#905c82;cursor:pointer}
+#content .tp-suggest{border:1px solid #e6dce9;border-radius:10px;background:#faf6ff;color:#6b4f7b;padding:8px 11px;min-height:38px}
+/* SANTA MAIL & KID VIEW — warm, playful, easier to scan. */
+#content .mail-hero{border:1px solid #ead9f0;background:linear-gradient(115deg,#f2e9ff,#fff0f5);border-radius:24px;box-shadow:var(--hq-elevation);padding:25px}
+#content .mail-hero h2{color:#472b49;font:900 clamp(24px,3vw,31px) Outfit,sans-serif}
+#content .mail-hero h2 span{color:#c93448}
+#content .mail-hero p{color:#816c88;max-width:510px}
+#content .mail-list{display:grid;gap:12px}
+#content .mail-card{border:1px solid #eee4f1;background:white;box-shadow:var(--hq-elevation);border-radius:21px;padding:19px}
+#content .mail-card.new{background:#fffaff;border-color:#edc7da}
+#content .mail-avatar{width:51px;height:51px;background:#f7eaff;border:1px solid #eae0f4;border-radius:17px;flex:none}
+#content .mail-avatar .elf-avatar{width:48px!important;height:48px!important;border-radius:15px}
+#content .mail-meta strong{font-size:13px;color:#5b365b}
+#content .mail-new{background:#fff0f3;color:#b83956!important}
+#content .mail-kind{color:#a05a7d;font-weight:800}
+#content .mail-content>p{line-height:1.6;color:#65566d}
+#content .santa-reply{background:#fff6e8;border:1px solid #f1e5d1;border-radius:14px;color:#74546a}
+#content .mail-actions .secondary{min-height:37px}
+.kid-portal{background:linear-gradient(180deg,#fcf8ff,#fff9fd)!important}
+.kid-portal .kid-sky{background:linear-gradient(145deg,#e7d7ff,#ffebf4)!important}
+.kid-portal .kid-intro h1{color:#4e2c50}
+.kid-portal .kid-intro h1 span{color:#b94472}
+.kid-portal .kid-person,.kid-portal .kid-mode{border:1px solid #eae0f1;background:#fff;border-radius:20px;box-shadow:0 4px 15px #5531650e}
+.kid-portal .kid-person.active,.kid-portal .kid-mode.active{background:#fff0f6;border:2px solid #dca6c2;box-shadow:0 4px 10px #80395212}
+.kid-portal .kid-studio{border-radius:24px;box-shadow:var(--hq-elevation);border-color:#eddfef}
+.kid-portal .kid-send{border-radius:16px;background:#c93448!important;box-shadow:0 8px 20px #b9436c22}
+/* FAMILY LIST — child-specific cards and easy-to-claim items. */
+.santa-family-list .hero{border-radius:28px;background:linear-gradient(120deg,#f3eaff,#fff0f3)!important}
+.santa-family-list .hero h1{color:#472743}
+.santa-family-list .child-lists{gap:21px}
+.santa-family-list .child-list-card{border:1px solid #eee1ef!important;border-radius:25px;padding:23px;background:#fff;box-shadow:var(--hq-elevation)}
+.santa-family-list .child-list-head{padding-bottom:17px;border-bottom:1px solid #f2e8f1}
+.santa-family-list .child-list-head h2{font:900 23px Outfit,sans-serif;color:#4b2e48}
+.santa-family-list .child-list-icon{background:#f3e9ff;border-radius:17px}
+.santa-family-list .child-list-columns{gap:13px}
+.santa-family-list .child-gift-section{border:1px solid #ede2f0;border-radius:19px;padding:17px;background:#fcfaff}
+.santa-family-list .child-gift-section:first-child{background:#faf5ff}
+.santa-family-list .child-gift-section:nth-child(2){background:#fff7f9;border-color:#f2dfe8}
+.santa-family-list .child-gift-section>h3{font:900 18px Outfit,sans-serif;color:#7e477c}
+.santa-family-list .child-gift-section:nth-child(2)>h3{color:#af526b}
+.santa-family-list .gift-category h4{color:#8b5f83}
+.santa-family-list .gift{border-top:1px solid #ede6ed;padding:12px 0;gap:9px}
+.santa-family-list .gift strong{font-size:13px;color:#533e54}
+.santa-family-list .gift small{font-size:11px;color:#88798b}
+.santa-family-list .gift button{border:0;border-radius:12px;min-height:38px;background:#c93448;color:#fff;padding:8px 12px;font-size:11px}
+.santa-family-list .gift button:disabled{background:#ede7ef;color:#8d8292}
+.santa-family-list .child-profile>div{border-radius:13px;background:#f5effd;border:1px solid #ece1f5}
+.santa-family-list .child-profile b{color:#865b91}
+.santa-family-list .status{color:#8a788c}
+/* GUEST HUNT — photos and scoreboard share the same presentation language. */
+.santa-hunt .hero{border-radius:28px;background:linear-gradient(120deg,#eee2ff,#fff1f3)!important}
+.santa-hunt .card,.santa-hunt .panel{border-radius:22px!important;border:1px solid #eee3f1!important;box-shadow:var(--hq-elevation)}
+.santa-hunt .clue{border-radius:18px!important;border-color:#eee1ef!important;background:#fff!important;overflow:hidden}
+.santa-hunt .clue:has(input:checked){background:#f2fcf4!important;border-color:#b8dec5!important}
+.santa-hunt .primary{background:#c93448!important;border-radius:14px!important;min-height:43px}
+/* Phone and tablet: keep the boards/cards readable and calendar date hit areas usable. */
+@media(max-width:1080px){
+  #content .tp-layout{grid-template-columns:minmax(0,1fr)}
+  #content .gp-kid-boards{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #content .gp-board-lane[data-placement=undecided]{grid-column:1/-1}
+}
+@media(max-width:760px){
+  #content .idea-playground .sectionhead{padding:14px;margin-bottom:12px;align-items:flex-start}
+  #content .idea-recipient-card{padding:15px!important;border-radius:20px!important}
+  #content .idea-recipient-symbol{width:48px;height:48px;border-radius:15px}
+  #content .idea-recipient-symbol .elf-avatar{width:45px!important;height:45px!important}
+  #content .gp-recipient-name h3{font-size:21px}
+  #content .gp-kid-boards{grid-template-columns:minmax(0,1fr);gap:11px}
+  #content .gp-board-lane[data-placement=undecided]{grid-column:auto}
+  #content .gp-board-head{min-height:0;margin-bottom:9px}
+  #content .gp-board-lane{padding:13px}
+  #content .gp-idea-row{padding:12px}
+  #content .cp-panel,#content .tp-board,#content .tp-calendar-panel{padding:15px!important;border-radius:19px!important}
+  #content .cp-switch{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+  #content .cp-switch button{font-size:11px;padding:9px 6px;min-height:43px}
+  #content .cp-dash-stats strong{font-size:18px}
+  #content .cp-item,#content .cp-shop-row{padding:10px;gap:8px;flex-wrap:nowrap;align-items:flex-start}
+  #content .cp-check,#content .tp-checkbox,#content .cp-shop-row>input[type=checkbox]{width:24px;height:24px;min-width:24px}
+  #content .cp-actions{gap:2px}
+  #content .cp-actions .cp-edit{padding:7px;min-height:34px;font-size:10px}
+  #content .cp-iconbutton{min-width:29px;padding:5px}
+  #content .cp-shopping-stats{gap:9px}
+  #content .cp-grid{grid-template-columns:1fr}
+  #content .tp-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:13px}
+  #content .tp-day{min-height:63px;border-radius:8px;padding:3px}
+  #content .tp-day-number{font-size:10px}
+  #content .tp-day-item{font-size:8px;padding:2px 3px}
+  #content .tp-month-nav strong{min-width:95px;font-size:12px}
+  #content .tp-month-nav button{width:32px;height:32px}
+  #content .tp-calendar-head{align-items:flex-start;flex-wrap:wrap}
+  #content .mail-card{padding:14px;gap:10px}
+  #content .mail-avatar{width:43px;height:43px}
+  #content .mail-avatar .elf-avatar{width:40px!important;height:40px!important}
+  .santa-family-list .child-list-card{padding:16px}
+  .santa-family-list .child-list-columns{grid-template-columns:1fr}
+  .santa-family-list .child-gift-section{padding:14px}
+}
+@media(max-width:365px){
+  #content .gp-place-btn{font-size:9px}
+  #content .cp-dash-stats{grid-template-columns:1fr 1fr}
+  #content .tp-day{min-height:56px}
+  #content .tp-day-number{font-size:9px}
+  #content .tp-month-nav{gap:4px}
+}
+@media(prefers-reduced-motion:reduce){#content .cp-check,#content .tp-checkbox{transition:none}}
+
+/* Shared calendar legend and checklist progress introduced with the detail pass. */
+#content .tp-calendar-legend{display:flex;align-items:center;justify-content:flex-end;gap:13px;flex-wrap:wrap;padding:5px 0 0;color:#88758d;font-size:10px;font-weight:750}
+#content .tp-calendar-legend>span{display:inline-flex;align-items:center;gap:5px}
+#content .tp-legend-dot{display:inline-block;background:#ffdbe9;width:10px;height:10px;border-radius:4px;border:1px solid #e5abc5}
+#content .tp-legend-dot.done{background:#e8f5ea;border-color:#c5dfc8}
