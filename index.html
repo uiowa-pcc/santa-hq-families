@@ -968,6 +968,152 @@ body:not(.family-authenticated) .app,body:not(.family-authenticated) .mobile-nav
 }
 @media(prefers-reduced-motion:reduce){.sq-card,.sq-tabs button{transition:none!important}}
 </style>
+
+<style id="wb-real-workspace">
+/* Santa HQ Gift Workbench — a single, contained planning surface. */
+body:has(.wb-page) .content{max-width:1540px;padding:16px clamp(12px,2.25vw,34px) 20px}
+.wb-page{--wb-line:#e9e4ed;--wb-ink:#372e42;--wb-muted:#817a8c;--wb-purple:#7662bd;--wb-rose:#c36b89;--wb-gold:#b88a54;display:flex;flex-direction:column;gap:9px;min-width:0}
+.wb-top{display:flex;align-items:center;justify-content:space-between;gap:16px;min-width:0}
+.wb-title{min-width:0}
+.wb-title .eyebrow{margin:0 0 3px;font-size:9px;letter-spacing:1.5px;color:#9474a5}
+.wb-title h1{font:750 clamp(24px,2.5vw,36px)/1.09 'Fraunces',Georgia,serif!important;color:#3b3043;letter-spacing:-.04em;margin:1px 0 3px}
+.wb-title p{font:500 12px/1.35 'DM Sans',system-ui,sans-serif;margin:0;color:#817b8a}
+.wb-top-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.wb-top-actions .primary,.wb-top-actions .secondary{min-height:36px;padding:8px 12px;border-radius:11px;font-size:11px;white-space:nowrap;box-shadow:none}
+.wb-top-actions .primary{background:#ad4968}
+.wb-view-switch{display:flex;width:max-content;max-width:100%;gap:3px;border:1px solid #ebe3ec;border-radius:11px;background:#f2eef5;padding:3px;flex:none}
+.wb-view-switch button{border:0;background:transparent;padding:7px 17px;min-height:30px;border-radius:8px;color:#897789;font-size:11px;font-weight:800;white-space:nowrap}
+.wb-view-switch button.active{background:#fff;color:#824660;box-shadow:0 1px 5px #7b566717}
+.wb-workspace{height:clamp(400px,calc(100dvh - 240px),860px);min-height:0;display:flex;flex-direction:column;gap:0;padding:9px;border:1px solid #e9e1ea;border-radius:20px;background:#fff;box-shadow:0 12px 36px rgba(69,46,77,.045);overflow:hidden;isolation:isolate}
+.wb-workspace-toolbar{height:29px;min-height:29px;display:flex;align-items:center;justify-content:space-between;gap:7px;padding:0 5px 7px;border-bottom:1px solid #f0ebf0}
+.wb-workspace-caption{font-size:11px;font-weight:800;color:#58465c}
+.wb-private-note{font-size:10px;font-weight:550;color:#a396a7}
+.wb-workspace-numbers{display:flex;align-items:center;gap:7px;color:#897c92;white-space:nowrap;font-size:10px;font-weight:650}
+.wb-workspace-numbers span:nth-child(2){color:#60816d;background:#eaf4ed;border-radius:999px;padding:3px 9px}
+.wb-recipient-row,.wb-stage-columns{display:grid;grid-template-columns:repeat(var(--wb-kids),minmax(0,1fr));gap:8px;min-width:0}
+.wb-recipient-row{flex:none;min-height:45px;padding:7px 0 5px}
+.wb-person{display:flex;align-items:center;gap:7px;min-width:0;padding:3px 9px;border:1px solid #eee9ef;background:#fcfafc;border-radius:12px}
+.wb-person[data-kid="1"]{border-left:3px solid #8973be;background:#f9f6fe}
+.wb-person[data-kid="2"]{border-left:3px solid #d1809a;background:#fff8fa}
+.wb-person[data-kid="both"]{border-left:3px solid #d2ae78;background:#fdfbf7}
+.wb-person-avatar{width:30px;height:30px;flex:0 0 30px;display:grid;place-items:center;border-radius:10px;overflow:hidden;font-size:17px;color:#926b9f}
+.wb-person-avatar img{width:100%;height:100%;object-fit:contain}
+.wb-person-meta{min-width:0}.wb-person-meta strong{display:block;font:800 12px/1.1 'DM Sans',sans-serif;color:#413449;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wb-person-meta small{display:block;margin-top:3px;font-size:10px;color:#8d8290;white-space:nowrap}
+.wb-stages{flex:1;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) minmax(0,1.2fr) minmax(0,1fr);gap:5px}
+.wb-stage{min-height:0;display:flex;flex-direction:column;gap:3px;padding:5px 7px 6px;border:1px solid #eee7ed;border-radius:12px;background:#fefdfd;overflow:hidden}
+.wb-stage[data-wb-stage="undecided"]{background:#fcfaff}
+.wb-stage[data-wb-stage="tree"]{background:#fffcf8}
+.wb-stage[data-wb-stage="stocking"]{background:#fffafd}
+.wb-stage-title{min-height:22px;display:flex;align-items:center;gap:8px;flex:none;padding:0 2px}
+.wb-stage-left{display:flex;gap:6px;align-items:center;min-width:0}
+.wb-stage-symbol{font-size:14px;line-height:1;color:#a287b7}
+.wb-stage[data-wb-stage="tree"] .wb-stage-symbol{color:#bc995e}
+.wb-stage[data-wb-stage="stocking"] .wb-stage-symbol{color:#ce839b}
+.wb-stage-title strong{font:800 12px/1.05 'DM Sans',sans-serif;color:#55485d;white-space:nowrap}
+.wb-stage-title>small{font-size:10px;color:#9b90a0;white-space:nowrap}
+.wb-total{color:#8e8294;border:1px solid #eae3ed;background:white;border-radius:999px;padding:1px 6px;font-size:9px;font-weight:750}
+.wb-balance{margin-left:auto;border:1px solid #eee6eb;background:#fff;color:#7b7080;border-radius:999px;padding:2px 7px;font-size:9px;font-weight:750;white-space:nowrap}
+.wb-stage-columns{flex:1;min-height:0}
+.wb-drop{position:relative;min-width:0;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#ddd0e0 transparent;border:1px dashed #e7dde8;border-radius:9px;background:#ffffffd9;padding:5px;display:flex;flex-direction:column;gap:5px;transition:border-color .12s,background .12s}
+.wb-drop[data-sq-zone]:hover{border-color:#d0bfd6}
+.wb-drop.sq-hover{background:#f4edfc!important;outline:2px solid #aa86c0;outline-offset:-2px;border-color:#b78dc7}
+.wb-drop[data-sq-place="tree"].sq-hover{background:#fff1d8!important;outline-color:#c6a26e}
+.wb-drop[data-sq-place="stocking"].sq-hover{background:#ffeaf2!important;outline-color:#ca92aa}
+.wb-drop-count{position:sticky;top:-5px;align-self:flex-end;z-index:2;background:#ffffffeb;color:#9b91a0;border-radius:999px;padding:2px 5px;font-size:9px;line-height:1.2;pointer-events:none}
+.wb-drop-content{display:flex;flex-direction:column;gap:4px;min-height:20px;flex:1}
+.wb-not-applicable{background:transparent!important;border-color:#eee9e8!important;display:grid;place-items:center;overflow:hidden}
+.wb-not-applicable span{font-size:10px;color:#b6abb6;font-weight:600;text-align:center;padding:4px}
+.wb-empty{display:flex;align-items:center;justify-content:center;color:#b7abb7;font-size:10px;border-radius:8px;min-height:28px;flex:1}
+.wb-gift{flex:none;position:relative;min-width:0;display:flex;flex-direction:column;gap:3px;background:#fff;border:1px solid #eee8ef;border-radius:9px;padding:5px;box-shadow:0 2px 6px rgba(76,52,80,.04)}
+.wb-gift:hover,.wb-gift:focus-within{border-color:#cbb8d2;box-shadow:0 3px 9px rgba(76,52,80,.09)}
+.wb-gift.sq-source{opacity:.32}
+.wb-gift.sq-before{box-shadow:0 -3px 0 #a68bb9!important}
+.wb-gift.sq-ghost{display:flex!important;min-width:0;max-width:260px;pointer-events:none;border-color:#cbb8d2}
+.wb-gift-core{display:flex;align-items:center;gap:5px;min-width:0}
+.wb-handle{width:20px;height:24px;flex:0 0 20px;display:grid;place-items:center;color:#a095ab;font-size:16px;cursor:grab;touch-action:none;user-select:none;border-radius:6px}
+.wb-handle:active{cursor:grabbing}.wb-handle:hover,.wb-handle:focus-visible{color:#715183;background:#f0eaf3}
+.wb-thumb{width:31px;height:31px;min-width:31px;display:grid;place-items:center;border-radius:7px;overflow:hidden;background:#f7f3f8}
+.wb-thumb img{width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain}
+.wb-thumb .sq-present-illustration{width:24px!important;height:24px!important;max-width:100%!important;max-height:100%!important}
+.wb-gift-info{min-width:0;flex:1;line-height:1.15}
+.wb-gift-info strong{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;font:800 11px/1.2 'DM Sans',sans-serif;color:#494051}
+.wb-gift-info small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:700 9px/1.3 'DM Sans',sans-serif;color:#9a8b99;margin-top:2px}
+.wb-more{flex:none;position:relative;z-index:4}
+.wb-more summary{height:22px!important;width:20px!important;display:grid;place-items:center;background:transparent!important;color:#948397;font-weight:900;font-size:16px;letter-spacing:0;border:0;border-radius:6px;cursor:pointer}
+.wb-more[open] summary{background:#f4ebf3!important}
+.wb-more .sq-more-list{z-index:100;right:0;top:100%;width:135px}
+.wb-lock{display:inline-flex;align-items:center;justify-content:center;align-self:stretch;border:0;border-radius:6px;background:#a64967;color:#fff;font:800 10px/1 'DM Sans',sans-serif;min-height:22px;padding:5px;cursor:pointer}
+.wb-lock:hover{background:#87344f}
+.wb-gift-state{display:flex;justify-content:center;align-items:center;min-height:19px;font-size:9px;font-weight:800;color:#54846a;background:#edf5ee;border-radius:6px}
+.wb-board-footer{display:flex;justify-content:space-between;gap:10px;align-items:center;flex:none;padding:7px 4px 2px;color:#8e8291;font-size:10px;min-height:24px}
+.wb-board-footer b{color:#785f89;font-weight:800}
+.wb-unassigned{margin-top:7px;background:#fff;border:1px solid #e9e3eb;border-radius:14px;padding:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:11px}
+.wb-unassigned>span{color:#8b8190}.wb-unassigned-gift{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0;padding:4px 6px;background:#faf6fa;border-radius:8px}
+.wb-unassigned-gift b{font-size:11px}.wb-assign{border:1px solid #eadde7;border-radius:7px;background:#fff;color:#84576d;padding:5px;font-size:10px;font-weight:700}
+/* The rest of the existing site remains unchanged. */
+@media(max-width:760px){
+ body:has(.wb-page) .content{padding:10px 7px 100px}
+ .wb-page{gap:7px}.wb-top{gap:9px}.wb-title .eyebrow{font-size:8px}
+ .wb-title h1{font-size:24px}.wb-title p{font-size:10px;max-width:235px}
+ .wb-top-actions{gap:4px}
+ .wb-top-actions .primary,.wb-top-actions .secondary{min-height:30px;padding:6px 8px;font-size:9px;border-radius:9px}
+ .wb-view-switch button{font-size:10px;padding:6px 12px;min-height:28px}
+ .wb-workspace{height:clamp(360px,calc(100dvh - 235px),735px);padding:5px;border-radius:13px}
+ .wb-workspace-toolbar{min-height:23px;height:23px;padding-bottom:4px}
+ .wb-private-note{display:none}.wb-workspace-caption{font-size:10px}.wb-workspace-numbers{font-size:9px}
+ .wb-recipient-row,.wb-stage-columns{gap:4px}
+ .wb-recipient-row{padding:4px 0;min-height:41px}
+ .wb-person{padding:3px 4px;gap:3px;border-radius:8px}
+ .wb-person-avatar{width:22px;height:22px;flex-basis:22px;border-radius:7px}
+ .wb-person-meta strong{font-size:10px}.wb-person-meta small{font-size:8px;margin-top:1px}
+ .wb-stages{gap:4px}.wb-stage{gap:2px;padding:3px;border-radius:9px}
+ .wb-stage-title{gap:4px;min-height:19px}
+ .wb-stage-title strong{font-size:10px}.wb-stage-symbol{font-size:12px}.wb-total{font-size:8px;padding:1px 4px}
+ .wb-stage-title>small{font-size:8px}.wb-balance{font-size:8px;padding:2px 5px}
+ .wb-drop{padding:3px;border-radius:7px;gap:3px}.wb-drop-count{font-size:8px;top:-3px;padding:1px 3px}
+ .wb-drop-content{gap:3px}
+ .wb-gift{padding:3px;border-radius:7px;gap:2px}.wb-gift-core{gap:2px}
+ .wb-handle{width:17px;flex-basis:17px;height:20px;font-size:14px}
+ .wb-thumb{width:22px;height:22px;min-width:22px;border-radius:5px}.wb-thumb .sq-present-illustration{width:17px!important;height:17px!important}
+ .wb-gift-info strong{font-size:9px;line-height:1.1}.wb-gift-info small{font-size:8px}
+ .wb-more summary{width:16px!important;height:19px!important;font-size:14px}
+ .wb-lock{min-height:21px;padding:3px;font-size:8px}
+ .wb-gift-state{min-height:17px;font-size:8px}
+ .wb-not-applicable span{font-size:8px}
+ .wb-empty{font-size:8px}
+ .wb-board-footer{min-height:21px;padding:4px 2px 1px;font-size:8px}
+ .wb-unassigned{padding:8px;font-size:10px}
+}
+@media(max-width:440px){
+ .wb-top{align-items:flex-start}.wb-top-actions{max-width:111px}
+ .wb-top-actions .primary,.wb-top-actions .secondary{flex:1 1 auto;min-width:70px}
+ .wb-stage-title>small{display:none}
+ .wb-thumb{display:none}
+ .wb-person-avatar{width:18px;height:18px;flex-basis:18px}
+ .wb-person-meta strong{font-size:9px}.wb-person-meta small{font-size:8px}
+ .wb-board-footer span:last-child{display:none}
+}
+@media(max-height:690px){.wb-workspace{height:max(340px,calc(100dvh - 216px))}.wb-title p{display:none}}
+
+.wb-more-trigger{width:20px;height:22px;flex:none;display:grid;place-items:center;border:0;border-radius:6px;background:transparent;color:#958398;font-size:17px;line-height:1;font-weight:900;cursor:pointer}
+.wb-more-trigger:hover,.wb-more-trigger:focus-visible{background:#f5eff5;color:#765d8b}
+.wb-modal-options p{margin:0 0 12px;font-size:15px;line-height:1.5;color:#45394a}
+.wb-modal-options p span{font-size:12px;color:#8a7f8b}
+.wb-modal-options>div{display:grid;gap:7px}
+.wb-modal-options button{min-height:42px;text-align:left;padding:10px 13px;border:1px solid #e9dfeb;background:#fff;color:#58485e;border-radius:11px;font-size:13px;font-weight:750;cursor:pointer}
+.wb-modal-options button:hover{background:#f8f3f9}
+@media(max-width:760px){.wb-workspace{height:clamp(350px,calc(100dvh - 290px),685px)}.wb-more-trigger{height:19px;width:15px;font-size:15px}}
+@media(max-width:760px) and (max-height:690px){.wb-workspace{height:max(335px,calc(100dvh - 290px))}}
+
+.wb-unassigned-trigger{border:1px solid #e7dce9;background:#fbf6fc;color:#885f85;border-radius:7px;padding:4px 8px;font-weight:800;font-size:10px;cursor:pointer}
+.wb-unassigned-sheet>p{color:#817385;font-size:12px;margin:0 0 12px}
+.wb-unassigned-row{display:grid;gap:8px;padding:12px 0;border-bottom:1px solid #f0e9ef}
+.wb-unassigned-row>strong{color:#46384b;font-size:13px}
+.wb-unassigned-row>div{display:flex;flex-wrap:wrap;gap:7px}
+.wb-unassigned-row button{padding:8px 10px;border:1px solid #e8dfe9;border-radius:9px;background:#fff;color:#795c7c;font-size:11px;font-weight:800}
+@media(prefers-reduced-motion:reduce){.wb-gift,.wb-drop{transition:none!important}}
+</style>
 </head>
 <body><section id="familyGate" role="region" aria-label="Family account sign in"></section>
 <div class="app"><aside class="sidebar">
@@ -1431,21 +1577,57 @@ function sqMoveMenu(id){
 }
 
 let sqDragging=null;
-function sqPointerDown(e){let h=e.target.closest?.('[data-sq-grab]');if(!h||appState.page!=='gifts'||appState.giftView==='compare'||e.button>0)return;let card=h.closest('[data-sq-card]');if(!card)return;e.preventDefault();sqDragging={id:h.dataset.sqGrab,card,startX:e.clientX,startY:e.clientY,active:false,ghost:null,zone:null,before:null,rect:card.getBoundingClientRect()};document.addEventListener('pointermove',sqPointerMove,{passive:false});document.addEventListener('pointerup',sqPointerUp,{once:true});document.addEventListener('pointercancel',sqPointerCancel,{once:true})}
+function sqPointerDown(e){let h=e.target.closest?.('[data-sq-grab]'),card=h?.closest('[data-sq-card]');if(!h&&e.pointerType==='mouse'&&!e.target.closest('button,summary,details,a,input')){card=e.target.closest?.('.wb-gift');h=card?.querySelector('[data-sq-grab]')}if(!h||appState.page!=='gifts'||appState.giftView==='compare'||e.button>0)return;if(!card)card=h.closest('[data-sq-card]');if(!card)return;e.preventDefault();sqDragging={id:h.dataset.sqGrab,card,startX:e.clientX,startY:e.clientY,active:false,ghost:null,zone:null,before:null,rect:card.getBoundingClientRect()};document.addEventListener('pointermove',sqPointerMove,{passive:false});document.addEventListener('pointerup',sqPointerUp,{once:true});document.addEventListener('pointercancel',sqPointerCancel,{once:true})}
 function sqPointerMove(e){let d=sqDragging;if(!d)return;e.preventDefault();if(!d.active){if(Math.hypot(e.clientX-d.startX,e.clientY-d.startY)<7)return;d.active=true;d.ghost=d.card.cloneNode(true);d.ghost.classList.add('sq-ghost');d.ghost.style.width=d.rect.width+'px';document.body.appendChild(d.ghost);d.card.classList.add('sq-source')}
-d.ghost.style.left=Math.max(2,Math.min(innerWidth-d.rect.width-2,e.clientX-d.rect.width/2))+'px';d.ghost.style.top=Math.max(2,e.clientY-35)+'px';document.querySelectorAll('.sq-hover,.sq-before').forEach(x=>x.classList.remove('sq-hover','sq-before'));let hit=document.elementFromPoint(e.clientX,e.clientY),zone=hit?.closest?.('[data-sq-zone]');d.zone=zone;d.before=null;if(zone){zone.classList.add('sq-hover');let card=hit?.closest?.('[data-sq-card]');if(card&&card.dataset.sqCard!==d.id){d.before=card.dataset.sqCard;card.classList.add('sq-before')}}if(e.clientY>innerHeight-75)window.scrollBy(0,13);if(e.clientY<55)window.scrollBy(0,-13)}
+d.ghost.style.left=Math.max(2,Math.min(innerWidth-d.rect.width-2,e.clientX-d.rect.width/2))+'px';d.ghost.style.top=Math.max(2,e.clientY-35)+'px';document.querySelectorAll('.sq-hover,.sq-before').forEach(x=>x.classList.remove('sq-hover','sq-before'));let hit=document.elementFromPoint(e.clientX,e.clientY),zone=hit?.closest?.('[data-sq-zone]');d.zone=zone;d.before=null;if(zone){zone.classList.add('sq-hover');let card=hit?.closest?.('[data-sq-card]');if(card&&card.dataset.sqCard!==d.id){d.before=card.dataset.sqCard;card.classList.add('sq-before')}}if(zone){const scroller=zone.closest('.wb-drop');if(scroller){const zr=scroller.getBoundingClientRect();if(e.clientY>zr.bottom-33)scroller.scrollTop+=14;else if(e.clientY<zr.top+33)scroller.scrollTop-=14}}}
 function sqPointerEnd(cancel){document.removeEventListener('pointermove',sqPointerMove);document.removeEventListener('pointerup',sqPointerUp);document.removeEventListener('pointercancel',sqPointerCancel);let d=sqDragging;sqDragging=null;if(!d)return;d.ghost?.remove();d.card.classList.remove('sq-source');document.querySelectorAll('.sq-hover,.sq-before').forEach(x=>x.classList.remove('sq-hover','sq-before'));if(!cancel&&d.active&&d.zone)void sqMove(d.id,d.zone.dataset.sqZone,d.zone.dataset.sqPlace,d.before)}
 function sqPointerUp(){sqPointerEnd(false)}function sqPointerCancel(){sqPointerEnd(true)}
 
+
+// Unified Gift Workbench. Placements and saved records are unchanged.
+function wbRecipients(){return [...childIds(),'both']}
+function wbGifts(k,place){return appState.gifts.filter(g=>g.kid===k&&giftPlacement(g)===place).sort((a,b)=>(Number(a.planOrder)||0)-(Number(b.planOrder)||0))}
+function wbCard(g){
+ const id=escapeHTML(g.id),placement=giftPlacement(g),locked=isLocked(g),photo=safeImage(g.image);
+ const img=photo?`<img src="${escapeHTML(photo)}" alt="" loading="lazy">`:sqGiftIllustration();
+ return `<article class="wb-gift" data-sq-card="${id}" data-gift-name="${escapeHTML(g.name)}" aria-label="${escapeHTML(g.name)}, ${giftPriceLabel(g)}${locked?', locked in':''}">
+  <div class="wb-gift-core"><span class="wb-handle" role="button" tabindex="0" data-sq-grab="${id}" title="Drag to move" aria-label="Drag ${escapeHTML(g.name)} to another spot, or press Enter to choose where it goes">⠿</span>
+  <div class="wb-thumb" aria-hidden="true">${img}</div><div class="wb-gift-info"><strong title="${escapeHTML(g.name)}">${escapeHTML(g.name)}</strong><small>${giftPriceLabel(g)}</small></div>
+  <button type="button" class="wb-more-trigger" data-action="wb-options" data-id="${id}" aria-label="More actions for ${escapeHTML(g.name)}" title="Edit, duplicate or move gift">···</button></div>
+  ${locked?`<div class="wb-gift-state" title="Already chosen">✓ ${bought(g)?'Purchased':'Locked in'}</div>`:placement==='undecided'?'':`<button type="button" class="wb-lock" data-action="sq-lock" data-id="${id}">Lock it in</button>`}</article>`;
+}
+function wbOptionsMenu(id){
+ const g=appState.gifts.find(x=>x.id===id);if(!g)return;
+ const locked=isLocked(g);
+ modalOpen('Gift options',`<div class="wb-modal-options"><p><strong>${escapeHTML(g.name)}</strong><br><span>${escapeHTML(kidName(g.kid))} · ${giftPriceLabel(g)}</span></p><div><button type="button" data-action="edit" data-id="${escapeHTML(id)}">Edit gift</button><button type="button" data-action="duplicate" data-id="${escapeHTML(id)}">Duplicate</button><button type="button" data-action="sq-move-menu" data-id="${escapeHTML(id)}">Move to another spot</button>${locked?`<button type="button" data-action="wb-unlock" data-id="${escapeHTML(id)}">Unlock gift</button>`:''}</div></div>`,`<button type="button" class="secondary" data-action="close">Close</button>`);
+}
+function wbUnassignedMenu(){
+ const gifts=appState.gifts.filter(g=>g.kid==='unassigned'),kids=wbRecipients();if(!gifts.length)return;
+ modalOpen('Unassigned ideas',`<div class="wb-unassigned-sheet"><p>Choose where each idea belongs. It will appear on that person's Ideas board.</p>${gifts.map(g=>`<div class="wb-unassigned-row"><strong>${escapeHTML(g.name)}</strong><div>${kids.map(k=>`<button type="button" data-action="wb-assign" data-id="${escapeHTML(g.id)}" data-kid="${escapeHTML(k)}">${k==='both'?'Both':escapeHTML(kidName(k))}</button>`).join('')}</div></div>`).join('')}</div>`,`<button type="button" class="secondary" data-action="close">Done</button>`);
+}
+function wbStage(place,title,desc){
+ const kids=wbRecipients();
+ const first=kids.slice(0,2).map(k=>wbGifts(k,place).length),balance=first.length===2?(first[0]===first[1]?`${first[0]} each`:`${first[0]} / ${first[1]}`):'';
+ const total=kids.reduce((s,k)=>s+wbGifts(k,place).length,0);
+ return `<section class="wb-stage" data-wb-stage="${place}" aria-label="${title}"><header class="wb-stage-title"><div class="wb-stage-left"><span class="wb-stage-symbol" aria-hidden="true">${place==='undecided'?'✧':place==='tree'?'♢':'✳'}</span><strong>${title}</strong><span class="wb-total">${total}</span></div><small>${desc}</small>${place!=='undecided'&&first.length===2?`<span class="wb-balance" title="${escapeHTML(kidName(kids[0]))} compared with ${escapeHTML(kidName(kids[1]))}">${balance}</span>`:''}</header>
+ <div class="wb-stage-columns" style="--wb-kids:${kids.length}">${kids.map(k=>{if(k==='both'&&place==='stocking')return `<div class="wb-drop wb-not-applicable" aria-label="Shared stocking gifts not available"><span>Individual stockings</span></div>`;
+ const gifts=wbGifts(k,place),num=gifts.length;
+ return `<div class="wb-drop" data-sq-zone="${escapeHTML(k)}" data-sq-place="${place}" aria-label="${title} for ${escapeHTML(kidName(k))}"><div class="wb-drop-count" aria-hidden="true">${num} ${num===1?'gift':'gifts'}</div><div class="wb-drop-content">${gifts.length?gifts.map(wbCard).join(''):`<div class="wb-empty">Drop here</div>`}</div></div>`;}).join('')}</div></section>`;
+}
 function giftPlannerIdeas(){
- const kids=childIds(),treeKids=[...kids,'both'],notAssigned=appState.gifts.filter(g=>g.kid==='unassigned'),sharedStock=appState.gifts.filter(g=>g.kid==='both'&&giftPlacement(g)==='stocking');
- return `<p class="sq-intro">Arrange ideas side by side. Drag to move them, then <b>Lock it in</b> when you choose.</p><div class="sq-comparison-board">
- ${sqBoardSection('tree','Under the tree','Line up the presents to compare at a glance.',treeKids)}
- ${sqBoardSection('stocking','Stockings','Small surprises, side by side.',kids)}
- ${sqBoardSection('undecided','Ideas to sort','Move ideas around until the plan feels right.',treeKids)}
- </div>
- ${sharedStock.length?`<details class="sq-legacy-stock"><summary>Shared stocking ideas (${sharedStock.length})</summary><p>These were previously assigned to both stockings. Move or duplicate them for each child.</p><div class="sq-legacy-list">${sharedStock.map(boardCard).join('')}</div></details>`:''}
- ${notAssigned.length?`<section class="sq-unassigned"><h3>Still deciding who it's for</h3>${notAssigned.map(g=>`<div class="sq-assign"><strong>${escapeHTML(g.name)}</strong>${[...kids,'both'].map(k=>`<button data-action="idea-assign" data-id="${escapeHTML(g.id)}" data-kid="${escapeHTML(k)}">${k==='both'?'Both':escapeHTML(kidName(k))}</button>`).join('')}</div>`).join('')}</section>`:''}`;
+ const kids=wbRecipients(),locked=appState.gifts.filter(isLocked).length,total=appState.gifts.length;
+ const unassigned=appState.gifts.filter(g=>g.kid==='unassigned');
+ return `<div class="wb-workspace" role="region" aria-label="Gift Workbench, move gifts between Ideas, Under the Tree and Stockings">
+ <div class="wb-workspace-toolbar"><span class="wb-workspace-caption">Your planning board <span class="wb-private-note">· Drag to try different combinations</span></span><div class="wb-workspace-numbers"><span>${total} ideas</span><span>${locked} locked</span></div></div>
+ <div class="wb-recipient-row" style="--wb-kids:${kids.length}">${kids.map((k,i)=>{const giftCount=appState.gifts.filter(g=>g.kid===k&&isLocked(g)).length;return `<div class="wb-person" data-kid="${escapeHTML(k)}"><span class="wb-person-avatar">${k==='both'?'✦':childChoiceIcon(k)}</span><div class="wb-person-meta"><strong>${k==='both'?'Both':escapeHTML(kidName(k))}</strong><small>${giftCount} locked</small></div></div>`}).join('')}</div>
+ <div class="wb-stages">${wbStage('undecided','Ideas','Try out options')}${wbStage('tree','Under the Tree','Larger presents')}${wbStage('stocking','Stockings','Little surprises')}</div>
+ <div class="wb-board-footer"><span><b>Drag ⠿</b> to move · <b>Lock it in</b> when you decide</span>${unassigned.length?`<button type="button" class="wb-unassigned-trigger" data-action="wb-unassigned">${unassigned.length} unassigned idea${unassigned.length===1?'':'s'}</button>`:`<span>⋯ for Edit, Duplicate or Move</span>`}</div></div>`;
+}
+function giftsPage(){
+ const view=appState.giftView==='compare'?'compare':'ideas';
+ return `<div class="wb-page"><header class="wb-top"><div class="wb-title"><span class="eyebrow">SANTA HQ · GIFT PLANNING</span><h1>${view==='ideas'?'Gift Workbench':'Christmas Morning'}</h1><p>${view==='ideas'?'Keep everything in sight. Move ideas around until it feels right.':'A peek at what you’ve locked in for the big day.'}</p></div><div class="wb-top-actions">${view==='ideas'?`<button type="button" class="primary" data-action="add">+ Add gift</button><button type="button" class="secondary" data-action="paste-gifts">Paste ideas</button>`:''}</div></header>
+ <div class="wb-view-switch" role="tablist" aria-label="Gift planning views"><button type="button" role="tab" aria-selected="${view==='ideas'}" class="${view==='ideas'?'active':''}" data-action="gift-view" data-view="ideas">Gift Workbench</button><button type="button" role="tab" aria-selected="${view==='compare'}" class="${view==='compare'?'active':''}" data-action="gift-view" data-view="compare">Christmas Morning</button></div>
+ ${view==='ideas'?giftPlannerIdeas():giftPlannerCompare()}</div>`;
 }
 
 function morningTile(g,i){
@@ -1465,8 +1647,6 @@ function giftPlannerCompare(){
  <div class="sq-morning-comparison-board">${sqMorningSection('tree','Under the tree',[...kids,'both'],locked)}${sqMorningSection('stocking','Stockings',kids,locked)}</div>
  ${sharedStock.length?`<section class="sq-morning-shared"><h3>Previously shared stocking gifts</h3><p>These are kept here so nothing from an earlier plan is lost.</p><div class="sq-morning-list">${sharedStock.map((g,i)=>morningTile(g,i)).join('')}</div></section>`:''}`;
 }
-
-function giftsPage(){let view=appState.giftView==='compare'?'compare':'ideas';return heading('CHRISTMAS WORKSHOP','Organize gifts',view==='ideas'?'Arrange their gifts side by side. Lock in your final choices.':'See what everyone will open, side by side.',false)+`${view==='ideas'?'<div class="sq-toolbar"><button class="primary" data-action="add">+ Add idea</button><button class="secondary" data-action="paste-gifts">Paste a list</button></div>':''}<div class="sq-tabs"><button class="${view==='ideas'?'active':''}" data-action="gift-view" data-view="ideas">Gift Board</button><button class="${view==='compare'?'active':''}" data-action="gift-view" data-view="compare">Christmas Morning</button></div>${view==='ideas'?giftPlannerIdeas():giftPlannerCompare()}`}
 
 function listRow(g,mode){const img=safeImage(g.image),isWrap=mode==='wrapping';let next=isWrap?'Wrapped':'Bought';return `<div class="shopping-row"><div class="shopping-thumb">${img?`<img style="width:100%;height:100%;border-radius:inherit;object-fit:cover" src="${escapeHTML(img)}" alt="">`:catEmoji(g.category)}</div><div class="shopping-detail"><strong>${escapeHTML(g.name)}</strong><small>${escapeHTML(kidName(g.kid))} · ${escapeHTML(g.category)} ${g.store?'· '+escapeHTML(g.store):''}</small>${g.storage&&isWrap?`<div class="quiet">Hiding spot: ${escapeHTML(g.storage)}</div>`:''}</div><div class="shop-pricing">${giftPriceLabel(g)}</div><div class="shopping-actions">${g.link&&safeLink(g.link)?`<button class="icon-btn" title="View product" data-action="open-link" data-id="${g.id}">${ico('external')}</button>`:''}<button class="small-action" data-action="next" data-next="${next}" data-id="${g.id}">${ico('check')} ${isWrap?'Wrapped!':'Bought!'}</button><button class="icon-btn" title="Edit" data-action="edit" data-id="${g.id}">${ico('edit')}</button></div></div>`}
 function shoppingPage(){const gs=appState.gifts.filter(g=>g.status==='To buy'),total=gs.reduce((s,g)=>s+giftTotal(g),0);return heading('Time to shop','The shopping list','Chosen gifts you still need to buy—not every brainstorm idea.')+`<div class="shopping-tally"><span>Shop ${gs.length} to shop</span><span>Budget ${money(total)} estimated to purchase</span></div><div class="panel">${gs.length?gs.sort((a,b)=>a.status==='To buy'?-1:1).map(g=>listRow(g,'shopping')).join(''):emptyGifts('Shopping is all caught up!','Ideas you choose on the planning board move here when they are marked To buy.')}</div>`}
@@ -1964,7 +2144,7 @@ async function cloudSignIn(){if(!settings.firebase||!settings.familyId){navigate
 async function cloudSignOut(){if(appState.cloud){await appState.cloud.authm.signOut(appState.cloud.auth);showToast('Signed out of family sync')}}
 function saveCloudConfig(e){e.preventDefault();const apiKey=document.getElementById('firebaseApi').value.trim(),projectId=document.getElementById('firebaseProject').value.trim(),authDomain=document.getElementById('firebaseDomain').value.trim(),appId=document.getElementById('firebaseApp').value.trim(),familyId=document.getElementById('familyId').value.trim();if(!apiKey||!projectId||!authDomain||!appId||!familyId){showToast('Fill in all connection details first.');return}settings.firebase={apiKey,projectId,authDomain,appId};settings.familyId=familyId;saveSettingsLocal();showToast('Family connection saved. Sign in with Google.');render();if(appState.cloud)location.reload();else initCloud()}
 function copyInvite(){if(!settings.firebase||!settings.familyId)return;if(location.protocol==='file:'){showToast('Host this app online to create a working partner link.');return}const payload=btoa(unescape(encodeURIComponent(JSON.stringify({firebase:settings.firebase,familyId:settings.familyId}))));let u=location.origin+location.pathname+'#invite='+encodeURIComponent(payload);navigator.clipboard?.writeText(u).then(()=>showToast('Partner link copied '),()=>prompt('Copy this partner link:',u))||prompt('Copy this partner link:',u)}
-function actionHandler(e){const el=e.target.closest('[data-action]');if(!el)return;const action=el.dataset.action,id=el.dataset.id;if(action.startsWith('tradition-')){traditionAction(action,id,el);return;}if(action.startsWith('holiday-')){holidayAction(action,el);return;}switch(action){case 'morning-size':appState.morningCompact=!appState.morningCompact;render();break;case 'morning-prices':appState.morningPrices=!appState.morningPrices;render();break;case 'plan-menu':planMoveMenu(id);break;case 'plan-move':{const lane=el.dataset.lane;modalClose();moveToPlan(id,lane);break}case 'plan-up':shiftPlanCard(id,-1);break;case 'plan-down':shiftPlanCard(id,1);break;case 'nav':navigate(el.dataset.page);break;case 'home-open-plan':appState.holidayView=el.dataset.view||'overview';navigate('traditions');break;case 'home-open-gifts':appState.giftView='ideas';navigate('gifts');break;case 'enter-kid':enterKid();break;case 'change-pin':{if(settings.grownupPin&&prompt('Current PIN:')!==settings.grownupPin){showToast('Incorrect PIN.');break}const pin=prompt('Set a new 4–6 digit PIN:');if(pin===null)break;if(!/^\d{4,6}$/.test(pin)){showToast('Choose 4–6 digits.');break}settings.grownupPin=pin;saveSettingsLocal();showToast('Kid View PIN updated');break}case 'exit-kid':exitKid();break;case 'child-add':addChildSettings();break;case 'child-remove':removeChildSettings(el.dataset.kid);break;case 'kid-select':resetKidDraft();appState.kidSelected=el.dataset.kid;renderKidPortal();break;case 'kid-choice':appState.kidChoice=el.dataset.choice;document.querySelectorAll('.kid-topic').forEach(b=>b.classList.toggle('active',b.dataset.choice===appState.kidChoice));break;case 'kid-mode':resetKidDraft();appState.kidMode=el.dataset.mode;renderKidPortal();break;case 'kid-record':if(kidRecorder?.state==='recording')finishKidRecording();else startKidRecording();break;case 'kid-redo-record':resetKidDraft();renderKidPortal();break;case 'kid-dictate':kidDictate();break;case 'kid-color':kidDrawColor=el.dataset.color;document.querySelectorAll('.kid-color').forEach(b=>b.classList.toggle('active',b.dataset.color===kidDrawColor));break;case 'kid-undo':case 'kid-clear':kidCanvasAction(action);break;case 'kid-insert':{const input=document.getElementById('kidMessage');if(input)input.value+=(input.value?' ':'')+el.dataset.text.replace(/^[^ ]+ /,'');break}case 'kid-again':renderKidPortal();break;case 'delete-mail':deleteKidLetter(id);break;case 'reply-mail':replyMail(id);break;case 'read-mail':{const m=appState.messages.find(x=>x.id===id);if(m){putMail({...m,read:true}).then(render)}break}case 'gift-view':appState.giftView=el.dataset.view;render();break;case 'gift-ready':setGiftStatus(id,'To buy');break;case 'gift-watch':openGiftWatch(id);break;case 'gift-refresh-price':refreshDealPrices(id);break;case 'gift-refresh-all':refreshDealPrices();break;case 'gift-unwatch':stopGiftWatch(id);break;case 'quick-lookup':quickLookupLink();break;case 'gift-go-shopping':appState.page='traditions';appState.holidayView='shopping';render();break;case 'go-lights-hunt':appState.page='traditions';appState.holidayView='hunt';render();window.scrollTo({top:0,behavior:'smooth'});break;case 'shop-check':{const gift=appState.gifts.find(g=>g.id===id);if(gift&&gift.status==='To buy')setGiftStatus(id,'Bought');break;}case 'shop-undo':{const gift=appState.gifts.find(g=>g.id===id);if(gift&&bought(gift))setGiftStatus(id,'To buy');break;}case 'paste-gifts':openPasteGifts();break;case 'paste-back':pasteNavigate(-1);break;case 'paste-next':pasteNavigate(1);break;case 'paste-default-rest':pasteUseDefaults();break;case 'paste-duplicate':pasteDuplicateStockings();break;case 'paste-remove-copy':pasteRemoveCopy();break;case 'paste-review-back':pasteReviewBack();break;case 'paste-save':savePastedGifts();break;case 'sq-lock':void sqLock(id);break;case 'sq-unlock':void sqUnlock(id);break;case 'sq-move-menu':sqMoveMenu(id);break;case 'sq-move-to':modalClose();void sqMove(id,el.dataset.kid,el.dataset.place);break;case 'idea-quick':openRecipientQuickAdd(el.dataset.kid,el.dataset.category);break;case 'idea-assign':assignIdeaRecipient(id,el.dataset.kid);break;case 'add':openRecipientQuickAdd();break;case 'add-detailed':{const seed={name:document.getElementById('recipientQuickName')?.value.trim()||'',kid:document.querySelector('#recipientQuickForm input[name="quickKid"]:checked')?.value||'unassigned',category:categoryFromPlacement(document.querySelector('#recipientQuickForm input[name="quickPlace"]:checked')?.value||'undecided'),price:document.getElementById('recipientQuickPrice')?.value||'',notes:document.getElementById('recipientQuickNotes')?.value||''};openGift(null,seed);break}case 'duplicate':openDuplicateGift(id);break;case 'idea-compare':toggleIdeaCompare(id);break;case 'gift-lock-tree':lockGiftIn(id,'tree');break;case 'gift-lock-stocking':lockGiftIn(id,'stocking');break;case 'idea-confirm-tree':changeIdeaPlacement(id,'tree');break;case 'idea-placement':changeIdeaPlacement(id,el.dataset.category);break;case 'close':modalClose();break;case 'edit':openGift(appState.gifts.find(g=>g.id===id));break;case 'delete':deleteGift(id);break;case 'next':advanceGift(id,el.dataset.next);break;case 'open-link':{let g=appState.gifts.find(x=>x.id===id);if(safeLink(g?.link))window.open(g.link,'_blank','noopener,noreferrer');break}case 'export':exportJSON();break;case 'csv':exportCSV();break;case 'import':document.getElementById('importFile')?.click();break;case 'clear':if(appState.online){showToast('Disconnect family sync before clearing local gifts.');return}if(confirm('Delete all gift records saved on this device? Export a backup first if you want one.'))replaceGifts([]).then(()=>{appState.gifts=[];render();showToast('Device data cleared')});break;case 'generate-id':document.getElementById('familyId').value='northpole-'+makeId().slice(0,16);break;case 'signin':cloudSignIn();break;case 'signout':cloudSignOut();break;case 'invite':copyInvite();break}}
+function actionHandler(e){const el=e.target.closest('[data-action]');if(!el)return;const action=el.dataset.action,id=el.dataset.id;if(action.startsWith('tradition-')){traditionAction(action,id,el);return;}if(action.startsWith('holiday-')){holidayAction(action,el);return;}switch(action){case 'morning-size':appState.morningCompact=!appState.morningCompact;render();break;case 'morning-prices':appState.morningPrices=!appState.morningPrices;render();break;case 'plan-menu':planMoveMenu(id);break;case 'plan-move':{const lane=el.dataset.lane;modalClose();moveToPlan(id,lane);break}case 'plan-up':shiftPlanCard(id,-1);break;case 'plan-down':shiftPlanCard(id,1);break;case 'nav':navigate(el.dataset.page);break;case 'home-open-plan':appState.holidayView=el.dataset.view||'overview';navigate('traditions');break;case 'home-open-gifts':appState.giftView='ideas';navigate('gifts');break;case 'enter-kid':enterKid();break;case 'change-pin':{if(settings.grownupPin&&prompt('Current PIN:')!==settings.grownupPin){showToast('Incorrect PIN.');break}const pin=prompt('Set a new 4–6 digit PIN:');if(pin===null)break;if(!/^\d{4,6}$/.test(pin)){showToast('Choose 4–6 digits.');break}settings.grownupPin=pin;saveSettingsLocal();showToast('Kid View PIN updated');break}case 'exit-kid':exitKid();break;case 'child-add':addChildSettings();break;case 'child-remove':removeChildSettings(el.dataset.kid);break;case 'kid-select':resetKidDraft();appState.kidSelected=el.dataset.kid;renderKidPortal();break;case 'kid-choice':appState.kidChoice=el.dataset.choice;document.querySelectorAll('.kid-topic').forEach(b=>b.classList.toggle('active',b.dataset.choice===appState.kidChoice));break;case 'kid-mode':resetKidDraft();appState.kidMode=el.dataset.mode;renderKidPortal();break;case 'kid-record':if(kidRecorder?.state==='recording')finishKidRecording();else startKidRecording();break;case 'kid-redo-record':resetKidDraft();renderKidPortal();break;case 'kid-dictate':kidDictate();break;case 'kid-color':kidDrawColor=el.dataset.color;document.querySelectorAll('.kid-color').forEach(b=>b.classList.toggle('active',b.dataset.color===kidDrawColor));break;case 'kid-undo':case 'kid-clear':kidCanvasAction(action);break;case 'kid-insert':{const input=document.getElementById('kidMessage');if(input)input.value+=(input.value?' ':'')+el.dataset.text.replace(/^[^ ]+ /,'');break}case 'kid-again':renderKidPortal();break;case 'delete-mail':deleteKidLetter(id);break;case 'reply-mail':replyMail(id);break;case 'read-mail':{const m=appState.messages.find(x=>x.id===id);if(m){putMail({...m,read:true}).then(render)}break}case 'gift-view':appState.giftView=el.dataset.view;render();break;case 'gift-ready':setGiftStatus(id,'To buy');break;case 'gift-watch':openGiftWatch(id);break;case 'gift-refresh-price':refreshDealPrices(id);break;case 'gift-refresh-all':refreshDealPrices();break;case 'gift-unwatch':stopGiftWatch(id);break;case 'quick-lookup':quickLookupLink();break;case 'gift-go-shopping':appState.page='traditions';appState.holidayView='shopping';render();break;case 'go-lights-hunt':appState.page='traditions';appState.holidayView='hunt';render();window.scrollTo({top:0,behavior:'smooth'});break;case 'shop-check':{const gift=appState.gifts.find(g=>g.id===id);if(gift&&gift.status==='To buy')setGiftStatus(id,'Bought');break;}case 'shop-undo':{const gift=appState.gifts.find(g=>g.id===id);if(gift&&bought(gift))setGiftStatus(id,'To buy');break;}case 'paste-gifts':openPasteGifts();break;case 'paste-back':pasteNavigate(-1);break;case 'paste-next':pasteNavigate(1);break;case 'paste-default-rest':pasteUseDefaults();break;case 'paste-duplicate':pasteDuplicateStockings();break;case 'paste-remove-copy':pasteRemoveCopy();break;case 'paste-review-back':pasteReviewBack();break;case 'paste-save':savePastedGifts();break;case 'sq-lock':void sqLock(id);break;case 'sq-unlock':void sqUnlock(id);break;case 'sq-move-menu':sqMoveMenu(id);break;case 'wb-options':wbOptionsMenu(id);break;case 'wb-unassigned':wbUnassignedMenu();break;case 'wb-assign':modalClose();void assignIdeaRecipient(id,el.dataset.kid);break;case 'wb-unlock':modalClose();void sqUnlock(id);break;case 'sq-move-to':modalClose();void sqMove(id,el.dataset.kid,el.dataset.place);break;case 'idea-quick':openRecipientQuickAdd(el.dataset.kid,el.dataset.category);break;case 'idea-assign':assignIdeaRecipient(id,el.dataset.kid);break;case 'add':openRecipientQuickAdd();break;case 'add-detailed':{const seed={name:document.getElementById('recipientQuickName')?.value.trim()||'',kid:document.querySelector('#recipientQuickForm input[name="quickKid"]:checked')?.value||'unassigned',category:categoryFromPlacement(document.querySelector('#recipientQuickForm input[name="quickPlace"]:checked')?.value||'undecided'),price:document.getElementById('recipientQuickPrice')?.value||'',notes:document.getElementById('recipientQuickNotes')?.value||''};openGift(null,seed);break}case 'duplicate':openDuplicateGift(id);break;case 'idea-compare':toggleIdeaCompare(id);break;case 'gift-lock-tree':lockGiftIn(id,'tree');break;case 'gift-lock-stocking':lockGiftIn(id,'stocking');break;case 'idea-confirm-tree':changeIdeaPlacement(id,'tree');break;case 'idea-placement':changeIdeaPlacement(id,el.dataset.category);break;case 'close':modalClose();break;case 'edit':openGift(appState.gifts.find(g=>g.id===id));break;case 'delete':deleteGift(id);break;case 'next':advanceGift(id,el.dataset.next);break;case 'open-link':{let g=appState.gifts.find(x=>x.id===id);if(safeLink(g?.link))window.open(g.link,'_blank','noopener,noreferrer');break}case 'export':exportJSON();break;case 'csv':exportCSV();break;case 'import':document.getElementById('importFile')?.click();break;case 'clear':if(appState.online){showToast('Disconnect family sync before clearing local gifts.');return}if(confirm('Delete all gift records saved on this device? Export a backup first if you want one.'))replaceGifts([]).then(()=>{appState.gifts=[];render();showToast('Device data cleared')});break;case 'generate-id':document.getElementById('familyId').value='northpole-'+makeId().slice(0,16);break;case 'signin':cloudSignIn();break;case 'signout':cloudSignOut();break;case 'invite':copyInvite();break}}
 async function boot(){try{db=await initDB();appState.gifts=await readGifts()}catch(e){alert('This browser could not open its local gift database. Please try Safari or Chrome, or host this app online.');return}try{settings={...DEFAULT,...JSON.parse(localStorage.getItem('santa_hq_settings_'+(window.SANTA_FAMILY_ID||'guest'))||'{}')}}catch{}appState.messages=await loadMail();processIncoming();render();document.addEventListener('click',actionHandler);document.addEventListener('pointerdown',planningPointerDown,{passive:false});document.addEventListener('pointerdown',sqPointerDown,{passive:false});document.addEventListener('keydown',e=>{let h=e.target.closest?.('[data-sq-grab]');if(h&&(e.key==='Enter'||e.key===' ')){e.preventDefault();sqMoveMenu(h.dataset.sqGrab)}});document.getElementById('mobileAdd').addEventListener('click',()=>openRecipientQuickAdd());document.getElementById('overlay').addEventListener('click',e=>{if(e.target.id==='overlay')modalClose()});document.addEventListener('keydown',e=>{if(e.key==='Escape')modalClose()});document.addEventListener('submit',e=>{if(e.target.id==='holidayTaskForm')saveHolidayTask(e);if(e.target.id==='holidaySupplyForm')saveHolidaySupply(e);if(e.target.getAttribute('id')==='traditionForm')saveTradition(e);if(e.target.id==='pasteGiftForm')beginPasteSort(e);if(e.target.id==='pasteCardForm'){e.preventDefault();pasteNavigate(1)}if(e.target.id==='recipientQuickForm')saveRecipientQuickIdea(e);if(e.target.id==='giftWatchForm')saveGiftWatch(e);if(e.target.id==='duplicateGiftForm')saveDuplicateGift(e);if(e.target.id==='ideaQuickForm')addQuickIdea(e);if(e.target.id==='familyForm')saveFamily(e);if(e.target.id==='firebaseForm')saveCloudConfig(e);if(e.target.id==='kidMessageForm'){void submitKidMessage(e);} if(e.target.id==='replyMailForm'){e.preventDefault();const id=document.getElementById('replyId')?.value,msg=appState.messages.find(m=>m.id===id);if(msg){putMail({...msg,reply:document.getElementById('santaReply').value.trim(),read:true}).then(()=>{modalClose();render();showToast('Santa’s reply is ready ')})}}});document.addEventListener('change',e=>{if(e.target.matches('[data-gift-stage]')){setGiftStatus(e.target.dataset.id,e.target.value);}if(e.target.matches('[data-paste-entry]')){pasteReviewChoices();updatePasteReviewTotals()}if(e.target.id==='filterKid'){appState.filterKid=e.target.value;render()}if(e.target.id==='filterStatus'){appState.filterStatus=e.target.value;render()}if(e.target.id==='filterCat'){appState.filterCat=e.target.value;render()}if(e.target.id==='kidMediaFile')kidMediaPick(e.target.files?.[0]);if(e.target.id==='importFile'&&e.target.files[0])importJSON(e.target.files[0])});document.addEventListener('input',e=>{if(e.target.id==='searchInput'){appState.search=e.target.value;const grid=document.getElementById('giftResults');if(grid)grid.innerHTML=filteredGifts().length?giftListRows(filteredGifts()):'<p class="gp-no-results">No matching gifts.</p>'}});if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});if(appState.fromSharedLink){openGift(null,appState.fromSharedLink);appState.fromSharedLink=null}}
 
 /* Christmas Plans: all household tasks live in the existing synced profile record. */
