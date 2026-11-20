@@ -690,6 +690,221 @@ body:not(.family-authenticated) .app,body:not(.family-authenticated) .mobile-nav
 }
 </style>
 <link rel="stylesheet" href="./santa-hq-design.css"><link rel="stylesheet" href="./santa-hq-details.css">
+<style id="sq-fixed-column-and-illustration-patch">
+/* Stable alignment across Ideas, Tree, Stockings, and Christmas Morning. */
+.sq-comparison-columns,.sq-compare-row {grid-template-columns:repeat(var(--sq-cols),minmax(0,1fr))!important;align-items:stretch}
+.sq-section-column,.sq-section-kidhead,.sq-compare-cell{min-width:0}
+/* A shared color system, so the same child visually stays in the same lane. */
+.sq-section-column[data-kid="1"]{background:#faf6ff;border-color:#eadcf7}
+.sq-section-column[data-kid="2"]{background:#fff7fa;border-color:#f5dce6}
+.sq-section-column[data-kid="both"]{background:#fffbf2;border-color:#f3e4ca}
+.sq-section-kidhead[data-kid="1"]{background:#f7f0ff}
+.sq-section-kidhead[data-kid="2"]{background:#fff1f7}
+.sq-section-kidhead[data-kid="both"]{background:#fff6e7}
+.sq-morning-heads .sq-section-kidhead{border-radius:12px;padding:8px 10px}
+.sq-compare-cell[data-kid="1"]{--sq-photo:#f8f0fc}
+.sq-compare-cell[data-kid="2"]{--sq-photo:#fff2f7}
+.sq-compare-cell[data-kid="both"]{--sq-photo:#fff7eb}
+/* Contain artwork and product photos within their own card. */
+.sq-morning-gift,.sq-photo{overflow:hidden;isolation:isolate}
+.sq-compare-picture{position:relative!important;height:96px!important;min-height:0!important;width:100%;display:grid!important;place-items:center!important;overflow:hidden!important;isolation:isolate;border-radius:10px;background:var(--sq-photo,#fbf4f9)!important}
+.sq-compare-picture>img{display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important}
+.sq-present-illustration{display:block!important;width:clamp(38px,6vw,70px)!important;height:clamp(38px,6vw,70px)!important;max-width:calc(100% - 12px)!important;max-height:calc(100% - 10px)!important;flex:none;overflow:visible;object-fit:contain}
+.sq-gift-number{z-index:2}
+.sq-compare-gift{min-width:0;overflow:hidden}
+.sq-compare-gift strong,.sq-compare-gift small{display:block;overflow-wrap:anywhere}
+.sq-photo{display:grid;place-items:center}
+.sq-photo .sq-present-illustration{height:58px!important;width:58px!important}
+/* Open positions are useful for one-to-one planning but shouldn't dominate. */
+.sq-compare-open{min-height:118px;border-radius:12px;align-self:stretch}
+@media(max-width:760px){
+ .sq-morning-heads .sq-section-kidhead{padding:6px 3px}
+ .sq-compare-picture{height:72px!important}
+ .sq-compare-open{min-height:109px}
+ .sq-present-illustration{width:50px!important;height:50px!important}
+ .sq-compare-gift strong{font-size:11px}
+}
+@media(max-width:360px){
+ .sq-compare-picture{height:62px!important}
+ .sq-present-illustration{width:42px!important;height:42px!important}
+ .sq-morning-heads .sq-section-kidhead strong{font-size:11px}
+ .sq-compare-open{min-height:98px}
+}
+</style>
+
+<style id="sq-studio-polish-v1">
+/* Santa HQ — refined comparison design, November 2026.
+   Presentation-only polish: retains all existing gift IDs, interactions, and storage. */
+:root {
+  --studio-ink:#353245;
+  --studio-muted:#81798b;
+  --studio-outline:#ebe6eb;
+  --studio-berry:#a33f5c;
+  --studio-lavender:#7e6cb2;
+  --studio-cream:#fffaf4;
+  --studio-shadow:0 5px 18px rgba(71,49,69,.045);
+}
+/* The comparison area uses one typographic rhythm, with no decorative excess. */
+#content .headrow:has(+ .sq-toolbar),
+#content .headrow:has(+ .sq-tabs){margin-bottom:19px}
+#content .headrow:has(+ .sq-toolbar) .heading,
+#content .headrow:has(+ .sq-tabs) .heading{letter-spacing:-.035em;line-height:1.05}
+#content .headrow:has(+ .sq-toolbar) .sub,
+#content .headrow:has(+ .sq-tabs) .sub{font-size:13px;color:#777081;max-width:620px;line-height:1.55}
+.sq-toolbar{gap:9px;margin:6px 0 15px}
+.sq-toolbar .primary,.sq-toolbar .secondary{min-height:40px;border-radius:12px;font-size:12px;font-weight:750;box-shadow:none!important}
+.sq-tabs{border-radius:14px;background:#f4eff3;border:1px solid #e9e3e9;padding:4px;gap:4px;margin-bottom:20px}
+.sq-tabs button{min-height:39px;border-radius:11px;color:#71697c;font-size:12px;font-weight:750;padding:10px 16px;transition:background .18s ease,color .18s ease}
+.sq-tabs button.active{background:#fff;color:#843a57;box-shadow:0 1px 5px rgba(78,51,75,.09)}
+.sq-intro{border:0;background:none;padding:0 2px;color:#797184;font-size:12px;margin:0 0 16px;line-height:1.6}
+.sq-intro strong,.sq-intro b{color:#55435b}
+.sq-comparison-board,.sq-morning-comparison-board{gap:20px}
+.sq-comparison-section{
+  padding:clamp(14px,2vw,22px);
+  background:#fff!important;
+  border:1px solid var(--studio-outline)!important;
+  border-top:1px solid var(--studio-outline)!important;
+  border-radius:22px;
+  box-shadow:var(--studio-shadow);
+}
+.sq-comparison-title{margin:0 0 16px;align-items:center;padding-bottom:15px;border-bottom:1px solid #f1edf0;gap:14px}
+.sq-comparison-title h2{font-family:'Fraunces',Georgia,serif!important;font-weight:650!important;font-size:clamp(21px,2.2vw,26px);letter-spacing:-.035em;line-height:1.15;color:#3e3649}
+.sq-comparison-title p{margin:6px 0 0;font-size:12px;color:#8a8190;line-height:1.5}
+.sq-comparison-count{border:1px solid #e9e3e9;background:#faf7fa;color:#74667b;border-radius:999px;font-size:10px;white-space:nowrap;padding:7px 11px;font-weight:700;letter-spacing:.01em;flex:none}
+.sq-comparison-columns,.sq-compare-row{gap:clamp(6px,1.05vw,13px)!important}
+/* A shared accent carries each recipient through every section. */
+.sq-section-column[data-kid="1"],.sq-section-kidhead[data-kid="1"],.sq-compare-cell[data-kid="1"]{--studio-kid:#7663b6;--studio-wash:#f6f2fd;--studio-pale:#ece5f8}
+.sq-section-column[data-kid="2"],.sq-section-kidhead[data-kid="2"],.sq-compare-cell[data-kid="2"]{--studio-kid:#c26d89;--studio-wash:#fdf3f7;--studio-pale:#f9e7ed}
+.sq-section-column[data-kid="both"],.sq-section-kidhead[data-kid="both"],.sq-compare-cell[data-kid="both"]{--studio-kid:#a27c4c;--studio-wash:#fdf8ef;--studio-pale:#f7eddc}
+.sq-section-column{
+  min-width:0;background:#fff!important;border:1px solid #efeaee!important;
+  border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:10px;
+}
+.sq-section-kidhead{
+  min-width:0;min-height:50px;background:var(--studio-wash,#faf7fb)!important;
+  border-radius:12px;padding:9px;display:flex;align-items:center;gap:9px;
+  border-left:3px solid var(--studio-kid,#9477b4);
+}
+.sq-section-avatar{flex:none;height:37px;width:37px;min-width:37px;border-radius:12px;background:#fff;border:1px solid rgba(94,76,108,.07);color:var(--studio-kid,#8763ad);font-size:18px;overflow:hidden}
+.sq-section-avatar img{width:100%;height:100%;object-fit:contain}
+.sq-section-kidhead strong{font-family:'DM Sans',system-ui,sans-serif!important;font-size:13px;font-weight:800!important;letter-spacing:-.02em;color:#3c3444}
+.sq-section-kidhead small{font-size:10px;color:#857c8b;margin-top:3px;font-weight:500}
+.sq-section-column .sq-section-kidhead{margin-bottom:0}
+.sq-section-lane,.sq-section-lane[data-place=stocking],.sq-section-lane[data-place=undecided]{
+  min-height:112px;background:#fdfcfd!important;
+  border:1px dashed #e8e1e9!important;border-radius:12px;
+  padding:9px 7px;overflow:visible;
+}
+.sq-section-lane[data-place="tree"]{background:#fffdf9!important}
+.sq-section-lane[data-place="stocking"]{background:#fffbfc!important}
+.sq-section-lane[data-place="undecided"]{background:#fcfbfe!important}
+.sq-section-lane .sq-cards{gap:9px;min-height:85px;grid-template-columns:repeat(auto-fill,minmax(min(100%,130px),1fr))}
+.sq-empty{margin:auto;padding:14px 3px;color:#aaa0ad;font-size:11px;line-height:1.5}
+/* Cards are small, readable objects with controls that recede until needed. */
+.sq-card{border:1px solid #eae5e9;border-radius:12px;background:#fff;box-shadow:0 2px 9px rgba(66,41,58,.035);padding:8px;gap:5px;transition:border-color .15s,box-shadow .15s,transform .15s}
+.sq-card:focus-within,.sq-card:hover{border-color:#d9ccdc;box-shadow:0 5px 15px rgba(85,50,70,.08)}
+.sq-card-actions{min-height:20px}
+.sq-grab{color:#8f8594;width:24px;height:25px;border-radius:7px;font-size:17px}
+.sq-grab:hover,.sq-grab:focus-visible{background:#f2edf2;color:#785b8a}
+.sq-more summary{background:transparent!important;color:#7c717f;border-radius:7px;height:25px;width:25px;font-size:18px;letter-spacing:1px}
+.sq-more[open] summary,.sq-more summary:hover{background:#f4eff3!important}
+.sq-more-list{border-color:#e8e0e6;box-shadow:0 11px 30px rgba(75,48,68,.17);border-radius:12px}
+.sq-photo{height:80px;border-radius:9px;background:linear-gradient(160deg,#faf7fa,#f6f2f8)!important;overflow:hidden!important;isolation:isolate}
+.sq-photo img{width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain}
+.sq-photo .sq-present-illustration{height:54px!important;width:54px!important;max-height:calc(100% - 8px)!important;max-width:calc(100% - 8px)!important}
+.sq-card>strong{font-family:'DM Sans',system-ui,sans-serif!important;font-weight:750!important;font-size:12px;line-height:1.4;color:#3f3946;letter-spacing:-.01em;min-height:16px}
+.sq-card>small{font-size:10px;color:#8a7f8c;font-weight:650}
+.sq-lock{min-height:32px;border-radius:9px;background:#a13f5b;font-size:11px;font-weight:800;letter-spacing:.01em;box-shadow:none;padding:7px 6px}
+.sq-lock:hover{background:#833149}
+.sq-locked{background:#edf5ee;color:#3e715c;border-radius:9px;font-weight:800;font-size:10px;padding:8px 5px}
+.sq-hint{font-size:10px;color:#aba0ad}
+.sq-section-lane.sq-hover{outline:2px dashed #9984b4!important;outline-offset:0;background:#f6f2fa!important}
+/* Christmas morning: row-based comparison with tidy photo frames. */
+.sq-morning-top{padding:24px 26px;border:1px solid #e8e2eb;border-radius:20px;margin-bottom:20px;background:linear-gradient(112deg,#faf6fc 0%,#fffaf8 100%);box-shadow:none;position:relative;overflow:hidden}
+.sq-morning-top:before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:linear-gradient(#917bb5,#c98399)}
+.sq-morning-top span{font-size:10px;letter-spacing:1.7px;color:#8d678b;font-weight:800}
+.sq-morning-top h2{font-family:'Fraunces',Georgia,serif!important;font-weight:650!important;letter-spacing:-.035em;font-size:clamp(24px,2.7vw,32px);line-height:1.16;color:#3f354b;margin:7px 0 8px}
+.sq-morning-top p{font-size:12px;line-height:1.6;color:#807585;max-width:650px}
+.sq-morning-heads{border:0;background:transparent;padding:0;margin-bottom:11px}
+.sq-morning-heads .sq-section-kidhead{border-radius:12px;padding:9px;min-height:57px;background:var(--studio-wash,#faf8fb)!important}
+.sq-morning-rows{gap:10px}
+.sq-compare-cell{min-width:0}
+.sq-compare-gift{border:1px solid #eae5e9;border-radius:13px;background:#fff;box-shadow:0 2px 10px rgba(65,43,58,.035);padding:7px;min-width:0;overflow:hidden}
+.sq-compare-picture{position:relative!important;height:104px!important;border-radius:9px;background:var(--studio-wash,#fbf7f9)!important;overflow:hidden!important;isolation:isolate}
+.sq-compare-picture>img{object-fit:contain!important;width:100%!important;height:100%!important;display:block!important;max-width:100%!important;max-height:100%!important}
+.sq-compare-picture .sq-present-illustration{width:62px!important;height:62px!important;max-width:calc(100% - 12px)!important;max-height:calc(100% - 12px)!important;overflow:visible}
+.sq-compare-gift>strong{display:block;font-family:'DM Sans',system-ui,sans-serif!important;font-weight:800!important;font-size:13px;line-height:1.4;color:#3d3544;margin:9px 2px 3px;min-height:18px;overflow-wrap:anywhere}
+.sq-compare-gift>small{display:block;font-size:11px;color:#827988;line-height:1.45;margin:0 2px 3px;overflow-wrap:anywhere}
+.sq-gift-number{top:8px;left:8px;min-width:22px;height:22px;background:#ffffffed;border:1px solid rgba(65,48,72,.06);border-radius:50%;box-shadow:0 1px 4px rgba(58,42,61,.06);color:#76637e;font-size:10px}
+.sq-compare-open{min-height:155px;border:1px dashed #e9e3ea;background:#fcfafc;color:#a49aa9;border-radius:13px;gap:5px;font-size:11px}
+.sq-compare-open:before{content:"+";display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#f5f0f5;color:#b0a2b4;font-size:20px;font-weight:300;margin-bottom:3px}
+.sq-compare-open small{font-size:10px;color:#bbb0bf}
+/* Keep the two named children in precisely the same columns in all sections. */
+.sq-comparison-columns,.sq-compare-row{grid-template-columns:repeat(var(--sq-cols),minmax(0,1fr))!important;align-items:stretch}
+@media(max-width:760px){
+  .sq-comparison-section{padding:13px 11px;border-radius:17px}
+  .sq-comparison-title{gap:8px;margin-bottom:12px;padding-bottom:11px}
+  .sq-comparison-title h2{font-size:20px!important}
+  .sq-comparison-title p{font-size:10px;line-height:1.45}
+  .sq-comparison-count{padding:6px 8px;font-size:9px;max-width:95px;white-space:normal;text-align:center}
+  .sq-comparison-columns,.sq-compare-row{gap:6px!important}
+  .sq-section-column{padding:6px;gap:6px;border-radius:12px}
+  .sq-section-kidhead{padding:7px 5px;gap:5px;border-left-width:2px;min-height:47px;border-radius:9px}
+  .sq-section-avatar{height:26px;width:26px;min-width:26px;border-radius:8px;font-size:15px}
+  .sq-section-kidhead strong{font-size:11px!important;line-height:1.2}
+  .sq-section-kidhead small{font-size:9px;line-height:1.35}
+  .sq-section-lane{padding:5px 3px!important;border-radius:9px}
+  .sq-section-lane .sq-cards{gap:6px;grid-template-columns:minmax(0,1fr)}
+  .sq-card{padding:5px;gap:4px;border-radius:9px}
+  .sq-photo{height:57px;border-radius:7px}
+  .sq-photo .sq-present-illustration{width:43px!important;height:43px!important}
+  .sq-card>strong{font-size:10px;line-height:1.25}
+  .sq-card>small{font-size:9px}
+  .sq-locked,.sq-lock{font-size:9px;min-height:30px;padding:6px 2px;border-radius:7px}
+  .sq-empty{font-size:9px;padding:9px 0}
+  .sq-morning-top{padding:17px;border-radius:16px;margin-bottom:14px}
+  .sq-morning-top h2{font-size:23px!important}
+  .sq-morning-top p{font-size:11px}
+  .sq-morning-heads .sq-section-kidhead{padding:6px 4px;min-height:48px}
+  .sq-compare-gift{padding:4px;border-radius:10px}
+  .sq-compare-picture{height:69px!important;border-radius:7px}
+  .sq-compare-picture .sq-present-illustration{width:44px!important;height:44px!important}
+  .sq-compare-gift>strong{font-size:11px;margin:6px 1px 2px;line-height:1.25}
+  .sq-compare-gift>small{font-size:9px;margin:0 1px 3px}
+  .sq-compare-open{min-height:118px;border-radius:10px;font-size:10px}
+  .sq-compare-open:before{width:22px;height:22px;font-size:17px}
+  .sq-gift-number{left:5px;top:5px;width:19px;min-width:19px;height:19px;font-size:9px}
+  .sq-comparison-board,.sq-morning-comparison-board{gap:14px}
+}
+@media(max-width:365px){
+  .sq-section-column{padding:4px}
+  .sq-section-kidhead{padding:5px 3px;gap:3px}
+  .sq-section-avatar{width:22px;min-width:22px;height:22px;font-size:13px}
+  .sq-section-kidhead strong{font-size:10px!important}
+  .sq-section-kidhead small{font-size:8px}
+  .sq-section-lane{padding:4px 2px!important}
+  .sq-compare-picture{height:61px!important}
+  .sq-compare-picture .sq-present-illustration{width:39px!important;height:39px!important}
+}
+/* The mobile app brand stays on one clean line. */
+@media(max-width:760px){
+ .topbar{padding:0 12px;gap:7px}
+ .mobile-top-logo{display:flex;align-items:center;gap:5px;white-space:nowrap;font-size:18px!important;letter-spacing:-.7px;flex:0 0 auto;min-width:0}
+ .mobile-brand-art{height:28px;width:28px;flex:0 0 28px}
+ .mobile-brand-art img{width:30px;height:30px}
+ .topbar-actions{gap:5px;flex:0 1 auto;min-width:0}
+ .countdown{font-size:9px;padding:7px 8px;line-height:1.25;max-width:129px;text-align:center}
+ .top-kid{font-size:10px;padding:8px 9px}
+ .top-setting{padding:7px 8px}
+}
+@media(max-width:350px){
+ .mobile-top-logo{font-size:15px!important}
+ .mobile-brand-art{width:23px;flex-basis:23px;height:24px}
+ .countdown{max-width:111px;font-size:9px}
+ .topbar{padding:0 9px;gap:4px}
+}
+@media(prefers-reduced-motion:reduce){.sq-card,.sq-tabs button{transition:none!important}}
+</style>
 </head>
 <body><section id="familyGate" role="region" aria-label="Family account sign in"></section>
 <div class="app"><aside class="sidebar">
@@ -1126,16 +1341,17 @@ function giftPlannerList(){
 }
 
 function isLocked(g){return giftPlacement(g)!=='undecided'&&(g.lockedIn===true||(g.lockedIn!==false&&(g.status==='To buy'||bought(g))))}
+function sqGiftIllustration(){return `<svg class="sq-present-illustration" viewBox="0 0 88 88" width="70" height="70" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><ellipse cx="44" cy="80" rx="30" ry="5" fill="#e6d9df" opacity=".5"/><path d="M18 39h52v34H18z" fill="#d98299" stroke="#a85270" stroke-width="3" stroke-linejoin="round"/><path d="M14 32h60v12H14z" fill="#f6aebd" stroke="#a85270" stroke-width="3" stroke-linejoin="round"/><path d="M39 33h10v40H39z" fill="#ffe0a0" stroke="#bd914e" stroke-width="2"/><path d="M44 31c-15-4-25-12-20-20 7-10 18 6 20 20Zm0 0c16-4 25-12 20-20-7-10-18 6-20 20Z" fill="#fac1d0" stroke="#a85270" stroke-width="3" stroke-linejoin="round"/><circle cx="44" cy="32" r="6" fill="#f4cf88" stroke="#a85270" stroke-width="3"/><path d="M25 57h9m-9 6h6" stroke="#fce3e7" stroke-width="3" stroke-linecap="round"/></svg>`}
 function boardCard(g){let place=giftPlacement(g),locked=isLocked(g),photo=safeImage(g.image),id=escapeHTML(g.id);
-return `<article class="sq-card" data-sq-card="${id}"><div class="sq-card-actions"><span class="sq-grab" data-sq-grab="${id}" role="button" tabindex="0" aria-label="Drag ${escapeHTML(g.name)} or press Enter to move">⠿</span><details class="sq-more"><summary aria-label="More options for ${escapeHTML(g.name)}">···</summary><div class="sq-more-list"><button data-action="edit" data-id="${id}">Edit</button><button data-action="duplicate" data-id="${id}">Duplicate</button><button data-action="sq-move-menu" data-id="${id}">Move to…</button>${locked?`<button data-action="sq-unlock" data-id="${id}">Unlock</button>`:''}</div></details></div><div class="sq-photo">${photo?`<img src="${escapeHTML(photo)}" alt="">`:catEmoji(g.category)}</div><strong>${escapeHTML(g.name)}</strong><small>${giftPriceLabel(g)}</small>${locked?`<span class="sq-locked">✓ ${bought(g)?'Purchased':'Locked in'}</span>`:place==='undecided'?'<span class="sq-hint">Move to a spot</span>':`<button class="sq-lock" data-action="sq-lock" data-id="${id}">Lock it in</button>`}</article>`}
+return `<article class="sq-card" data-sq-card="${id}"><div class="sq-card-actions"><span class="sq-grab" data-sq-grab="${id}" role="button" tabindex="0" aria-label="Drag ${escapeHTML(g.name)} or press Enter to move">⠿</span><details class="sq-more"><summary aria-label="More options for ${escapeHTML(g.name)}">···</summary><div class="sq-more-list"><button data-action="edit" data-id="${id}">Edit</button><button data-action="duplicate" data-id="${id}">Duplicate</button><button data-action="sq-move-menu" data-id="${id}">Move to…</button>${locked?`<button data-action="sq-unlock" data-id="${id}">Unlock</button>`:''}</div></details></div><div class="sq-photo">${photo?`<img src="${escapeHTML(photo)}" alt="">`:sqGiftIllustration()}</div><strong>${escapeHTML(g.name)}</strong><small>${giftPriceLabel(g)}</small>${locked?`<span class="sq-locked">✓ ${bought(g)?'Purchased':'Locked in'}</span>`:place==='undecided'?'<span class="sq-hint">Move to a spot</span>':`<button class="sq-lock" data-action="sq-lock" data-id="${id}">Lock it in</button>`}</article>`}
 function boardLane(k,place){
  const items=appState.gifts.filter(g=>g.kid===k&&giftPlacement(g)===place).sort((a,b)=>(Number(a.planOrder)||0)-(Number(b.planOrder)||0));
- return `<div class="sq-section-column"><div class="sq-section-kidhead"><span class="sq-section-avatar">${k==='both'?'✦':childChoiceIcon(k)}</span><div><strong>${k==='both'?'Both':escapeHTML(kidName(k))}</strong><small>${items.length} gift${items.length===1?'':'s'} · ${money(items.reduce((sum,g)=>sum+giftTotal(g),0))}</small></div></div><section class="sq-lane sq-section-lane" data-sq-zone="${escapeHTML(k)}" data-sq-place="${place}" data-place="${place}" aria-label="${escapeHTML(place==='tree'?'Under the tree':place==='stocking'?'Stocking':'Ideas')} for ${k==='both'?'Both':escapeHTML(kidName(k))}"><div class="sq-cards">${items.length?items.map(boardCard).join(''):'<p class="sq-empty">Drop a gift here</p>'}</div></section></div>`;
+ return `<div class="sq-section-column" data-kid="${escapeHTML(k)}"><div class="sq-section-kidhead"><span class="sq-section-avatar">${k==='both'?'✦':childChoiceIcon(k)}</span><div><strong>${k==='both'?'Both':escapeHTML(kidName(k))}</strong><small>${items.length} gift${items.length===1?'':'s'} · ${money(items.reduce((sum,g)=>sum+giftTotal(g),0))}</small></div></div><section class="sq-lane sq-section-lane" data-sq-zone="${escapeHTML(k)}" data-sq-place="${place}" data-place="${place}" aria-label="${escapeHTML(place==='tree'?'Under the tree':place==='stocking'?'Stocking':'Ideas')} for ${k==='both'?'Both':escapeHTML(kidName(k))}"><div class="sq-cards">${items.length?items.map(boardCard).join(''):'<p class="sq-empty">Drop a gift here</p>'}</div></section></div>`;
 }
 function sqBoardSection(place,title,description,kids){
  const counts=kids.map(k=>appState.gifts.filter(g=>g.kid===k&&giftPlacement(g)===place).length);
  const difference=kids.length===2?Math.abs(counts[0]-counts[1]):kids.length===3?Math.abs(counts[0]-counts[1]):0;
- return `<section class="sq-comparison-section" data-board-section="${place}"><header class="sq-comparison-title"><div><h2>${title}</h2><p>${description}</p></div>${kids.length>1?`<span class="sq-comparison-count">${difference===0?'Same count':`${difference} gift${difference===1?'':'s'} apart`}</span>`:''}</header><div class="sq-comparison-columns" style="--sq-cols:${kids.length}">${kids.map(k=>boardLane(k,place)).join('')}</div></section>`;
+ return `<section class="sq-comparison-section" data-board-section="${place}"><header class="sq-comparison-title"><div><h2>${title}</h2><p>${description}</p></div>${kids.length>1?`<span class="sq-comparison-count">${counts[0]===0&&counts[1]===0?'No gifts yet':difference===0?`${counts[0]} each`:`${difference} more in one pile`}</span>`:''}</header><div class="sq-comparison-columns" style="--sq-cols:${childIds().length+1}">${kids.map(k=>boardLane(k,place)).join('')}</div></section>`;
 }
 
 
@@ -1160,10 +1376,10 @@ function sqPointerUp(){sqPointerEnd(false)}function sqPointerCancel(){sqPointerE
 
 function giftPlannerIdeas(){
  const kids=childIds(),treeKids=[...kids,'both'],notAssigned=appState.gifts.filter(g=>g.kid==='unassigned'),sharedStock=appState.gifts.filter(g=>g.kid==='both'&&giftPlacement(g)==='stocking');
- return `<p class="sq-intro">Drag with ⠿, or use ··· to move gifts. <b>Lock it in</b> when you decide.</p><div class="sq-comparison-board">
- ${sqBoardSection('tree','Under the tree','See each child’s presents lined up next to one another.',treeKids)}
- ${sqBoardSection('stocking','Stockings','Compare the little surprises separately.',kids)}
- ${sqBoardSection('undecided','Ideas to sort','Try different combinations before locking anything in.',treeKids)}
+ return `<p class="sq-intro">Arrange ideas side by side. Drag to move them, then <b>Lock it in</b> when you choose.</p><div class="sq-comparison-board">
+ ${sqBoardSection('tree','Under the tree','Line up the presents to compare at a glance.',treeKids)}
+ ${sqBoardSection('stocking','Stockings','Small surprises, side by side.',kids)}
+ ${sqBoardSection('undecided','Ideas to sort','Move ideas around until the plan feels right.',treeKids)}
  </div>
  ${sharedStock.length?`<details class="sq-legacy-stock"><summary>Shared stocking ideas (${sharedStock.length})</summary><p>These were previously assigned to both stockings. Move or duplicate them for each child.</p><div class="sq-legacy-list">${sharedStock.map(boardCard).join('')}</div></details>`:''}
  ${notAssigned.length?`<section class="sq-unassigned"><h3>Still deciding who it's for</h3>${notAssigned.map(g=>`<div class="sq-assign"><strong>${escapeHTML(g.name)}</strong>${[...kids,'both'].map(k=>`<button data-action="idea-assign" data-id="${escapeHTML(g.id)}" data-kid="${escapeHTML(k)}">${k==='both'?'Both':escapeHTML(kidName(k))}</button>`).join('')}</div>`).join('')}</section>`:''}`;
@@ -1171,23 +1387,23 @@ function giftPlannerIdeas(){
 
 function morningTile(g,i){
  const image=safeImage(g.image);
- return `<article class="sq-morning-gift sq-compare-gift"><div class="sq-compare-picture">${image?`<img src="${escapeHTML(image)}" alt="">`:catEmoji(g.category)}<span class="sq-gift-number">${i+1}</span></div><strong>${escapeHTML(g.name)}</strong><small>${bought(g)?'✓ Purchased':'Locked in'} · ${giftPriceLabel(g)}</small></article>`;
+ return `<article class="sq-morning-gift sq-compare-gift"><div class="sq-compare-picture">${image?`<img src="${escapeHTML(image)}" alt="">`:sqGiftIllustration()}<span class="sq-gift-number">${i+1}</span></div><strong>${escapeHTML(g.name)}</strong><small>${bought(g)?'✓ Purchased':'Locked in'} · ${giftPriceLabel(g)}</small></article>`;
 }
 function sqMorningSection(place,title,kids,allLocked){
  const lists=kids.map(k=>allLocked.filter(g=>g.kid===k&&giftPlacement(g)===place).sort((a,b)=>(Number(a.planOrder)||0)-(Number(b.planOrder)||0)));
  const max=Math.max(1,...lists.map(list=>list.length));
  const difference=lists.length>=2?Math.abs(lists[0].length-lists[1].length):0;
- return `<section class="sq-comparison-section sq-morning-comparison" data-morning-section="${place}"><header class="sq-comparison-title"><div><h2>${title}</h2><p>${place==='tree'?'Each row lines up a possible one-for-one gift. Shared gifts have their own column.':'Stocking gifts are shown separately for an easy side-by-side check.'}</p></div><span class="sq-comparison-count">${difference===0?'Same count':`${difference} gift${difference===1?'':'s'} apart`}</span></header><div class="sq-comparison-columns sq-morning-heads" style="--sq-cols:${kids.length}">${kids.map((k,index)=>`<div class="sq-section-kidhead"><span class="sq-section-avatar">${k==='both'?'✦':childChoiceIcon(k)}</span><div><strong>${k==='both'?'Both':escapeHTML(kidName(k))}</strong><small>${lists[index].length} gift${lists[index].length===1?'':'s'} · ${money(lists[index].reduce((sum,g)=>sum+giftTotal(g),0))}</small></div></div>`).join('')}</div><div class="sq-morning-rows">${Array.from({length:max},(_,i)=>`<div class="sq-compare-row" style="--sq-cols:${kids.length}">${lists.map((list,index)=>`<div class="sq-compare-cell">${list[i]?morningTile(list[i],i):`<div class="sq-compare-open"><span>Open spot</span><small>#${i+1}</small></div>`}</div>`).join('')}</div>`).join('')}</div></section>`;
+ return `<section class="sq-comparison-section sq-morning-comparison" data-morning-section="${place}"><header class="sq-comparison-title"><div><h2>${title}</h2><p>${place==='tree'?'A clear look at each child’s presents, including gifts for both.':'The little surprises, lined up side by side.'}</p></div><span class="sq-comparison-count">${lists[0].length===0&&lists[1].length===0?'No gifts yet':difference===0?`${lists[0].length} each`:`${difference} more in one pile`}</span></header><div class="sq-comparison-columns sq-morning-heads" style="--sq-cols:${childIds().length+1}">${kids.map((k,index)=>`<div class="sq-section-kidhead" data-kid="${escapeHTML(k)}"><span class="sq-section-avatar">${k==='both'?'✦':childChoiceIcon(k)}</span><div><strong>${k==='both'?'Both':escapeHTML(kidName(k))}</strong><small>${lists[index].length} gift${lists[index].length===1?'':'s'} · ${money(lists[index].reduce((sum,g)=>sum+giftTotal(g),0))}</small></div></div>`).join('')}</div><div class="sq-morning-rows">${Array.from({length:max},(_,i)=>`<div class="sq-compare-row" style="--sq-cols:${childIds().length+1}">${lists.map((list,index)=>`<div class="sq-compare-cell" data-kid="${escapeHTML(kids[index])}">${list[i]?morningTile(list[i],i):`<div class="sq-compare-open"><span>Open spot</span><small>#${i+1}</small></div>`}</div>`).join('')}</div>`).join('')}</div></section>`;
 }
 
 function giftPlannerCompare(){
  const locked=appState.gifts.filter(isLocked),kids=childIds(),sharedStock=locked.filter(g=>g.kid==='both'&&giftPlacement(g)==='stocking');
- return `<header class="sq-morning-top"><div><span>CHRISTMAS MORNING</span><h2>See the magic taking shape</h2><p>Only locked-in gifts appear. Each row helps you compare the presents each child will open.</p></div></header>
+ return `<header class="sq-morning-top"><div><span>CHRISTMAS MORNING</span><h2>Christmas morning, at a glance</h2><p>Just the gifts you’ve chosen, lined up to compare what everyone will open.</p></div></header>
  <div class="sq-morning-comparison-board">${sqMorningSection('tree','Under the tree',[...kids,'both'],locked)}${sqMorningSection('stocking','Stockings',kids,locked)}</div>
  ${sharedStock.length?`<section class="sq-morning-shared"><h3>Previously shared stocking gifts</h3><p>These are kept here so nothing from an earlier plan is lost.</p><div class="sq-morning-list">${sharedStock.map((g,i)=>morningTile(g,i)).join('')}</div></section>`:''}`;
 }
 
-function giftsPage(){let view=appState.giftView==='compare'?'compare':'ideas';return heading('CHRISTMAS WORKSHOP','Organize gifts',view==='ideas'?'Compare what each child has, then lock in your favorites.':'See your locked-in gifts lined up by child.',false)+`${view==='ideas'?'<div class="sq-toolbar"><button class="primary" data-action="add">+ Add idea</button><button class="secondary" data-action="paste-gifts">Paste a list</button></div>':''}<div class="sq-tabs"><button class="${view==='ideas'?'active':''}" data-action="gift-view" data-view="ideas">Gift Board</button><button class="${view==='compare'?'active':''}" data-action="gift-view" data-view="compare">Christmas Morning</button></div>${view==='ideas'?giftPlannerIdeas():giftPlannerCompare()}`}
+function giftsPage(){let view=appState.giftView==='compare'?'compare':'ideas';return heading('CHRISTMAS WORKSHOP','Organize gifts',view==='ideas'?'Arrange their gifts side by side. Lock in your final choices.':'See what everyone will open, side by side.',false)+`${view==='ideas'?'<div class="sq-toolbar"><button class="primary" data-action="add">+ Add idea</button><button class="secondary" data-action="paste-gifts">Paste a list</button></div>':''}<div class="sq-tabs"><button class="${view==='ideas'?'active':''}" data-action="gift-view" data-view="ideas">Gift Board</button><button class="${view==='compare'?'active':''}" data-action="gift-view" data-view="compare">Christmas Morning</button></div>${view==='ideas'?giftPlannerIdeas():giftPlannerCompare()}`}
 
 function listRow(g,mode){const img=safeImage(g.image),isWrap=mode==='wrapping';let next=isWrap?'Wrapped':'Bought';return `<div class="shopping-row"><div class="shopping-thumb">${img?`<img style="width:100%;height:100%;border-radius:inherit;object-fit:cover" src="${escapeHTML(img)}" alt="">`:catEmoji(g.category)}</div><div class="shopping-detail"><strong>${escapeHTML(g.name)}</strong><small>${escapeHTML(kidName(g.kid))} · ${escapeHTML(g.category)} ${g.store?'· '+escapeHTML(g.store):''}</small>${g.storage&&isWrap?`<div class="quiet">Hiding spot: ${escapeHTML(g.storage)}</div>`:''}</div><div class="shop-pricing">${giftPriceLabel(g)}</div><div class="shopping-actions">${g.link&&safeLink(g.link)?`<button class="icon-btn" title="View product" data-action="open-link" data-id="${g.id}">${ico('external')}</button>`:''}<button class="small-action" data-action="next" data-next="${next}" data-id="${g.id}">${ico('check')} ${isWrap?'Wrapped!':'Bought!'}</button><button class="icon-btn" title="Edit" data-action="edit" data-id="${g.id}">${ico('edit')}</button></div></div>`}
 function shoppingPage(){const gs=appState.gifts.filter(g=>g.status==='To buy'),total=gs.reduce((s,g)=>s+giftTotal(g),0);return heading('Time to shop','The shopping list','Chosen gifts you still need to buy—not every brainstorm idea.')+`<div class="shopping-tally"><span>Shop ${gs.length} to shop</span><span>Budget ${money(total)} estimated to purchase</span></div><div class="panel">${gs.length?gs.sort((a,b)=>a.status==='To buy'?-1:1).map(g=>listRow(g,'shopping')).join(''):emptyGifts('Shopping is all caught up!','Ideas you choose on the planning board move here when they are marked To buy.')}</div>`}
