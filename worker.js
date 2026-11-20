@@ -90,13 +90,13 @@ async function acceptInvitation(db,token,userId){
   return invite.household_id;
 }
 // Retailer price checks are optional and authenticated. Never fetch arbitrary gift URLs.
-// AMAZON: Keepa (paid/token-limited); BEST BUY: official Products API (developer key).
+// Amazon uses DataForSEO when configured. Keepa remains available for existing price checks.
 // Quotes are returned to the client; they do NOT modify gift budgets or place orders.
 function detectPriceProduct(link){
   let u;try{u=new URL(String(link||''))}catch{return null}
   if(u.protocol!=='https:'||u.username||u.password||u.port)return null;
   const host=u.hostname.toLowerCase();
-  if(host==='amazon.com'||host==='www.amazon.com'||host==='smile.amazon.com'){
+  if(amazonHosts.has(host)){
     const asin=u.pathname.match(/\/(?:dp|gp\/product|gp\/aw\/d)\/([A-Z0-9]{10})(?:\/|$)/i)?.[1]||u.searchParams.get('asin');
     return asin&&/^[A-Z0-9]{10}$/i.test(asin)?{store:'Amazon',id:asin.toUpperCase()}:null;
   }
@@ -106,10 +106,88 @@ function detectPriceProduct(link){
   }
   return null;
 }
+const amazonHosts=new Set(['amazon.com','www.amazon.com','smile.amazon.com','m.amazon.com']);
+const amazonShortHosts=new Set(['a.co','amzn.to','www.amzn.to']);
+const dataForSeoReady=env=>Boolean(env.DATAFORSEO_LOGIN && env.DATAFORSEO_PASSWORD);
+
+async function resolveAmazonProduct(link,requestFetch=fetch){
+  let url;
+  try{url=new URL(String(link||'').trim())}catch{return null}
+  for(let hop=0;hop<6;hop++){
+    if(url.protocol!=='https:'||url.username||url.password||url.port)return null;
+    const host=url.hostname;
+    if(!amazonHosts.has(host)&&!amazonShortHosts.has(host))return null;
+    const product=detectPriceProduct(url.href);
+    if(product?.store==='Amazon')return product;
+    // Only short links and Amazon's own short-link redirect route need expansion.
+    if(!amazonShortHosts.has(host)&&!url.pathname.startsWith('/gp/r.html'))return null;
+    const res=await requestFetch(url.href,{redirect:'manual',signal:AbortSignal.timeout(3500)});
+    const location=res.headers.get('Location');
+    await res.body?.cancel();
+    if(![301,302,303,307,308].includes(res.status)||!location)return null;
+    try{url=new URL(location,url)}catch{return null}
+  }
+  return null;
+}
+
+function amazonOffer(item){
+  const condition=String(item?.condition||'').trim();
+  const price=item?.price;
+  return (!condition||/^new$/i.test(condition))&&price?.currency==='USD'&&
+    price.is_price_range!==true&&Number.isFinite(price.current)&&price.current>0;
+}
+
+async function fetchAmazonListing(product,env,requestFetch=fetch){
+  if(!dataForSeoReady(env))return {error:'Amazon lookup needs DataForSEO credentials in Cloudflare.',status:503};
+  try{
+    const res=await requestFetch('https://api.dataforseo.com/v3/merchant/amazon/sellers/live/advanced',{
+      method:'POST',
+      headers:{Authorization:'Basic '+btoa(env.DATAFORSEO_LOGIN+':'+env.DATAFORSEO_PASSWORD),'Content-Type':'application/json'},
+      body:JSON.stringify([{language_code:'en_US',location_code:2840,asin:product.id}]),
+      signal:AbortSignal.timeout(65000)
+    });
+    const data=await res.json();
+    const task=data.tasks?.[0];
+    if(!res.ok||data.status_code!==20000||task?.status_code!==20000){
+      return {error:'Amazon lookup is unavailable. Check the DataForSEO credentials and balance, or try again shortly.',status:502};
+    }
+    const listing=task.result?.find(item=>item.asin===product.id&&item.se_domain==='amazon.com');
+    if(!listing)return {error:'No Amazon listing was returned for this item.',status:422};
+    const main=listing.items?.find(item=>item.type==='amazon_seller_main_item'&&amazonOffer(item));
+    const offers=(listing.items||[]).filter(item=>item.type==='amazon_seller_item'&&amazonOffer(item));
+    const price=main?.price.current??(offers.length?Math.min(...offers.map(item=>item.price.current)):null);
+    return {
+      link:'https://www.amazon.com/dp/'+product.id,
+      title:String(listing.title||'').trim().slice(0,160),
+      image:typeof listing.image==='string'&&listing.image.startsWith('https://')?listing.image:'',
+      price,currency:'USD',store:'Amazon',checkedAt:new Date().toISOString(),
+      source:main?'Amazon listed offer · DataForSEO':'Amazon seller offer · DataForSEO'
+    };
+  }catch{
+    return {error:'Could not reach the Amazon lookup service. Try again shortly.',status:502};
+  }
+}
+
+async function checkAmazonLookupLimit(db,family){
+  if(!await guardLimit(db,'amazon-lookup',family,40,3600000))return false;
+  // One atomic, shared cap also bounds charges when multiple families use the app at once.
+  const now=Date.now(),floor=now-86400000;
+  const result=await db.prepare(`INSERT INTO auth_limits(key,attempts,window_started) VALUES('amazon-lookup-global',1,?)
+    ON CONFLICT(key) DO UPDATE SET
+      attempts=CASE WHEN window_started<=? THEN 1 ELSE attempts+1 END,
+      window_started=CASE WHEN window_started<=? THEN excluded.window_started ELSE window_started END
+    WHERE window_started<=? OR attempts<100`).bind(now,floor,floor,floor).run();
+  return Boolean(result.meta?.changes);
+}
+
 async function fetchPriceQuote(product,env,requestFetch=fetch){
   if(!product)return {error:'Automatic refresh is not available for this retailer or link. Open the store to check its price.',status:422};
   const now=new Date().toISOString();
   if(product.store==='Amazon'){
+    if(dataForSeoReady(env)){
+      const listing=await fetchAmazonListing(product,env,requestFetch);
+      return !listing.error&&listing.price===null?{error:'No available Amazon price was returned for this item.',status:422}:listing;
+    }
     if(!env.KEEPA_API_KEY)return {error:'Amazon refresh needs a Keepa API key set by the Santa HQ owner. Use View at store meanwhile.',status:503};
     const u=new URL('https://api.keepa.com/product');u.searchParams.set('key',env.KEEPA_API_KEY);u.searchParams.set('domain','1');u.searchParams.set('asin',product.id);u.searchParams.set('stats','1');u.searchParams.set('history','0');
     const res=await requestFetch(u.toString(),{headers:{Accept:'application/json'},signal:AbortSignal.timeout(10000)});
@@ -139,7 +217,7 @@ async function fetchPriceQuote(product,env,requestFetch=fetch){
   }
   return {error:'This store is not supported for price refresh.',status:422};
 }
-export { detectPriceProduct,fetchPriceQuote };
+export { detectPriceProduct,resolveAmazonProduct,fetchAmazonListing,fetchPriceQuote };
 
 async function handleApi(request,env,url){
   if(!env.DB||!env.PASSWORD_PEPPER)return error('Server setup is incomplete. Ask the site administrator to configure DB and PASSWORD_PEPPER.',503);
@@ -423,6 +501,16 @@ async function handleApi(request,env,url){
     const newUser=await session(request,db);
     return json({ok:true,...await who(db,newUser)});
   }
+  if(path==='/api/private/amazon-lookup'&&method==='POST'){
+    const body=await bodyJSON(request);
+    if(typeof body.link!=='string'||body.link.length>2048)return error('Paste an Amazon product link.');
+    if(!dataForSeoReady(env))return error('Amazon lookup needs DataForSEO credentials in Cloudflare.',503);
+    if(!await checkAmazonLookupLimit(db,family))return error('Amazon lookup limit reached. Try again later.',429);
+    const product=await resolveAmazonProduct(body.link).catch(()=>null);
+    if(!product)return error('Could not open that Amazon link. Try copying the full product URL from Safari.',422);
+    const listing=await fetchAmazonListing(product,env);
+    return listing.error?error(listing.error,listing.status):json({ok:true,...listing});
+  }
   if(path==='/api/private/price-check'&&method==='POST'){
     const body=await bodyJSON(request),giftId=String(body.giftId||'');
     if(!giftId||giftId.length>160)return error('Select a gift to check.',400);
@@ -430,13 +518,22 @@ async function handleApi(request,env,url){
     const record=await db.prepare("SELECT data FROM records WHERE household_id=? AND kind='gift' AND id=? AND deleted=0").bind(family,giftId).first();
     if(!record?.data)return error('Gift not found in your family.',404);
     let gift;try{gift=JSON.parse(record.data)}catch{return error('Gift record is unavailable.',422)}
-    if(!gift.watchDeal)return error('Turn on Deal Watch for this gift first.',422);
-    const product=detectPriceProduct(gift.link);
-    if(!product)return error('Automatic refresh is not available for this store or product link. Use View at store.',422);
-    if((product.store==='Amazon'&&!env.KEEPA_API_KEY)||(product.store==='Best Buy'&&!env.BEST_BUY_API_KEY)){
-      return error(`${product.store} price lookup has not been configured by the Santa HQ owner. Use View at store for now.`,503);
+    if(['Bought','Ordered','Arrived','Wrapped'].includes(gift.status))return error('This gift is already purchased.',422);
+    let product=detectPriceProduct(gift.link);
+    if(!product){
+      if(!await guardLimit(db,'price-link-resolution',family,40,3600000))return error('Price refresh limit reached. Try again later.',429);
+      product=await resolveAmazonProduct(gift.link).catch(()=>null);
     }
-    if(!await guardLimit(db,'price-check',family,50,3600000))return error('Price refresh limit reached for your family. Try again in an hour.',429);
+    if(!product)return error('Automatic refresh is not available for this store or product link. Use View at store.',422);
+    if(product.store!=='Amazon'&&!gift.watchDeal)return error('Turn on Deal Watch for this gift first.',422);
+    if(product.store==='Amazon'&&dataForSeoReady(env)){
+      if(!await checkAmazonLookupLimit(db,family))return error('Amazon lookup limit reached. Try again later.',429);
+    }else{
+      if((product.store==='Amazon'&&!env.KEEPA_API_KEY)||(product.store==='Best Buy'&&!env.BEST_BUY_API_KEY)){
+        return error(`${product.store} price lookup has not been configured. Use View at store for now.`,503);
+      }
+      if(!await guardLimit(db,'price-check',family,50,3600000))return error('Price refresh limit reached for your family. Try again in an hour.',429);
+    }
     const quote=await fetchPriceQuote(product,env);
     return quote.error?error(quote.error,quote.status||422):json({ok:true,...quote});
   }

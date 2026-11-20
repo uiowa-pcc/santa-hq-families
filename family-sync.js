@@ -152,6 +152,7 @@ async function activate(data){
     }
   }
   ui.invite='';history.replaceState({},'',location.pathname+location.hash);
+  openPendingSharedGift();
 }
 async function check(){
   G.innerHTML='<div class="fa-shell fa-loading">Opening your Christmas planner…</div>';G.hidden=false;
