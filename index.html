@@ -587,6 +587,69 @@ body.kid-open{background:#fff9f7}
 
 
 body:has([data-board-section]) .mobile-add,body:has([data-morning-section]) .mobile-add{display:none!important}
+
+/* Compact comparison board pass — easier sorting with denser tiles */
+.sq-comparison-board,.sq-morning-comparison-board{gap:14px}
+.sq-comparison-section{padding:13px 14px;border-radius:22px}
+.sq-comparison-title{margin-bottom:10px}
+.sq-comparison-title h2{font-size:22px}
+.sq-comparison-columns,.sq-compare-row{gap:8px}
+.sq-section-column{padding:8px;gap:7px;border-radius:16px}
+.sq-section-kidhead{min-height:34px;gap:7px}
+.sq-section-avatar{width:34px;height:34px;min-width:34px;border-radius:12px}
+.sq-section-kidhead strong{font-size:14px}
+.sq-section-kidhead small{margin-top:2px}
+.sq-section-lane{padding:8px;min-height:84px;border-radius:14px}
+.sq-section-lane .sq-cards{min-height:72px;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:6px}
+.sq-card{padding:5px;gap:3px;border-radius:12px}
+.sq-card-actions{min-height:20px}
+.sq-grab{width:22px;height:20px;font-size:16px}
+.sq-more summary{width:22px;height:22px;font-size:17px}
+.sq-photo{height:52px;border-radius:8px}
+.sq-card>strong{font-size:10px;-webkit-line-clamp:2}
+.sq-card>small{font-size:9px}
+.sq-lock{min-height:26px;font-size:9px;padding:5px 2px;border-radius:8px}
+.sq-locked{padding:6px 3px;font-size:8px}
+.sq-hint{padding:5px 2px;font-size:8px}
+.sq-unassigned{padding:13px 14px;margin-top:14px}
+.sq-morning-heads{padding:7px 6px;margin-bottom:8px}
+.sq-compare-open{min-height:112px;padding:6px;font-size:10px}
+.sq-compare-open small{font-size:9px}
+@media(min-width:761px){
+  .sq-comparison-columns{align-items:start}
+  .sq-section-column{position:relative}
+}
+@media(max-width:760px){
+ .sq-comparison-board,.sq-morning-comparison-board{gap:10px}
+ .sq-comparison-section{padding:9px 7px;border-radius:18px}
+ .sq-comparison-title{margin-bottom:8px}
+ .sq-comparison-title h2{font-size:18px}
+ .sq-comparison-columns,.sq-compare-row{gap:4px}
+ .sq-section-column{padding:4px;gap:4px;border-radius:10px}
+ .sq-section-kidhead{min-height:58px;gap:3px}
+ .sq-section-avatar{width:24px;height:24px;min-width:24px;border-radius:9px;font-size:15px}
+ .sq-section-kidhead strong{font-size:11px;line-height:1.05}
+ .sq-section-kidhead small{font-size:8px;line-height:1.15}
+ .sq-section-lane{padding:3px;border-radius:9px}
+ .sq-section-lane .sq-cards{grid-template-columns:1fr;gap:4px;min-height:58px}
+ .sq-card{padding:3px;gap:2px;border-radius:9px}
+ .sq-photo{height:42px}
+ .sq-card>strong{font-size:9px;line-height:1.18;-webkit-line-clamp:2}
+ .sq-card>small{font-size:8px}
+ .sq-grab,.sq-more summary{width:18px;height:18px;font-size:14px}
+ .sq-lock{min-height:22px;font-size:8px;padding:4px 2px}
+ .sq-locked,.sq-hint{font-size:7px}
+ .sq-compare-open{min-height:90px;padding:4px;font-size:9px}
+ .sq-gift-number{height:14px;min-width:14px;font-size:8px}
+}
+@media(max-width:380px){
+ .sq-comparison-title p{display:none}
+ .sq-comparison-count{padding:4px 6px;font-size:8px}
+ .sq-section-kidhead{min-height:52px}
+ .sq-photo{height:36px}
+ .sq-compare-open{min-height:78px}
+}
+
 </style>
 <style id="familyAccountsStyle">
 body:not(.family-authenticated) .app,body:not(.family-authenticated) .mobile-nav,body:not(.family-authenticated) .mobile-add,body:not(.family-authenticated) .overlay,body:not(.family-authenticated) .kid-portal,body:not(.family-authenticated) .toast{display:none!important}
