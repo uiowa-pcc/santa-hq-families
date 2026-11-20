@@ -1113,6 +1113,121 @@ body:has(.wb-page) .content{max-width:1540px;padding:16px clamp(12px,2.25vw,34px
 .wb-unassigned-row>div{display:flex;flex-wrap:wrap;gap:7px}
 .wb-unassigned-row button{padding:8px 10px;border:1px solid #e8dfe9;border-radius:9px;background:#fff;color:#795c7c;font-size:11px;font-weight:800}
 @media(prefers-reduced-motion:reduce){.wb-gift,.wb-drop{transition:none!important}}
+
+
+/* Worktable QA fixes: keep the photo/placeholder contained and remove legacy add overlay */
+body:has(.nw-worktable) .mobile-add{display:none!important}
+@media(max-width:760px){.wb-page:has(.nw-worktable) .wb-title .eyebrow,.wb-page:has(.nw-worktable) .wb-title p{display:none!important}}
+.nw-card-thumb .sq-present-illustration{width:24px!important;height:24px!important;max-width:100%!important;max-height:100%!important;overflow:hidden!important}
+@media(max-width:760px){.nw-card-text strong{font-size:10px!important}.nw-card-text span{font-size:9px!important}}
+
+/* Gift Table v2: deliberate two-surface planning, no vertical scroll traps */
+body:has(.nw-worktable) .content{max-width:1560px;padding:14px clamp(12px,2vw,29px) 36px}
+.wb-page:has(.nw-worktable){gap:10px}
+.wb-page:has(.nw-worktable) .wb-title h1{font-size:clamp(25px,3vw,32px);margin:0 0 3px}
+.wb-page:has(.nw-worktable) .wb-top{align-items:center}
+.wb-page:has(.nw-worktable) .wb-top-actions .primary,.wb-page:has(.nw-worktable) .wb-top-actions .secondary{min-height:34px}
+.nw-worktable{--nw-ink:#3c3346;--nw-muted:#887f8e;--nw-line:#ece5ed;--nw-purple:#8267c2;--nw-blush:#c76c89;--nw-cream:#fcf4e7;font-family:'DM Sans',sans-serif;color:var(--nw-ink)}
+.nw-work-intro{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:3px 2px 11px;color:#81748b;font-size:11px;line-height:1.4}
+.nw-counter{white-space:nowrap;border:1px solid #e9dee9;border-radius:999px;color:#76627b;padding:5px 10px;background:#fff;font-weight:800}
+.nw-layout{display:grid;grid-template-columns:minmax(250px,.77fr) minmax(0,2.25fr);gap:15px;align-items:start}
+.nw-ideas,.nw-area{background:white;border:1px solid var(--nw-line);border-radius:22px;box-shadow:0 6px 19px #75647a0a}
+.nw-ideas{padding:14px;min-width:0}
+.nw-ideas-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:13px}
+.nw-ideas-heading h2,.nw-area-header h2{font:850 19px/1.1 'Outfit',sans-serif!important;letter-spacing:-.4px;color:#41374e;margin:0}
+.nw-ideas-heading h2 span{font:800 11px/1 'DM Sans',sans-serif;background:#f0ebfb;border-radius:50%;padding:3px 6px;margin-left:5px;color:#7563ad}
+.nw-ideas-heading p,.nw-area-header p{font-size:11px;line-height:1.3;color:#8e8392;margin:4px 0 0}
+.nw-mini-add{border:0;border-radius:11px;background:#a74b72;color:white;font-size:12px;font-weight:800;padding:9px 13px;white-space:nowrap}
+.nw-idea-targets{display:grid;grid-template-columns:repeat(var(--nw-cols),minmax(0,1fr));gap:6px;margin-bottom:11px}
+.nw-idea-target{min-width:0;display:flex;gap:5px;flex-direction:column;align-items:center;justify-content:center;background:#f9f6fc;border:1px dashed #e0d3e7;color:#65596d;border-radius:12px;padding:7px 4px;cursor:pointer}
+.nw-idea-target span{display:grid;place-items:center;width:29px;height:29px;min-width:29px;overflow:hidden;border-radius:9px;background:#f5eafa}
+.nw-idea-target strong{max-width:100%;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:10px}
+.nw-idea-target:hover{background:#f0eafa;border-color:#baa4c9}
+.nw-ideas .nw-idea-strip{display:grid;align-content:start;gap:7px;min-width:0}
+.nw-ideas-foot{font-size:10px;line-height:1.4;color:#9c909e;margin-top:12px}
+.nw-ideas-empty{font-size:12px;color:#918797;margin:0;padding:10px 0}
+.nw-arrangements{display:grid;gap:13px;min-width:0}
+.nw-area{padding:14px 13px;min-width:0}
+.nw-area-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:11px}
+.nw-area-stat{border:1px solid #efe5ed;color:#9b7085;background:#fcf4f7;border-radius:999px;font-size:10px;font-weight:800;padding:6px 10px;white-space:nowrap}
+.nw-places{display:grid;grid-template-columns:repeat(var(--nw-cols),minmax(0,1fr));gap:9px;align-items:stretch}
+.nw-drop{min-width:0;border:1px solid #eee4ee;background:#fdfbfe;border-radius:16px;padding:9px;min-height:102px;cursor:default}
+.nw-area[data-nw-area=tree] .nw-drop{background:#fffbf6}
+.nw-area[data-nw-area=stocking] .nw-drop{background:#fdf8fc}
+.nw-drop-head{display:flex;align-items:center;gap:7px;min-height:38px;border-bottom:1px solid #ede7ee;padding-bottom:8px;margin-bottom:8px;cursor:pointer}
+.nw-person-icon{width:35px;height:35px;min-width:35px;flex:0 0 35px;display:grid;place-items:center;border-radius:11px;background:#f5ebfa;overflow:hidden;color:#8968b3}
+.nw-person-icon .elf-avatar,.nw-idea-target .elf-avatar{width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;border-radius:inherit!important;flex:none!important;display:inline-grid!important;margin:0!important;transform:none!important}
+.nw-person-icon .kid-symbol,.nw-idea-target .kid-symbol{min-width:100%!important;min-height:100%!important;font-size:19px!important;padding:0!important;line-height:1!important;display:grid;place-items:center}
+.nw-person-txt{min-width:0;flex:1}
+.nw-person-txt strong{font:850 13px/1.1 'Outfit',sans-serif;color:#49384e;display:block;overflow:hidden;text-overflow:ellipsis}
+.nw-person-txt small{display:block;font-size:10px;color:#938697;line-height:1.25;margin-top:3px}
+.nw-card-stack{display:grid;align-content:start;gap:7px;min-height:40px}
+.nw-empty{color:#b2a7b7;text-align:center;padding:12px 3px;margin:0;font-size:10px;line-height:1.2;border:1px dashed #e8e1e9;border-radius:10px}
+.nw-spacer{border:1px dashed #f0e9ec;display:grid;place-items:center;border-radius:15px;color:#bbb0bb;font-size:11px;text-align:center;padding:12px;background:#fdfbfc}
+.nw-spacer span{max-width:140px}
+.nw-card.wb-gift{position:relative;min-width:0;width:100%;display:flex;flex-direction:row;align-items:center;gap:6px;padding:7px;border-radius:11px;border:1px solid #eae3ec;background:white;box-shadow:0 2px 7px #503b6208;cursor:pointer;touch-action:pan-y}
+.nw-card .nw-grip{flex:0 0 16px;width:16px;height:27px;font-size:16px;color:#a592ac}
+.nw-card-thumb{display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;overflow:hidden;background:#f7f2f9;border-radius:8px}
+.nw-card-thumb img,.nw-card-thumb svg{max-width:100%;max-height:100%;width:26px;height:26px;object-fit:contain}
+.nw-card-thumb img:not([src]){display:none}
+.nw-card-text{min-width:0;flex:1;display:block}
+.nw-card-text strong{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;font:800 11px/1.24 'DM Sans',sans-serif;color:#4d4052}
+.nw-card-text span{display:block;font-size:10px;color:#958796;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.nw-card .nw-lock{border:0;background:#b85877;color:#fff;font-weight:800;font-size:9px;border-radius:7px;padding:7px 6px;flex:none}
+.nw-card .nw-done{display:grid;place-items:center;background:#e6f3e9;color:#407a58;width:23px;height:23px;flex:none;border-radius:8px;font-size:12px;font-weight:900}
+.nw-card .nw-more{width:19px;height:25px;color:#87778d;font-size:14px;padding:0}
+.nw-card.nw-picked{border-color:#8565c5!important;background:#f5f0ff!important;box-shadow:0 0 0 2px #c8b7ef!important}
+.nw-drop.nw-ready,.nw-idea-target.nw-ready{outline:2px dashed #ab87d1;outline-offset:-4px;cursor:pointer}
+.nw-drop.sq-hover,.nw-idea-target.sq-hover{background:#ebe2fb!important;outline:3px solid #ab87d1;outline-offset:-3px}
+.nw-card.sq-source{opacity:.25}
+.nw-card.sq-before{box-shadow:0 -4px 0 #ac7dc0!important}
+.nw-card.sq-ghost{position:fixed!important;z-index:99999!important;pointer-events:none!important;opacity:.93;transform:rotate(-2deg);background:#fff;max-width:340px}
+.nw-shared-mark{font-size:21px;color:#9872b3}
+@media(max-width:1000px){.nw-layout{grid-template-columns:minmax(195px,.7fr) minmax(0,2fr);gap:10px}.nw-ideas,.nw-area{padding:11px}.nw-places{gap:6px}.nw-drop{padding:6px}.nw-card.wb-gift{padding:6px 4px;gap:3px}.nw-card-thumb{display:none}.nw-card-text strong{font-size:10px}}
+@media(max-width:760px){
+ body:has(.nw-worktable) .content{padding:11px 9px calc(112px + env(safe-area-inset-bottom))}
+ .wb-page:has(.nw-worktable) .wb-title h1{font-size:25px}
+ .wb-page:has(.nw-worktable) .wb-title p{font-size:10px}
+ .nw-work-intro{gap:6px;padding:0 2px 7px;font-size:10px}
+ .nw-counter{padding:4px 7px;font-size:9px}
+ .nw-layout{display:flex;flex-direction:column;gap:10px}
+ .nw-ideas{width:100%;padding:9px;border-radius:15px}
+ .nw-ideas-heading{margin-bottom:7px}
+ .nw-ideas-heading h2{font-size:16px}.nw-ideas-heading p,.nw-ideas-foot{display:none}
+ .nw-mini-add{padding:7px 12px;font-size:11px}
+ .nw-idea-targets{margin-bottom:7px;gap:4px}
+ .nw-idea-target{flex-direction:row;gap:4px;min-height:31px;padding:2px 3px;border-radius:8px}
+ .nw-idea-target span{width:24px;height:24px;min-width:24px;border-radius:7px}
+ .nw-idea-target strong{font-size:10px}
+ .nw-ideas .nw-idea-strip{display:flex;gap:5px;overflow-x:auto;overflow-y:hidden;max-width:100%;padding:1px 0 6px;scrollbar-width:thin;scroll-snap-type:x proximity}
+ .nw-ideas .nw-card{flex:0 0 clamp(126px,36vw,176px);width:clamp(126px,36vw,176px);scroll-snap-align:start}
+ .nw-ideas .nw-card-text strong{font-size:10px}
+ .nw-arrangements{gap:9px;width:100%}
+ .nw-area{padding:9px 7px;border-radius:16px}
+ .nw-area-header{margin-bottom:8px}
+ .nw-area-header h2{font-size:17px}
+ .nw-area-header p{font-size:10px}
+ .nw-area-stat{font-size:9px;padding:5px 7px}
+ .nw-places{gap:5px}
+ .nw-drop{padding:4px;min-height:80px;border-radius:10px}
+ .nw-drop-head{min-height:40px;gap:3px;padding-bottom:4px;margin-bottom:5px;flex-direction:column;text-align:center;align-items:center}
+ .nw-person-icon{width:28px;height:28px;min-width:28px;flex-basis:28px;border-radius:8px}
+ .nw-person-txt strong{font-size:10px;line-height:1}
+ .nw-person-txt small{font-size:9px;margin-top:2px}
+ .nw-card-stack{gap:4px}
+ .nw-card.wb-gift{gap:3px;padding:4px 3px;flex-wrap:wrap;min-height:36px;border-radius:8px}
+ .nw-card .nw-grip{width:13px;flex-basis:13px;font-size:14px;min-height:24px}
+ .nw-card .nw-more{width:15px;height:18px;font-size:13px}
+ .nw-card-text strong{font-size:9px;line-height:1.12;-webkit-line-clamp:2}
+ .nw-card-text span{font-size:8px}
+ .nw-card .nw-lock{padding:5px 5px;font-size:8px;margin-left:auto}
+ .nw-card .nw-done{width:17px;height:17px;font-size:10px}
+ .nw-spacer{font-size:9px;padding:4px;border-radius:9px}
+ .nw-empty{font-size:8px;padding:6px 2px}
+}
+@media(max-width:360px){.nw-idea-target strong{font-size:9px}.nw-person-icon{width:25px;height:25px;min-width:25px;flex-basis:25px}.nw-area-stat{font-size:8px}.nw-card .nw-lock{font-size:7px}}
+@media(prefers-reduced-motion:reduce){.nw-card{transition:none!important}}
+
 </style>
 </head>
 <body><section id="familyGate" role="region" aria-label="Family account sign in"></section>
@@ -1579,8 +1694,8 @@ function sqMoveMenu(id){
 let sqDragging=null;
 function sqPointerDown(e){let h=e.target.closest?.('[data-sq-grab]'),card=h?.closest('[data-sq-card]');if(!h&&e.pointerType==='mouse'&&!e.target.closest('button,summary,details,a,input')){card=e.target.closest?.('.wb-gift');h=card?.querySelector('[data-sq-grab]')}if(!h||appState.page!=='gifts'||appState.giftView==='compare'||e.button>0)return;if(!card)card=h.closest('[data-sq-card]');if(!card)return;e.preventDefault();sqDragging={id:h.dataset.sqGrab,card,startX:e.clientX,startY:e.clientY,active:false,ghost:null,zone:null,before:null,rect:card.getBoundingClientRect()};document.addEventListener('pointermove',sqPointerMove,{passive:false});document.addEventListener('pointerup',sqPointerUp,{once:true});document.addEventListener('pointercancel',sqPointerCancel,{once:true})}
 function sqPointerMove(e){let d=sqDragging;if(!d)return;e.preventDefault();if(!d.active){if(Math.hypot(e.clientX-d.startX,e.clientY-d.startY)<7)return;d.active=true;d.ghost=d.card.cloneNode(true);d.ghost.classList.add('sq-ghost');d.ghost.style.width=d.rect.width+'px';document.body.appendChild(d.ghost);d.card.classList.add('sq-source')}
-d.ghost.style.left=Math.max(2,Math.min(innerWidth-d.rect.width-2,e.clientX-d.rect.width/2))+'px';d.ghost.style.top=Math.max(2,e.clientY-35)+'px';document.querySelectorAll('.sq-hover,.sq-before').forEach(x=>x.classList.remove('sq-hover','sq-before'));let hit=document.elementFromPoint(e.clientX,e.clientY),zone=hit?.closest?.('[data-sq-zone]');d.zone=zone;d.before=null;if(zone){zone.classList.add('sq-hover');let card=hit?.closest?.('[data-sq-card]');if(card&&card.dataset.sqCard!==d.id){d.before=card.dataset.sqCard;card.classList.add('sq-before')}}if(zone){const scroller=zone.closest('.wb-drop');if(scroller){const zr=scroller.getBoundingClientRect();if(e.clientY>zr.bottom-33)scroller.scrollTop+=14;else if(e.clientY<zr.top+33)scroller.scrollTop-=14}}}
-function sqPointerEnd(cancel){document.removeEventListener('pointermove',sqPointerMove);document.removeEventListener('pointerup',sqPointerUp);document.removeEventListener('pointercancel',sqPointerCancel);let d=sqDragging;sqDragging=null;if(!d)return;d.ghost?.remove();d.card.classList.remove('sq-source');document.querySelectorAll('.sq-hover,.sq-before').forEach(x=>x.classList.remove('sq-hover','sq-before'));if(!cancel&&d.active&&d.zone)void sqMove(d.id,d.zone.dataset.sqZone,d.zone.dataset.sqPlace,d.before)}
+d.ghost.style.left=Math.max(2,Math.min(innerWidth-d.rect.width-2,e.clientX-d.rect.width/2))+'px';d.ghost.style.top=Math.max(2,e.clientY-35)+'px';document.querySelectorAll('.sq-hover,.sq-before').forEach(x=>x.classList.remove('sq-hover','sq-before'));let hit=document.elementFromPoint(e.clientX,e.clientY),zone=hit?.closest?.('[data-sq-zone]');d.zone=zone;d.before=null;if(zone){zone.classList.add('sq-hover');let card=hit?.closest?.('[data-sq-card]');if(card&&card.dataset.sqCard!==d.id){d.before=card.dataset.sqCard;card.classList.add('sq-before')}}if(zone){const scroller=zone.closest('.wb-drop');if(scroller){const zr=scroller.getBoundingClientRect();if(e.clientY>zr.bottom-33)scroller.scrollTop+=14;else if(e.clientY<zr.top+33)scroller.scrollTop-=14}}if(!zone?.closest('.wb-drop')&&d.active){if(e.clientY>innerHeight-65)window.scrollBy(0,12);else if(e.clientY<55)window.scrollBy(0,-12)}}
+function sqPointerEnd(cancel){document.removeEventListener('pointermove',sqPointerMove);document.removeEventListener('pointerup',sqPointerUp);document.removeEventListener('pointercancel',sqPointerCancel);let d=sqDragging;sqDragging=null;if(!d)return;d.ghost?.remove();d.card.classList.remove('sq-source');document.querySelectorAll('.sq-hover,.sq-before').forEach(x=>x.classList.remove('sq-hover','sq-before'));if(!cancel&&d.active&&d.zone){nwSelectedId=null;void sqMove(d.id,d.zone.dataset.sqZone,d.zone.dataset.sqPlace,d.before)}}
 function sqPointerUp(){sqPointerEnd(false)}function sqPointerCancel(){sqPointerEnd(true)}
 
 
@@ -1614,19 +1729,72 @@ function wbStage(place,title,desc){
  const gifts=wbGifts(k,place),num=gifts.length;
  return `<div class="wb-drop" data-sq-zone="${escapeHTML(k)}" data-sq-place="${place}" aria-label="${title} for ${escapeHTML(kidName(k))}"><div class="wb-drop-count" aria-hidden="true">${num} ${num===1?'gift':'gifts'}</div><div class="wb-drop-content">${gifts.length?gifts.map(wbCard).join(''):`<div class="wb-empty">Drop here</div>`}</div></div>`;}).join('')}</div></section>`;
 }
-function giftPlannerIdeas(){
- const kids=wbRecipients(),locked=appState.gifts.filter(isLocked).length,total=appState.gifts.length;
- const unassigned=appState.gifts.filter(g=>g.kid==='unassigned');
- return `<div class="wb-workspace" role="region" aria-label="Gift Workbench, move gifts between Ideas, Under the Tree and Stockings">
- <div class="wb-workspace-toolbar"><span class="wb-workspace-caption">Your planning board <span class="wb-private-note">· Drag to try different combinations</span></span><div class="wb-workspace-numbers"><span>${total} ideas</span><span>${locked} locked</span></div></div>
- <div class="wb-recipient-row" style="--wb-kids:${kids.length}">${kids.map((k,i)=>{const giftCount=appState.gifts.filter(g=>g.kid===k&&isLocked(g)).length;return `<div class="wb-person" data-kid="${escapeHTML(k)}"><span class="wb-person-avatar">${k==='both'?'✦':childChoiceIcon(k)}</span><div class="wb-person-meta"><strong>${k==='both'?'Both':escapeHTML(kidName(k))}</strong><small>${giftCount} locked</small></div></div>`}).join('')}</div>
- <div class="wb-stages">${wbStage('undecided','Ideas','Try out options')}${wbStage('tree','Under the Tree','Larger presents')}${wbStage('stocking','Stockings','Little surprises')}</div>
- <div class="wb-board-footer"><span><b>Drag ⠿</b> to move · <b>Lock it in</b> when you decide</span>${unassigned.length?`<button type="button" class="wb-unassigned-trigger" data-action="wb-unassigned">${unassigned.length} unassigned idea${unassigned.length===1?'':'s'}</button>`:`<span>⋯ for Edit, Duplicate or Move</span>`}</div></div>`;
+
+// Worktable redesign: one clearly readable idea tray, plus two placement panels.
+// Only the document scrolls vertically. Gift IDs, placements, lock state, and sync are unchanged.
+let nwSelectedId=null;
+function nwRecipients(){return [...childIds(),'both'];}
+function nwRecipientAvatar(k){return k==='both'?'<span class="nw-shared-mark" aria-hidden="true">✦</span>':childChoiceIcon(k);}
+function nwPrice(g){return giftPriceLabel(g);}
+function nwCard(g){
+ const id=escapeHTML(g.id),locked=isLocked(g),place=giftPlacement(g),photo=safeImage(g.image);
+ return `<article class="nw-card wb-gift" data-sq-card="${id}" data-action="nw-select" data-id="${id}" aria-label="${escapeHTML(g.name)}, ${escapeHTML(kidName(g.kid))}, ${nwPrice(g)}. Tap to pick up or drag the handle to move.">
+ <span class="nw-grip wb-handle" data-sq-grab="${id}" tabindex="0" role="button" aria-label="Drag ${escapeHTML(g.name)} to another pile, or press Enter to choose destination">⠿</span>
+ <div class="nw-card-thumb" aria-hidden="true">${photo?`<img src="${escapeHTML(photo)}" alt="" loading="lazy">`:sqGiftIllustration()}</div>
+ <div class="nw-card-text"><strong title="${escapeHTML(g.name)}">${escapeHTML(g.name)}</strong><span>${nwPrice(g)}${place==='undecided'?` · ${g.kid==='both'?'Both':escapeHTML(kidName(g.kid))}`:''}</span></div>
+ ${locked?'<span class="nw-done" title="Locked for Christmas morning">✓</span>':place!=='undecided'?`<button class="nw-lock" type="button" data-action="sq-lock" data-id="${id}" aria-label="Lock in ${escapeHTML(g.name)}">Lock</button>`:''}
+ <button class="wb-more-trigger nw-more" type="button" data-action="wb-options" data-id="${id}" aria-label="More options for ${escapeHTML(g.name)}">···</button>
+ </article>`;
 }
+function nwSummary(k,place){
+ const gifts=wbGifts(k,place),locked=gifts.filter(isLocked).length;
+ return `${gifts.length} ${gifts.length===1?'gift':'gifts'}${locked?' · '+locked+' locked':''}`;
+}
+function nwDrop(k,place){
+ const gifts=wbGifts(k,place),name=k==='both'?'Both':kidName(k);
+ return `<section class="nw-drop" data-action="nw-drop" data-kid="${escapeHTML(k)}" data-place="${place}" data-sq-zone="${escapeHTML(k)}" data-sq-place="${place}" aria-label="${escapeHTML(place==='tree'?'Under the tree':'Stockings')} for ${escapeHTML(name)}. Tap when you have selected a gift to move it here.">
+  <div class="nw-drop-head" data-action="nw-drop" data-kid="${escapeHTML(k)}" data-place="${place}"><span class="nw-person-icon">${nwRecipientAvatar(k)}</span><span class="nw-person-txt"><strong>${escapeHTML(name)}</strong><small>${nwSummary(k,place)}</small></span></div>
+  <div class="nw-card-stack">${gifts.length?gifts.map(nwCard).join(''):'<p class="nw-empty">Drop a gift here</p>'}</div>
+ </section>`;
+}
+function nwArea(place,title,subtitle){
+ const kids=nwRecipients(),primary=kids.slice(0,2).map(k=>wbGifts(k,place).length),locked=kids.reduce((n,k)=>n+wbGifts(k,place).filter(isLocked).length,0);
+ const same=primary.length===2&&primary[0]===primary[1];
+ return `<section class="nw-area" data-nw-area="${place}"><div class="nw-area-header"><div><h2>${title}</h2><p>${subtitle}</p></div><span class="nw-area-stat">${same&&primary.length===2?`${primary[0]} each`:`${primary.join(' / ')}`} · ${locked} locked</span></div>
+ <div class="nw-places" style="--nw-cols:${kids.length}">${kids.map(k=>place==='stocking'&&k==='both'?'<div class="nw-spacer" aria-hidden="true"><span>Shared gifts belong under the tree</span></div>':nwDrop(k,place)).join('')}</div></section>`;
+}
+function nwIdeasTray(){
+ const ideas=appState.gifts.filter(g=>giftPlacement(g)==='undecided').sort((a,b)=>(Number(a.planOrder)||0)-(Number(b.planOrder)||0)),kids=nwRecipients();
+ return `<aside class="nw-ideas" aria-label="Unsorted gift ideas"><div class="nw-ideas-heading"><div><h2>Ideas <span>${ideas.length}</span></h2><p>Keep options here until you're ready.</p></div><button type="button" class="nw-mini-add" data-action="add" aria-label="Add a gift idea">+ Add</button></div>
+ <div class="nw-idea-targets" style="--nw-cols:${kids.length}" aria-label="Drop an idea back into a person's idea pile">${kids.map(k=>`<button type="button" class="nw-idea-target" data-action="nw-drop" data-kid="${escapeHTML(k)}" data-place="undecided" data-sq-zone="${escapeHTML(k)}" data-sq-place="undecided" aria-label="Move selected gift to ${escapeHTML(k==='both'?'Both':kidName(k))}'s ideas"><span>${nwRecipientAvatar(k)}</span><strong>${k==='both'?'Both':escapeHTML(kidName(k))}</strong></button>`).join('')}</div>
+ <div class="nw-idea-strip" aria-label="Gift idea cards">${ideas.length?ideas.map(nwCard).join(''):'<p class="nw-ideas-empty">No loose ideas yet. Add one, or move a gift here to reconsider it.</p>'}</div>
+ <div class="nw-ideas-foot">Tip: ideas are not on the shopping list until you lock them in.</div></aside>`;
+}
+function giftPlannerIdeas(){
+ const total=appState.gifts.length,locked=appState.gifts.filter(isLocked).length;
+ return `<div class="nw-worktable"><div class="nw-work-intro"><span id="nw-selection-caption" aria-live="polite">Drag a gift, or tap it and then tap its destination.</span><span class="nw-counter">${total} gifts · ${locked} locked</span></div>
+ <div class="nw-layout">${nwIdeasTray()}<div class="nw-arrangements">${nwArea('tree','Under the tree','Compare their presents side by side')}${nwArea('stocking','Stockings','Small surprises, same child columns')}</div></div>
+ </div>`;
+}
+function nwSelect(id){
+ if(!appState.gifts.some(g=>g.id===id))return;
+ nwSelectedId=nwSelectedId===id?null:id;
+ document.querySelectorAll('.nw-card').forEach(card=>card.classList.toggle('nw-picked',card.dataset.sqCard===nwSelectedId));
+ document.querySelectorAll('.nw-drop,.nw-idea-target').forEach(zone=>zone.classList.toggle('nw-ready',!!nwSelectedId));
+ const label=document.getElementById('nw-selection-caption');
+ if(label){const name=appState.gifts.find(g=>g.id===nwSelectedId)?.name;label.textContent=name?`Moving “${name}” — tap Riley, Quinn, or Both where you want it.`:'Drag a gift, or tap it and then tap its destination.';}
+}
+function nwDropSelected(k,place){
+ if(!nwSelectedId)return;
+ if(k==='both'&&place==='stocking'){showToast('Shared gifts go under the tree, not into one stocking.');return;}
+ const selected=nwSelectedId;nwSelectedId=null;
+ void sqMove(selected,k,place);
+}
+
 function giftsPage(){
  const view=appState.giftView==='compare'?'compare':'ideas';
- return `<div class="wb-page"><header class="wb-top"><div class="wb-title"><span class="eyebrow">SANTA HQ · GIFT PLANNING</span><h1>${view==='ideas'?'Gift Workbench':'Christmas Morning'}</h1><p>${view==='ideas'?'Keep everything in sight. Move ideas around until it feels right.':'A peek at what you’ve locked in for the big day.'}</p></div><div class="wb-top-actions">${view==='ideas'?`<button type="button" class="primary" data-action="add">+ Add gift</button><button type="button" class="secondary" data-action="paste-gifts">Paste ideas</button>`:''}</div></header>
- <div class="wb-view-switch" role="tablist" aria-label="Gift planning views"><button type="button" role="tab" aria-selected="${view==='ideas'}" class="${view==='ideas'?'active':''}" data-action="gift-view" data-view="ideas">Gift Workbench</button><button type="button" role="tab" aria-selected="${view==='compare'}" class="${view==='compare'?'active':''}" data-action="gift-view" data-view="compare">Christmas Morning</button></div>
+ return `<div class="wb-page"><header class="wb-top"><div class="wb-title"><span class="eyebrow">SANTA HQ · GIFT PLANNING</span><h1>${view==='ideas'?'Plan Gifts':'Christmas Morning'}</h1><p>${view==='ideas'?'Move ideas around, compare, then lock in your favorites.':'A peek at what you’ve locked in for the big day.'}</p></div><div class="wb-top-actions">${view==='ideas'?`<button type="button" class="secondary" data-action="paste-gifts">Paste ideas</button>`:''}</div></header>
+ <div class="wb-view-switch" role="tablist" aria-label="Gift planning views"><button type="button" role="tab" aria-selected="${view==='ideas'}" class="${view==='ideas'?'active':''}" data-action="gift-view" data-view="ideas">Gift Board</button><button type="button" role="tab" aria-selected="${view==='compare'}" class="${view==='compare'?'active':''}" data-action="gift-view" data-view="compare">Christmas Morning</button></div>
  ${view==='ideas'?giftPlannerIdeas():giftPlannerCompare()}</div>`;
 }
 
@@ -2144,7 +2312,7 @@ async function cloudSignIn(){if(!settings.firebase||!settings.familyId){navigate
 async function cloudSignOut(){if(appState.cloud){await appState.cloud.authm.signOut(appState.cloud.auth);showToast('Signed out of family sync')}}
 function saveCloudConfig(e){e.preventDefault();const apiKey=document.getElementById('firebaseApi').value.trim(),projectId=document.getElementById('firebaseProject').value.trim(),authDomain=document.getElementById('firebaseDomain').value.trim(),appId=document.getElementById('firebaseApp').value.trim(),familyId=document.getElementById('familyId').value.trim();if(!apiKey||!projectId||!authDomain||!appId||!familyId){showToast('Fill in all connection details first.');return}settings.firebase={apiKey,projectId,authDomain,appId};settings.familyId=familyId;saveSettingsLocal();showToast('Family connection saved. Sign in with Google.');render();if(appState.cloud)location.reload();else initCloud()}
 function copyInvite(){if(!settings.firebase||!settings.familyId)return;if(location.protocol==='file:'){showToast('Host this app online to create a working partner link.');return}const payload=btoa(unescape(encodeURIComponent(JSON.stringify({firebase:settings.firebase,familyId:settings.familyId}))));let u=location.origin+location.pathname+'#invite='+encodeURIComponent(payload);navigator.clipboard?.writeText(u).then(()=>showToast('Partner link copied '),()=>prompt('Copy this partner link:',u))||prompt('Copy this partner link:',u)}
-function actionHandler(e){const el=e.target.closest('[data-action]');if(!el)return;const action=el.dataset.action,id=el.dataset.id;if(action.startsWith('tradition-')){traditionAction(action,id,el);return;}if(action.startsWith('holiday-')){holidayAction(action,el);return;}switch(action){case 'morning-size':appState.morningCompact=!appState.morningCompact;render();break;case 'morning-prices':appState.morningPrices=!appState.morningPrices;render();break;case 'plan-menu':planMoveMenu(id);break;case 'plan-move':{const lane=el.dataset.lane;modalClose();moveToPlan(id,lane);break}case 'plan-up':shiftPlanCard(id,-1);break;case 'plan-down':shiftPlanCard(id,1);break;case 'nav':navigate(el.dataset.page);break;case 'home-open-plan':appState.holidayView=el.dataset.view||'overview';navigate('traditions');break;case 'home-open-gifts':appState.giftView='ideas';navigate('gifts');break;case 'enter-kid':enterKid();break;case 'change-pin':{if(settings.grownupPin&&prompt('Current PIN:')!==settings.grownupPin){showToast('Incorrect PIN.');break}const pin=prompt('Set a new 4–6 digit PIN:');if(pin===null)break;if(!/^\d{4,6}$/.test(pin)){showToast('Choose 4–6 digits.');break}settings.grownupPin=pin;saveSettingsLocal();showToast('Kid View PIN updated');break}case 'exit-kid':exitKid();break;case 'child-add':addChildSettings();break;case 'child-remove':removeChildSettings(el.dataset.kid);break;case 'kid-select':resetKidDraft();appState.kidSelected=el.dataset.kid;renderKidPortal();break;case 'kid-choice':appState.kidChoice=el.dataset.choice;document.querySelectorAll('.kid-topic').forEach(b=>b.classList.toggle('active',b.dataset.choice===appState.kidChoice));break;case 'kid-mode':resetKidDraft();appState.kidMode=el.dataset.mode;renderKidPortal();break;case 'kid-record':if(kidRecorder?.state==='recording')finishKidRecording();else startKidRecording();break;case 'kid-redo-record':resetKidDraft();renderKidPortal();break;case 'kid-dictate':kidDictate();break;case 'kid-color':kidDrawColor=el.dataset.color;document.querySelectorAll('.kid-color').forEach(b=>b.classList.toggle('active',b.dataset.color===kidDrawColor));break;case 'kid-undo':case 'kid-clear':kidCanvasAction(action);break;case 'kid-insert':{const input=document.getElementById('kidMessage');if(input)input.value+=(input.value?' ':'')+el.dataset.text.replace(/^[^ ]+ /,'');break}case 'kid-again':renderKidPortal();break;case 'delete-mail':deleteKidLetter(id);break;case 'reply-mail':replyMail(id);break;case 'read-mail':{const m=appState.messages.find(x=>x.id===id);if(m){putMail({...m,read:true}).then(render)}break}case 'gift-view':appState.giftView=el.dataset.view;render();break;case 'gift-ready':setGiftStatus(id,'To buy');break;case 'gift-watch':openGiftWatch(id);break;case 'gift-refresh-price':refreshDealPrices(id);break;case 'gift-refresh-all':refreshDealPrices();break;case 'gift-unwatch':stopGiftWatch(id);break;case 'quick-lookup':quickLookupLink();break;case 'gift-go-shopping':appState.page='traditions';appState.holidayView='shopping';render();break;case 'go-lights-hunt':appState.page='traditions';appState.holidayView='hunt';render();window.scrollTo({top:0,behavior:'smooth'});break;case 'shop-check':{const gift=appState.gifts.find(g=>g.id===id);if(gift&&gift.status==='To buy')setGiftStatus(id,'Bought');break;}case 'shop-undo':{const gift=appState.gifts.find(g=>g.id===id);if(gift&&bought(gift))setGiftStatus(id,'To buy');break;}case 'paste-gifts':openPasteGifts();break;case 'paste-back':pasteNavigate(-1);break;case 'paste-next':pasteNavigate(1);break;case 'paste-default-rest':pasteUseDefaults();break;case 'paste-duplicate':pasteDuplicateStockings();break;case 'paste-remove-copy':pasteRemoveCopy();break;case 'paste-review-back':pasteReviewBack();break;case 'paste-save':savePastedGifts();break;case 'sq-lock':void sqLock(id);break;case 'sq-unlock':void sqUnlock(id);break;case 'sq-move-menu':sqMoveMenu(id);break;case 'wb-options':wbOptionsMenu(id);break;case 'wb-unassigned':wbUnassignedMenu();break;case 'wb-assign':modalClose();void assignIdeaRecipient(id,el.dataset.kid);break;case 'wb-unlock':modalClose();void sqUnlock(id);break;case 'sq-move-to':modalClose();void sqMove(id,el.dataset.kid,el.dataset.place);break;case 'idea-quick':openRecipientQuickAdd(el.dataset.kid,el.dataset.category);break;case 'idea-assign':assignIdeaRecipient(id,el.dataset.kid);break;case 'add':openRecipientQuickAdd();break;case 'add-detailed':{const seed={name:document.getElementById('recipientQuickName')?.value.trim()||'',kid:document.querySelector('#recipientQuickForm input[name="quickKid"]:checked')?.value||'unassigned',category:categoryFromPlacement(document.querySelector('#recipientQuickForm input[name="quickPlace"]:checked')?.value||'undecided'),price:document.getElementById('recipientQuickPrice')?.value||'',notes:document.getElementById('recipientQuickNotes')?.value||''};openGift(null,seed);break}case 'duplicate':openDuplicateGift(id);break;case 'idea-compare':toggleIdeaCompare(id);break;case 'gift-lock-tree':lockGiftIn(id,'tree');break;case 'gift-lock-stocking':lockGiftIn(id,'stocking');break;case 'idea-confirm-tree':changeIdeaPlacement(id,'tree');break;case 'idea-placement':changeIdeaPlacement(id,el.dataset.category);break;case 'close':modalClose();break;case 'edit':openGift(appState.gifts.find(g=>g.id===id));break;case 'delete':deleteGift(id);break;case 'next':advanceGift(id,el.dataset.next);break;case 'open-link':{let g=appState.gifts.find(x=>x.id===id);if(safeLink(g?.link))window.open(g.link,'_blank','noopener,noreferrer');break}case 'export':exportJSON();break;case 'csv':exportCSV();break;case 'import':document.getElementById('importFile')?.click();break;case 'clear':if(appState.online){showToast('Disconnect family sync before clearing local gifts.');return}if(confirm('Delete all gift records saved on this device? Export a backup first if you want one.'))replaceGifts([]).then(()=>{appState.gifts=[];render();showToast('Device data cleared')});break;case 'generate-id':document.getElementById('familyId').value='northpole-'+makeId().slice(0,16);break;case 'signin':cloudSignIn();break;case 'signout':cloudSignOut();break;case 'invite':copyInvite();break}}
+function actionHandler(e){const el=e.target.closest('[data-action]');if(!el)return;const action=el.dataset.action,id=el.dataset.id;if(action.startsWith('tradition-')){traditionAction(action,id,el);return;}if(action.startsWith('holiday-')){holidayAction(action,el);return;}switch(action){case 'morning-size':appState.morningCompact=!appState.morningCompact;render();break;case 'morning-prices':appState.morningPrices=!appState.morningPrices;render();break;case 'plan-menu':planMoveMenu(id);break;case 'plan-move':{const lane=el.dataset.lane;modalClose();moveToPlan(id,lane);break}case 'plan-up':shiftPlanCard(id,-1);break;case 'plan-down':shiftPlanCard(id,1);break;case 'nav':navigate(el.dataset.page);break;case 'home-open-plan':appState.holidayView=el.dataset.view||'overview';navigate('traditions');break;case 'home-open-gifts':appState.giftView='ideas';navigate('gifts');break;case 'enter-kid':enterKid();break;case 'change-pin':{if(settings.grownupPin&&prompt('Current PIN:')!==settings.grownupPin){showToast('Incorrect PIN.');break}const pin=prompt('Set a new 4–6 digit PIN:');if(pin===null)break;if(!/^\d{4,6}$/.test(pin)){showToast('Choose 4–6 digits.');break}settings.grownupPin=pin;saveSettingsLocal();showToast('Kid View PIN updated');break}case 'exit-kid':exitKid();break;case 'child-add':addChildSettings();break;case 'child-remove':removeChildSettings(el.dataset.kid);break;case 'kid-select':resetKidDraft();appState.kidSelected=el.dataset.kid;renderKidPortal();break;case 'kid-choice':appState.kidChoice=el.dataset.choice;document.querySelectorAll('.kid-topic').forEach(b=>b.classList.toggle('active',b.dataset.choice===appState.kidChoice));break;case 'kid-mode':resetKidDraft();appState.kidMode=el.dataset.mode;renderKidPortal();break;case 'kid-record':if(kidRecorder?.state==='recording')finishKidRecording();else startKidRecording();break;case 'kid-redo-record':resetKidDraft();renderKidPortal();break;case 'kid-dictate':kidDictate();break;case 'kid-color':kidDrawColor=el.dataset.color;document.querySelectorAll('.kid-color').forEach(b=>b.classList.toggle('active',b.dataset.color===kidDrawColor));break;case 'kid-undo':case 'kid-clear':kidCanvasAction(action);break;case 'kid-insert':{const input=document.getElementById('kidMessage');if(input)input.value+=(input.value?' ':'')+el.dataset.text.replace(/^[^ ]+ /,'');break}case 'kid-again':renderKidPortal();break;case 'delete-mail':deleteKidLetter(id);break;case 'reply-mail':replyMail(id);break;case 'read-mail':{const m=appState.messages.find(x=>x.id===id);if(m){putMail({...m,read:true}).then(render)}break}case 'gift-view':appState.giftView=el.dataset.view;render();break;case 'gift-ready':setGiftStatus(id,'To buy');break;case 'gift-watch':openGiftWatch(id);break;case 'gift-refresh-price':refreshDealPrices(id);break;case 'gift-refresh-all':refreshDealPrices();break;case 'gift-unwatch':stopGiftWatch(id);break;case 'quick-lookup':quickLookupLink();break;case 'gift-go-shopping':appState.page='traditions';appState.holidayView='shopping';render();break;case 'go-lights-hunt':appState.page='traditions';appState.holidayView='hunt';render();window.scrollTo({top:0,behavior:'smooth'});break;case 'shop-check':{const gift=appState.gifts.find(g=>g.id===id);if(gift&&gift.status==='To buy')setGiftStatus(id,'Bought');break;}case 'shop-undo':{const gift=appState.gifts.find(g=>g.id===id);if(gift&&bought(gift))setGiftStatus(id,'To buy');break;}case 'paste-gifts':openPasteGifts();break;case 'paste-back':pasteNavigate(-1);break;case 'paste-next':pasteNavigate(1);break;case 'paste-default-rest':pasteUseDefaults();break;case 'paste-duplicate':pasteDuplicateStockings();break;case 'paste-remove-copy':pasteRemoveCopy();break;case 'paste-review-back':pasteReviewBack();break;case 'paste-save':savePastedGifts();break;case 'sq-lock':nwSelectedId=null;void sqLock(id);break;case 'sq-unlock':void sqUnlock(id);break;case 'sq-move-menu':sqMoveMenu(id);break;case 'nw-select':nwSelect(id);break;case 'nw-drop':nwDropSelected(el.dataset.kid,el.dataset.place);break;case 'wb-options':wbOptionsMenu(id);break;case 'wb-unassigned':wbUnassignedMenu();break;case 'wb-assign':modalClose();void assignIdeaRecipient(id,el.dataset.kid);break;case 'wb-unlock':modalClose();void sqUnlock(id);break;case 'sq-move-to':modalClose();void sqMove(id,el.dataset.kid,el.dataset.place);break;case 'idea-quick':openRecipientQuickAdd(el.dataset.kid,el.dataset.category);break;case 'idea-assign':assignIdeaRecipient(id,el.dataset.kid);break;case 'add':openRecipientQuickAdd();break;case 'add-detailed':{const seed={name:document.getElementById('recipientQuickName')?.value.trim()||'',kid:document.querySelector('#recipientQuickForm input[name="quickKid"]:checked')?.value||'unassigned',category:categoryFromPlacement(document.querySelector('#recipientQuickForm input[name="quickPlace"]:checked')?.value||'undecided'),price:document.getElementById('recipientQuickPrice')?.value||'',notes:document.getElementById('recipientQuickNotes')?.value||''};openGift(null,seed);break}case 'duplicate':openDuplicateGift(id);break;case 'idea-compare':toggleIdeaCompare(id);break;case 'gift-lock-tree':lockGiftIn(id,'tree');break;case 'gift-lock-stocking':lockGiftIn(id,'stocking');break;case 'idea-confirm-tree':changeIdeaPlacement(id,'tree');break;case 'idea-placement':changeIdeaPlacement(id,el.dataset.category);break;case 'close':modalClose();break;case 'edit':openGift(appState.gifts.find(g=>g.id===id));break;case 'delete':deleteGift(id);break;case 'next':advanceGift(id,el.dataset.next);break;case 'open-link':{let g=appState.gifts.find(x=>x.id===id);if(safeLink(g?.link))window.open(g.link,'_blank','noopener,noreferrer');break}case 'export':exportJSON();break;case 'csv':exportCSV();break;case 'import':document.getElementById('importFile')?.click();break;case 'clear':if(appState.online){showToast('Disconnect family sync before clearing local gifts.');return}if(confirm('Delete all gift records saved on this device? Export a backup first if you want one.'))replaceGifts([]).then(()=>{appState.gifts=[];render();showToast('Device data cleared')});break;case 'generate-id':document.getElementById('familyId').value='northpole-'+makeId().slice(0,16);break;case 'signin':cloudSignIn();break;case 'signout':cloudSignOut();break;case 'invite':copyInvite();break}}
 async function boot(){try{db=await initDB();appState.gifts=await readGifts()}catch(e){alert('This browser could not open its local gift database. Please try Safari or Chrome, or host this app online.');return}try{settings={...DEFAULT,...JSON.parse(localStorage.getItem('santa_hq_settings_'+(window.SANTA_FAMILY_ID||'guest'))||'{}')}}catch{}appState.messages=await loadMail();processIncoming();render();document.addEventListener('click',actionHandler);document.addEventListener('pointerdown',planningPointerDown,{passive:false});document.addEventListener('pointerdown',sqPointerDown,{passive:false});document.addEventListener('keydown',e=>{let h=e.target.closest?.('[data-sq-grab]');if(h&&(e.key==='Enter'||e.key===' ')){e.preventDefault();sqMoveMenu(h.dataset.sqGrab)}});document.getElementById('mobileAdd').addEventListener('click',()=>openRecipientQuickAdd());document.getElementById('overlay').addEventListener('click',e=>{if(e.target.id==='overlay')modalClose()});document.addEventListener('keydown',e=>{if(e.key==='Escape')modalClose()});document.addEventListener('submit',e=>{if(e.target.id==='holidayTaskForm')saveHolidayTask(e);if(e.target.id==='holidaySupplyForm')saveHolidaySupply(e);if(e.target.getAttribute('id')==='traditionForm')saveTradition(e);if(e.target.id==='pasteGiftForm')beginPasteSort(e);if(e.target.id==='pasteCardForm'){e.preventDefault();pasteNavigate(1)}if(e.target.id==='recipientQuickForm')saveRecipientQuickIdea(e);if(e.target.id==='giftWatchForm')saveGiftWatch(e);if(e.target.id==='duplicateGiftForm')saveDuplicateGift(e);if(e.target.id==='ideaQuickForm')addQuickIdea(e);if(e.target.id==='familyForm')saveFamily(e);if(e.target.id==='firebaseForm')saveCloudConfig(e);if(e.target.id==='kidMessageForm'){void submitKidMessage(e);} if(e.target.id==='replyMailForm'){e.preventDefault();const id=document.getElementById('replyId')?.value,msg=appState.messages.find(m=>m.id===id);if(msg){putMail({...msg,reply:document.getElementById('santaReply').value.trim(),read:true}).then(()=>{modalClose();render();showToast('Santa’s reply is ready ')})}}});document.addEventListener('change',e=>{if(e.target.matches('[data-gift-stage]')){setGiftStatus(e.target.dataset.id,e.target.value);}if(e.target.matches('[data-paste-entry]')){pasteReviewChoices();updatePasteReviewTotals()}if(e.target.id==='filterKid'){appState.filterKid=e.target.value;render()}if(e.target.id==='filterStatus'){appState.filterStatus=e.target.value;render()}if(e.target.id==='filterCat'){appState.filterCat=e.target.value;render()}if(e.target.id==='kidMediaFile')kidMediaPick(e.target.files?.[0]);if(e.target.id==='importFile'&&e.target.files[0])importJSON(e.target.files[0])});document.addEventListener('input',e=>{if(e.target.id==='searchInput'){appState.search=e.target.value;const grid=document.getElementById('giftResults');if(grid)grid.innerHTML=filteredGifts().length?giftListRows(filteredGifts()):'<p class="gp-no-results">No matching gifts.</p>'}});if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});if(appState.fromSharedLink){openGift(null,appState.fromSharedLink);appState.fromSharedLink=null}}
 
 /* Christmas Plans: all household tasks live in the existing synced profile record. */
