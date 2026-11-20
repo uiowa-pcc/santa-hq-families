@@ -8,7 +8,7 @@ import { access, copyFile, mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
 const websiteFiles = [
-  'index.html', 'santa-hq-design.css', 'santa-hq-details.css', 'santa-home.webp', 'family.html', 'family-hq.js', 'family-sync.js', 'sw.js', 'hunt.html', 'hunt.js', 'hunt-photos.webp', 'elf-avatars.webp'
+  'index.html', 'santa-hq-design.css', 'santa-hq-details.css', 'santa-home.webp', 'kid-santa-new.webp', 'family.html', 'family-hq.js', 'family-sync.js', 'sw.js', 'hunt.html', 'hunt.js', 'hunt-photos.webp', 'elf-avatars.webp'
 ];
 const artworkFiles = [
   'manifest.webmanifest', 'icon-192.png', 'icon-512.png',

@@ -650,6 +650,21 @@ body:has([data-board-section]) .mobile-add,body:has([data-morning-section]) .mob
  .sq-compare-open{min-height:78px}
 }
 
+
+/* Kid View Santa — deliberate storybook illustration, fully visible hat */
+.kid-santa-illustrated { overflow: visible!important; display:flex; align-items:flex-end; justify-content:center; }
+.kid-santa-illustrated img.kid-santa-new {
+ display:block; width:100%; height:100%; max-height:100%;
+ object-fit:contain; object-position:center bottom;
+ filter:drop-shadow(0 8px 13px rgba(148,68,91,.14));
+}
+@media(max-width:760px){
+ .kid-santa-illustrated{ width:164px!important; height:190px!important; }
+}
+@media(max-width:390px){
+ .kid-santa-illustrated{ width:150px!important; height:174px!important; }
+}
+
 </style>
 <style id="familyAccountsStyle">
 body:not(.family-authenticated) .app,body:not(.family-authenticated) .mobile-nav,body:not(.family-authenticated) .mobile-add,body:not(.family-authenticated) .overlay,body:not(.family-authenticated) .kid-portal,body:not(.family-authenticated) .toast{display:none!important}
@@ -1851,7 +1866,7 @@ if(appState.kidMode==='media')return `<div class="kid-studio kid-media-studio"><
 return `<div class="kid-studio"><div class="kid-voice-icon"><img src="./art/letter.svg" alt=""></div><h2>What should Santa know?</h2><p>Type, or use the microphone on the keyboard to talk instead.</p><textarea id="kidMessage" maxlength="450" placeholder="I really wish for…" aria-label="Your letter to Santa"></textarea><div class="kid-suggestions">${['Unicorns','Science','Dinosaurs','Art','Music'].map(v=>`<button type="button" data-action="kid-insert" data-text="${escapeHTML(v)}">${v}</button>`).join('')}</div></div>`}
 
 
-function kidSantaMarkup(){return `<svg viewBox="0 0 220 240" class="kid-santa-svg" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="hatRed" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#dc5c63"/><stop offset="1" stop-color="#b83645"/></linearGradient><linearGradient id="trim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fffdfb"/><stop offset="1" stop-color="#f1e8e3"/></linearGradient><linearGradient id="coat" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d44d57"/><stop offset="1" stop-color="#b83344"/></linearGradient></defs><ellipse cx="110" cy="224" rx="56" ry="10" fill="#ecd8d7"/><path d="M60 88c0-39 27-66 67-66 33 0 58 18 68 46l-18 6c-8-19-26-33-50-33-28 0-49 17-51 48Z" fill="url(#hatRed)"/><path d="M52 84c0-10 8-18 18-18h91c10 0 18 8 18 18s-8 18-18 18H70c-10 0-18-8-18-18Z" fill="url(#trim)" stroke="#ead8d2"/><circle cx="184" cy="49" r="15" fill="#fffaf7" stroke="#eadfd9"/><path d="M72 76c7-28 32-48 62-48 17 0 32 5 44 16-6-2-13-3-20-3-31 0-59 18-74 47Z" fill="url(#hatRed)" opacity=".9"/><circle cx="111" cy="115" r="42" fill="#f6c9b7"/><circle cx="76" cy="115" r="10" fill="#f6c9b7"/><circle cx="146" cy="115" r="10" fill="#f6c9b7"/><ellipse cx="96" cy="110" rx="4.5" ry="5.5" fill="#51343a"/><ellipse cx="126" cy="110" rx="4.5" ry="5.5" fill="#51343a"/><path d="M78 97c6-6 15-8 22-7" fill="none" stroke="#7e5458" stroke-width="3" stroke-linecap="round"/><path d="M122 90c7-1 16 2 22 8" fill="none" stroke="#7e5458" stroke-width="3" stroke-linecap="round"/><ellipse cx="111" cy="121" rx="6" ry="4.5" fill="#efb3a8"/><path d="M100 133c6 6 16 6 22 0" fill="none" stroke="#934955" stroke-width="3.5" stroke-linecap="round"/><ellipse cx="85" cy="123" rx="8" ry="5.5" fill="#efb1ba" opacity=".55"/><ellipse cx="137" cy="123" rx="8" ry="5.5" fill="#efb1ba" opacity=".55"/><path d="M80 142c8 30 21 46 31 46s23-16 31-46c-9 8-20 13-31 13s-22-5-31-13Z" fill="#fffaf7" stroke="#ebdfda" stroke-width="2"/><path d="M90 151c7 12 14 18 21 18s14-6 21-18" fill="none" stroke="#efe6e2" stroke-width="3" stroke-linecap="round"/><path d="M72 186c8-17 23-27 39-27s31 10 39 27v33H72Z" fill="url(#coat)"/><path d="M103 158h16v61h-16z" fill="#fff6f2"/><circle cx="111" cy="182" r="4.5" fill="#efcf79"/><circle cx="111" cy="200" r="4.5" fill="#efcf79"/></svg>`}
+function kidSantaMarkup(){return `<img class="kid-santa-new" src="./kid-santa-new.webp" alt="" aria-hidden="true" decoding="async">`}
 
 function renderKidPortal(){
  if(!childIds().includes(appState.kidSelected))appState.kidSelected=childIds()[0]||'1';
