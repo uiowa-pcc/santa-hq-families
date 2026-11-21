@@ -28,16 +28,16 @@ const MEGA_NEW=[
  {name:'Giant ornament',hint:'A big glowing Christmas bauble or ornament.',tier:'tricky',type:'decor',symbol:'JOY',icon:'🟣'},
  {name:'Nativity scene',hint:'A light-up manger or stable scene.',tier:'tricky',type:'decor',symbol:'STAR',icon:'⭐'},
  {name:'Light-up mailbox',hint:'A mailbox outlined or wrapped in Christmas lights.',tier:'tricky',type:'decor',symbol:'MAIL',icon:'📫'},
- {name:'Mickey Mouse',hint:'An illuminated or projected Mickey Mouse decoration.',tier:'expert',type:'character',symbol:'MICKEY',icon:'🐭'},
- {name:'Winnie-the-Pooh',hint:'Pooh Bear glowing in a holiday yard display.',tier:'expert',type:'character',symbol:'POOH',icon:'🐻'},
- {name:'The Grinch',hint:'A lit-up or projected Grinch decoration.',tier:'expert',type:'character',symbol:'GRINCH',icon:'💚'},
- {name:'Snoopy',hint:'Snoopy in a holiday light or inflatable display.',tier:'expert',type:'character',symbol:'SNOOPY',icon:'🐶'},
+ {name:'Mickey Mouse',hint:'An illuminated or projected Mickey Mouse decoration.',tier:'expert',type:'character',symbol:'MICKEY',icon:'◉◉'},
+ {name:'Winnie-the-Pooh',hint:'Pooh Bear glowing in a holiday yard display.',tier:'expert',type:'character',symbol:'POOH',icon:'🍯'},
+ {name:'The Grinch',hint:'A lit-up or projected Grinch decoration.',tier:'expert',type:'character',symbol:'GRINCH',icon:'😈'},
+ {name:'Snoopy',hint:'Snoopy in a holiday light or inflatable display.',tier:'expert',type:'character',symbol:'SNOOPY',icon:'🐾'},
  {name:'Olaf',hint:'The snowman from Frozen as a light-up decoration.',tier:'expert',type:'character',symbol:'OLAF',icon:'⛄'},
  {name:'Music-synced lights',hint:'Find lights that change in time with music.',tier:'expert',type:'effect',symbol:'MUSIC',icon:'🎵'},
- {name:'Holiday projector',hint:'Moving holiday images projected onto a house.',tier:'expert',type:'effect',symbol:'PROJECT',icon:'📽️'},
+ {name:'Holiday projector',hint:'Moving holiday images projected onto a house.',tier:'expert',type:'effect',symbol:'PROJECT',icon:'🎥'},
  {name:'Chasing light pattern',hint:'Lights that appear to race or travel across a display.',tier:'expert',type:'effect',symbol:'MOVE',icon:'✨'},
  {name:'Light tunnel or arch',hint:'Walkway or driveway with an illuminated arch or tunnel.',tier:'expert',type:'effect',symbol:'TUNNEL',icon:'🌈'},
- {name:'Lights spelling a word',hint:'Letters in lights spelling JOY, NOEL, MERRY or another word.',tier:'expert',type:'effect',symbol:'WORDS',icon:'🔤'}
+ {name:'Lights spelling a word',hint:'Letters in lights spelling JOY, NOEL, MERRY or another word.',tier:'expert',type:'effect',symbol:'WORDS',icon:'ABC'}
 ];
 const MEGA_ORIGINAL_TIERS=['easy','easy','easy','easy','easy','easy','easy','easy','easy','tricky','tricky','tricky','tricky','tricky','tricky','tricky'];
 const MEGA_TIERS=[['easy','Easy finds','Start with the classics'],['tricky','Tricky finds','Look a little closer'],['expert','Expert finds','Rare characters and wow-factor lights']];
@@ -105,7 +105,7 @@ function card(c,i){
  const picture=c.photo!==null&&c.photo!==undefined;
  const x=picture?(c.photo%4)*100/3:0,y=picture?Math.floor(c.photo/4)*100/3:0;
  const art=picture?`<span class="photo" role="img" aria-label="Example photograph of ${safe(c.name)}" style="background-position:${x}% ${y}%"></span>`
-  :`<span class="photo graphic ${safe(c.type)} ${safe(c.slug||'') ? 'slug-'+safe(c.slug) : ''}" role="img" aria-label="Graphic clue: ${safe(c.name)}"><span class="graphic-glow" aria-hidden="true"></span><span class="graphic-icon" aria-hidden="true">${safe(c.icon||'✨')}</span><span class="graphic-label"><em>${safe(c.symbol||'FIND')}</em><b>${safe(c.name)}</b></span></span>`;
+  :`<span class="photo graphic ${safe(c.type)} ${safe(c.slug||'') ? 'slug-'+safe(c.slug) : ''}" role="img" aria-label="Graphic clue: ${safe(c.name)}"><span class="graphic-glow" aria-hidden="true"></span><span class="graphic-sparkle" aria-hidden="true">✦</span><span class="graphic-icon" aria-hidden="true">${safe(c.icon||'✨')}</span></span>`;
  return `<button class="find ${state.found.has(i)?'found':''}" data-spot="${i}" aria-pressed="${state.found.has(i)}" type="button">${art}<span class="content"><strong>${safe(c.name)}</strong><small>${safe(c.hint)}</small><span class="found-label">${state.found.has(i)?'✓ Found':'Tap when found'}</span></span></button>`;
 }
 function renderBoard(){
