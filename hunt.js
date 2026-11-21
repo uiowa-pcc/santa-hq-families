@@ -20,9 +20,8 @@ const CLUES=[
  ['Santa sleigh','A glowing ride full of gifts',14,'decor'],
  ['Pink or purple lights','A surprise-colored glow',15,'lights']
 ];
-// Mega retains all 16 original photo clues and adds 14 unique, more challenging finds.
-// 10 easy + 10 tricky + 10 expert. New clues use typographic illustrations rather
-// than showing an unrelated photo as though it depicted a licensed character.
+// Mega retains the 16 existing photo clues and adds 14 newer finds.
+// Custom images uploaded into hunt-images/ can replace any clue's example art.
 const MEGA_NEW=[
  {name:'Giant inflatable',hint:'Find an illuminated, oversized yard inflatable.',tier:'easy',type:'decor',symbol:'WOW',icon:'🎈'},
  {name:'Giant ornament',hint:'A big glowing Christmas bauble or ornament.',tier:'tricky',type:'decor',symbol:'JOY',icon:'🟣'},
@@ -77,8 +76,25 @@ const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'
 const frag=location.hash;
 const room=(frag.match(/^#room=([a-f0-9]{32})$/)||[])[1]||'';
 const legacy=(frag.match(/^#h=([ef]_[a-f0-9]{24})$/)||[])[1]||'';
-const state={room,legacy,hunt:null,picks:[],playerId:'',token:'',nickname:'',found:new Set(),leaders:[],saving:false,error:'',offline:false};
+const state={room,legacy,hunt:null,picks:[],photoOverrides:{},playerId:'',token:'',nickname:'',found:new Set(),leaders:[],saving:false,error:'',offline:false};
 const key='santa_hq_hunt_player_v2_'+(room||legacy);
+const slugFor=name=>String(name||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+// The Cloudflare build automatically generates this manifest from the actual
+// photo files placed in the repository's hunt-images/ folder. No JS edits needed.
+async function loadPhotoOverrides(){
+ try{
+  const response=await fetch('./hunt-images/manifest.json',{cache:'no-cache'});
+  if(!response.ok)return;
+  const map=await response.json();
+  if(!map||typeof map!=='object'||Array.isArray(map))return;
+  for(const [slug,url] of Object.entries(map)){
+   if(/^[a-z0-9-]+$/.test(slug)&&typeof url==='string'&&/^\.\/hunt-images\/[a-z0-9-]+\.(?:webp|png|jpe?g)$/.test(url)){
+    state.photoOverrides[slug]=url;
+   }
+  }
+ }catch{/* The original clue illustrations remain available offline. */}
+}
+
 function rng(seed){let n=2166136261;for(const c of seed)n=Math.imul(n^c.charCodeAt(0),16777619);return ()=>{n+=0x6d2b79f5;let t=n;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296}}
 function generate(seed,mode){
  const cards=CLUES.map((x,i)=>({name:x[0],hint:x[1],photo:x[2],type:x[3],id:i}));
@@ -104,8 +120,12 @@ function store(){try{localStorage.setItem(key,JSON.stringify({playerId:state.pla
 function card(c,i){
  const picture=c.photo!==null&&c.photo!==undefined;
  const x=picture?(c.photo%4)*100/3:0,y=picture?Math.floor(c.photo/4)*100/3:0;
- const art=picture?`<span class="photo" role="img" aria-label="Example photograph of ${safe(c.name)}" style="background-position:${x}% ${y}%"></span>`
+ const custom=state.photoOverrides[slugFor(c.name)];
+ const fallback=picture?`<span class="photo" role="img" aria-label="Example photograph of ${safe(c.name)}" style="background-position:${x}% ${y}%"></span>`
   :`<span class="photo graphic ${safe(c.type)} ${safe(c.slug||'') ? 'slug-'+safe(c.slug) : ''}" role="img" aria-label="Graphic clue: ${safe(c.name)}"><span class="graphic-glow" aria-hidden="true"></span><span class="graphic-sparkle" aria-hidden="true">✦</span><span class="graphic-icon" aria-hidden="true">${safe(c.icon||'✨')}</span></span>`;
+ // Keep a working built-in fallback underneath every custom photo. If a photo
+ // is missing or unsupported, the clue remains usable.
+ const art=custom?`<span class="custom-photo-wrap">${fallback}<img class="custom-hunt-photo" src="${safe(custom)}" alt="" loading="lazy" decoding="async"></span>`:fallback;
  return `<button class="find ${state.found.has(i)?'found':''}" data-spot="${i}" aria-pressed="${state.found.has(i)}" type="button">${art}<span class="content"><strong>${safe(c.name)}</strong><small>${safe(c.hint)}</small><span class="found-label">${state.found.has(i)?'✓ Found':'Tap when found'}</span></span></button>`;
 }
 function renderBoard(){
@@ -127,6 +147,8 @@ function renderBoard(){
    return `<section class="mega-group tier-${tier}" aria-label="${title}"><header class="mega-head"><div><span class="mega-tier">${title}</span><small>${description}</small></div><strong>${spotted}/${entries.length}</strong></header><div class="mega-grid">${entries.map(x=>card(x.c,x.i)).join('')}</div></section>`;
   }).join('');
  }else $('huntBoard').innerHTML=state.picks.map(card).join('');
+ // Images are visual examples only; the tappable whole-card behavior stays intact.
+ $('huntBoard').querySelectorAll('.custom-hunt-photo').forEach(img=>img.addEventListener('error',()=>img.remove(),{once:true}));
  $('winBanner').textContent=count===30?'All 30 clues found! You are a Mega Lights Hunt champion!':'Every clue found! Well done!';
  $('winBanner').hidden=done!==count;
 }
@@ -145,7 +167,7 @@ async function init(){
  if(!room&&!legacy){errors('This is not a valid hunt link. Ask your family for a fresh link.');$('joinPanel').hidden=true;return;}
  try{if(room){const data=await api('/api/hunts/'+room);state.hunt=data.hunt;state.leaders=data.leaders||[];}else{state.hunt={mode:legacy.startsWith('f_')?'family':'easy',seed:legacy};state.leaders=[];$('liveStatus').textContent='Solo scoring';}}
  catch(e){errors(e.message);$('joinPanel').hidden=true;return}
- state.picks=legacy?legacyCards(legacy):generate(state.hunt.seed,state.hunt.mode);loadLocal();$('playerName').value=state.nickname;renderBoard();renderLeaders();if(room){if(state.playerId&&state.token)sendProgress();setInterval(refresh,8000)}
+ await loadPhotoOverrides();state.picks=legacy?legacyCards(legacy):generate(state.hunt.seed,state.hunt.mode);loadLocal();$('playerName').value=state.nickname;renderBoard();renderLeaders();if(room){if(state.playerId&&state.token)sendProgress();setInterval(refresh,8000)}
 }
 $('startBtn').addEventListener('click',start);
 $('playerName').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();start()}});

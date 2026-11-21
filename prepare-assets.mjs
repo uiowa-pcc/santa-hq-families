@@ -4,7 +4,7 @@
  * Copies ONLY public website assets into public/; worker.js and private source
  * files must never be exposed as static files.
  */
-import { access, copyFile, mkdir, writeFile } from 'node:fs/promises';
+import { access, copyFile, mkdir, writeFile, readdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
 const websiteFiles = [
@@ -58,4 +58,31 @@ for (const file of artworkFiles) {
   await writeFile(destination, new Uint8Array(await response.arrayBuffer()));
   console.log(`Downloaded artwork: ${file}`);
 }
+// Optional family-chosen Christmas lights hunt photos. Upload JPG/PNG/WebP
+// directly to hunt-images/ in GitHub. Every deployment picks up new files,
+// without hard-coding individual image names into the application.
+await mkdir('public/hunt-images', { recursive: true });
+const imageMap = {};
+if (await exists('hunt-images')) {
+  const names = (await readdir('hunt-images')).sort();
+  for (const name of names) {
+    const match = name.match(/^(.+)\.(webp|png|jpe?g)$/i);
+    if (!match) continue; // Ignore notes, hidden files, and unsupported formats.
+    // GitHub photo filenames may have spaces and capital letters. Normalize
+    // their published names so the app still matches the clue automatically.
+    const key = match[1].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    if (!key || key.length > 100) continue;
+    const publishedName = `${key}.${match[2].toLowerCase()}`;
+    if (imageMap[key]) {
+      console.warn(`Hunt image ${name} skipped: ${key} already has a photo. Remove the old extension first.`);
+      continue;
+    }
+    await copyFile(join('hunt-images', name), join('public/hunt-images', publishedName));
+    imageMap[key] = `./hunt-images/${publishedName}`;
+    console.log(`Hunt photo: ${name} → public/hunt-images/${publishedName}`);
+  }
+}
+await writeFile('public/hunt-images/manifest.json', JSON.stringify(imageMap, null, 2));
+console.log(`Santa HQ hunt photos ready: ${Object.keys(imageMap).length} optional images.`);
+
 console.log('Santa HQ website assets prepared. Ready for Wrangler deployment.');
