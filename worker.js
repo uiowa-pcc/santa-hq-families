@@ -301,6 +301,10 @@ async function handleApi(request,env,url){
     if(!result.meta?.changes)return error('Someone has already claimed this gift.',409);
     return json({ok:true});
   }
+  // The installed D1 schema restricts mode to easy/family. A versioned seed marks
+  // 30-clue mega hunts without changing that CHECK constraint or migrating old data.
+  const publicHuntMode = room => String(room.seed||'').startsWith('mega-v1-')?'mega':room.mode;
+  const huntClueCount = room => publicHuntMode(room)==='mega'?30:room.mode==='family'?16:9;
   // Shared lights hunts are capability links. No parent account data is exposed here.
   const huntMatch=path.match(/^\/api\/hunts\/([a-f0-9]{32})(?:\/(join|progress))?$/);
   if(huntMatch){
@@ -309,13 +313,13 @@ async function handleApi(request,env,url){
     if(!room||room.expires_at<=now)return error('This hunt is unavailable or has expired.',404);
     if(method==='GET'&&!action){
       const rows=await db.prepare('SELECT id,nickname,found_json,finished_at,updated_at FROM hunt_players WHERE hunt_id=?').bind(huntId).all();
-      const maximum=room.mode==='family'?16:9;
+      const maximum=huntClueCount(room);
       const leaders=(rows.results||[]).map(p=>{
         let found=[];try{found=JSON.parse(p.found_json||'[]')}catch{}
         const score=Array.isArray(found)?new Set(found.filter(n=>Number.isInteger(n)&&n>=0&&n<maximum)).size:0;
         return {id:p.id,nickname:p.nickname,score,finishedAt:p.finished_at||null,updatedAt:p.updated_at};
       }).sort((a,b)=>b.score-a.score||(a.finishedAt||Infinity)-(b.finishedAt||Infinity)||a.updatedAt-b.updatedAt);
-      return json({hunt:{id:room.id,mode:room.mode,seed:room.seed,expiresAt:room.expires_at},leaders});
+      return json({hunt:{id:room.id,mode:publicHuntMode(room),seed:room.seed,expiresAt:room.expires_at},leaders});
     }
     if(method==='POST'&&action==='join'){
       if(!await guardLimit(db,'hunt-join',ip+':'+huntId,25,3600000))return error('Too many players joining from this network. Try later.',429);
@@ -331,7 +335,7 @@ async function handleApi(request,env,url){
     }
     if(method==='POST'&&action==='progress'){
       if(!await guardLimit(db,'hunt-progress',ip+':'+huntId,240,3600000))return error('Too many updates. Try again in a moment.',429);
-      const b=await bodyJSON(request),token=String(b.playerToken||''),maximum=room.mode==='family'?16:9;
+      const b=await bodyJSON(request),token=String(b.playerToken||''),maximum=huntClueCount(room);
       if(!/^[0-9a-f]{64}$/.test(token)||!Array.isArray(b.found)||b.found.length>maximum)return error('Invalid hunt progress.');
       const found=[...new Set(b.found)];
       if(found.some(n=>!Number.isInteger(n)||n<0||n>=maximum))return error('Invalid hunt clues.');
@@ -475,11 +479,13 @@ async function handleApi(request,env,url){
 
   if(path==='/api/hunts'&&method==='POST'){
     if(!await guardLimit(db,'hunt-create',ip,30,86400000))return error('Hunt creation limit reached. Try tomorrow.',429);
-    const b=await bodyJSON(request),mode=b.mode==='family'?'family':b.mode==='easy'?'easy':null;
-    if(!mode)return error('Choose an easy or family hunt.');
-    const huntId=hex(bytes(16)),seed=hex(bytes(16)),now=Date.now();
+    const b=await bodyJSON(request),mode=['easy','family','mega'].includes(b.mode)?b.mode:null;
+    if(!mode)return error('Choose a little lights, family, or mega hunt.');
+    const huntId=hex(bytes(16)),seed=(mode==='mega'?'mega-v1-':'')+hex(bytes(16)),now=Date.now();
+    // Store family for Mega to preserve the live database's easy/family CHECK.
+    const storedMode=mode==='mega'?'family':mode;
     await db.prepare('INSERT INTO hunts(id,household_id,mode,seed,created_at,expires_at) VALUES(?,?,?,?,?,?)')
-      .bind(huntId,me.household_id,mode,seed,now,now+30*86400000).run();
+      .bind(huntId,me.household_id,storedMode,seed,now,now+30*86400000).run();
     return json({ok:true,hunt:{id:huntId,mode,seed,expiresAt:now+30*86400000}});
   }
   const family=me.household_id;

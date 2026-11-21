@@ -20,6 +20,27 @@ const CLUES=[
  ['Santa sleigh','A glowing ride full of gifts',14,'decor'],
  ['Pink or purple lights','A surprise-colored glow',15,'lights']
 ];
+// Mega retains all 16 original photo clues and adds 14 unique, more challenging finds.
+// 10 easy + 10 tricky + 10 expert. New clues use typographic illustrations rather
+// than showing an unrelated photo as though it depicted a licensed character.
+const MEGA_NEW=[
+ {name:'Giant inflatable',hint:'Find an illuminated, oversized yard inflatable.',tier:'easy',type:'decor',symbol:'WOW'},
+ {name:'Giant ornament',hint:'A big glowing Christmas bauble or ornament.',tier:'tricky',type:'decor',symbol:'JOY'},
+ {name:'Nativity scene',hint:'A light-up manger or stable scene.',tier:'tricky',type:'decor',symbol:'STAR'},
+ {name:'Light-up mailbox',hint:'A mailbox outlined or wrapped in Christmas lights.',tier:'tricky',type:'decor',symbol:'MAIL'},
+ {name:'Mickey Mouse',hint:'An illuminated or projected Mickey Mouse decoration.',tier:'expert',type:'character',symbol:'MICKEY'},
+ {name:'Winnie-the-Pooh',hint:'Pooh Bear glowing in a holiday yard display.',tier:'expert',type:'character',symbol:'POOH'},
+ {name:'The Grinch',hint:'A lit-up or projected Grinch decoration.',tier:'expert',type:'character',symbol:'GRINCH'},
+ {name:'Snoopy',hint:'Snoopy in a holiday light or inflatable display.',tier:'expert',type:'character',symbol:'SNOOPY'},
+ {name:'Olaf',hint:'The snowman from Frozen as a light-up decoration.',tier:'expert',type:'character',symbol:'OLAF'},
+ {name:'Music-synced lights',hint:'Find lights that change in time with music.',tier:'expert',type:'effect',symbol:'MUSIC'},
+ {name:'Holiday projector',hint:'Moving holiday images projected onto a house.',tier:'expert',type:'effect',symbol:'PROJECT'},
+ {name:'Chasing light pattern',hint:'Lights that appear to race or travel across a display.',tier:'expert',type:'effect',symbol:'MOVE'},
+ {name:'Light tunnel or arch',hint:'Walkway or driveway with an illuminated arch or tunnel.',tier:'expert',type:'effect',symbol:'TUNNEL'},
+ {name:'Lights spelling a word',hint:'Letters in lights spelling JOY, NOEL, MERRY or another word.',tier:'expert',type:'effect',symbol:'WORDS'}
+];
+const MEGA_ORIGINAL_TIERS=['easy','easy','easy','easy','easy','easy','easy','easy','easy','tricky','tricky','tricky','tricky','tricky','tricky','tricky'];
+const MEGA_TIERS=[['easy','Easy finds','Start with the classics'],['tricky','Tricky finds','Look a little closer'],['expert','Expert finds','Rare characters and wow-factor lights']];
 // Preserve the exact clue set/order of previously shared #h= hunts.
 function legacyCards(huntId){
  const EASY=[
@@ -62,6 +83,11 @@ function rng(seed){let n=2166136261;for(const c of seed)n=Math.imul(n^c.charCode
 function generate(seed,mode){
  const cards=CLUES.map((x,i)=>({name:x[0],hint:x[1],photo:x[2],type:x[3],id:i}));
  let r=rng(seed);const shuffle=items=>{for(let i=items.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[items[i],items[j]]=[items[j],items[i]]}return items};
+ if(mode==='mega'){
+  const originals=cards.map((c,i)=>({...c,tier:MEGA_ORIGINAL_TIERS[i]}));
+  const extras=MEGA_NEW.map((c,i)=>({...c,photo:null,id:CLUES.length+i}));
+  return [...originals,...extras]; // All thirty: ten per difficulty level.
+ }
  if(mode==='family')return shuffle(cards);
  // Young kids always get several recognizable Christmas characters to spot.
  return shuffle([...shuffle(cards.filter(x=>x.type==='character')).slice(0,3),...shuffle(cards.filter(x=>x.type!=='character')).slice(0,6)]);
@@ -72,22 +98,36 @@ function loadLocal(){try{
  if(legacy&&!state.nickname){state.nickname=localStorage.getItem('santa_hq_guest_lights_v1_'+legacy+':name')||'';if(state.nickname)state.playerId='local'}
  let found=saved.found||[];
  if(legacy&&state.nickname&&!saved.found){found=JSON.parse(localStorage.getItem('santa_hq_guest_lights_v1_'+legacy+':checks:'+state.nickname.toLowerCase())||'[]')}
- state.found=new Set(found.filter(n=>Number.isInteger(n)&&n>=0&&n<(state.hunt?.mode==='family'?16:9)));
+ state.found=new Set(found.filter(n=>Number.isInteger(n)&&n>=0&&n<state.picks.length));
  }catch{}}
 function store(){try{localStorage.setItem(key,JSON.stringify({playerId:state.playerId,token:state.token,nickname:state.nickname,found:[...state.found]}));if(legacy){const b='santa_hq_guest_lights_v1_'+legacy;localStorage.setItem(b+':name',state.nickname);localStorage.setItem(b+':checks:'+state.nickname.toLowerCase(),JSON.stringify([...state.found]))}}catch{}}
-function card(c,i){const x=(c.photo%4)*100/3,y=Math.floor(c.photo/4)*100/3;return `<button class="find ${state.found.has(i)?'found':''}" data-spot="${i}" aria-pressed="${state.found.has(i)}" type="button"><span class="photo" role="img" aria-label="Example photograph of ${safe(c.name)}" style="background-position:${x}% ${y}%"></span><span class="content"><strong>${safe(c.name)}</strong><small>${safe(c.hint)}</small><span class="found-label">${state.found.has(i)?'✓ Found':'Tap when found'}</span></span></button>`}
+function card(c,i){
+ const picture=c.photo!==null&&c.photo!==undefined;
+ const x=picture?(c.photo%4)*100/3:0,y=picture?Math.floor(c.photo/4)*100/3:0;
+ const art=picture?`<span class="photo" role="img" aria-label="Example photograph of ${safe(c.name)}" style="background-position:${x}% ${y}%"></span>`
+  :`<span class="photo graphic ${safe(c.type)}" role="img" aria-label="Graphic clue: ${safe(c.name)}"><span aria-hidden="true">✦</span><b>${safe(c.symbol||'FIND')}</b></span>`;
+ return `<button class="find ${state.found.has(i)?'found':''}" data-spot="${i}" aria-pressed="${state.found.has(i)}" type="button">${art}<span class="content"><strong>${safe(c.name)}</strong><small>${safe(c.hint)}</small><span class="found-label">${state.found.has(i)?'✓ Found':'Tap when found'}</span></span></button>`;
+}
 function renderBoard(){
  const count=state.picks.length,done=state.found.size;
  $('joinPanel').hidden=!!state.playerId;
  $('gamePanel').hidden=!state.playerId;
  $('boardTitle').textContent=state.nickname?state.nickname+"'s light hunt":'Christmas lights hunt';
- $('boardSubtitle').textContent=count===16?'16 photo clues · family challenge':'9 photo clues · little lights hunt';
+ $('boardSubtitle').textContent=count===30?'30 clues · Mega lights hunt · easy, tricky & expert':count===16?'16 photo clues · family challenge':'9 photo clues · little lights hunt';
  $('progressCount').textContent=done+' / '+count;
  $('progressLabel').textContent=done===count?'Every clue spotted!':`${count-done} more to find`;
  $('progressPct').textContent=Math.round(100*done/count)+'%';
  $('progressBar').style.width=(100*done/count)+'%';
  $('huntBoard').classList.toggle('challenge',count===16);
- $('huntBoard').innerHTML=state.picks.map(card).join('');
+ $('huntBoard').classList.toggle('mega',count===30);
+ if(count===30){
+  $('huntBoard').innerHTML=MEGA_TIERS.map(([tier,title,description])=>{
+   const entries=state.picks.map((c,i)=>({c,i})).filter(x=>x.c.tier===tier);
+   const spotted=entries.filter(x=>state.found.has(x.i)).length;
+   return `<section class="mega-group tier-${tier}" aria-label="${title}"><header class="mega-head"><div><span class="mega-tier">${title}</span><small>${description}</small></div><strong>${spotted}/${entries.length}</strong></header><div class="mega-grid">${entries.map(x=>card(x.c,x.i)).join('')}</div></section>`;
+  }).join('');
+ }else $('huntBoard').innerHTML=state.picks.map(card).join('');
+ $('winBanner').textContent=count===30?'All 30 clues found! You are a Mega Lights Hunt champion!':'Every clue found! Well done!';
  $('winBanner').hidden=done!==count;
 }
 function renderLeaders(){
