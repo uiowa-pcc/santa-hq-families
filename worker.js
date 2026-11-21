@@ -437,19 +437,33 @@ async function handleApi(request,env,url){
       return json({ok:true,archived:!!archived});
     }
     if(body.action==='delete'){
-      // Destructive operations are restricted to the owning household's account owner.
-      // Never derive a household from the link or trust a supplied household identifier.
+      // Only the account owner of the hosting family may delete a hunt.
       if(owner.role!=='owner')return error('Only the family account owner can permanently delete a hunt.',403);
       if(body.confirmHuntId!==huntId)return error('Confirm the selected hunt before deleting it.',400);
-      // Both main-hunt and themed-night photos live under this single R2 prefix.
-      // Remove files BEFORE dropping their D1 references so a storage failure is
-      // retriable; other groups' images and private Santa Mail are never touched.
+      // Older installations may lack optional photo/night tables. Never assume
+      // that an optional migration was run before a user deletes an older hunt.
+      let existingTables;
+      try{
+        const schema=await db.prepare(`SELECT name FROM sqlite_master WHERE type=? AND name IN
+          ('hunt_photos','hunt_night_photos','hunt_night_progress','hunt_direct_progress','hunt_nights','hunt_players','hunt_collections')`).bind('table').all();
+        existingTables=new Set((schema.results||[]).map(x=>x.name));
+      }catch(e){console.error('Hunt deletion schema lookup failed:',e);
+        return error('Could not check the hunt database. The hunt has not been deleted. Please try again.',503)}
+
+      // All hunt photo objects share this exact household + hunt R2 prefix.
+      // List the prefix as well as registered metadata to catch old/orphan photos.
       const prefix=`${room.household_id}/hunt/${huntId}/`;
-      const [main,night]=await Promise.all([
-        db.prepare('SELECT object_key FROM hunt_photos WHERE hunt_id=?').bind(huntId).all(),
-        db.prepare('SELECT object_key FROM hunt_night_photos WHERE hunt_id=?').bind(huntId).all()
-      ]);
-      const keys=new Set([...main.results||[],...night.results||[]].map(row=>row.object_key).filter(key=>typeof key==='string'&&key.startsWith(prefix)));
+      const keys=new Set();
+      try{
+        for(const table of ['hunt_photos','hunt_night_photos']){
+          if(!existingTables.has(table))continue;
+          const photos=await db.prepare(`SELECT object_key FROM ${table} WHERE hunt_id=?`).bind(huntId).all();
+          for(const row of photos.results||[]){
+            if(typeof row.object_key==='string'&&row.object_key.startsWith(prefix))keys.add(row.object_key);
+          }
+        }
+      }catch(e){console.error('Hunt deletion photo metadata lookup failed:',e);
+        return error('Could not check hunt photos in the database. The hunt has not been deleted. Please try again.',503)}
       if(env.MEDIA?.list){
         let cursor;
         try{
@@ -461,20 +475,39 @@ async function handleApi(request,env,url){
             cursor=page.cursor;
           }
           if(cursor)throw Error('Too many photos to clean in one request.');
-        }catch(e){console.error('Hunt photo listing failed:',e);return error('Unable to verify photo cleanup. Hunt was not deleted; please try again.',503)}
+        }catch(e){console.error('Hunt deletion R2 listing failed:',e);
+          return error('Could not verify hunt photo storage. Nothing has been deleted; try again or check Cloudflare R2.',503)}
       }
-      if(keys.size&&!env.MEDIA)return error('Photo storage is unavailable. Hunt was not deleted; please try again.',503);
+      if(keys.size&&!env.MEDIA?.delete)return error('Photo storage is unavailable. Nothing has been deleted. Check the R2 MEDIA binding.',503);
+
+      // Fail closed if R2 can't remove files: keep the hunt available for retry.
+      // D1 schema is preflighted above so missing optional tables can't cause
+      // an unexpected D1 failure after photo cleanup.
       try{
         const list=[...keys];
         for(let i=0;i<list.length;i+=500)await env.MEDIA.delete(list.slice(i,i+500));
-      }catch(e){
-        console.error('Hunt photo cleanup failed:',e);
-        return error('Could not finish removing hunt photos. Hunt was not deleted; please try again.',503);
-      }
-      // D1 foreign-key cascades remove this hunt's players, scores, themed nights,
-      // photo metadata, and collection row. No records/gifts or other hunts touched.
-      const result=await db.prepare('DELETE FROM hunts WHERE id=? AND household_id=?').bind(huntId,owner.household_id).run();
-      if(!result.meta?.changes)return error('Hunt no longer exists.',404);
+      }catch(e){console.error('Hunt deletion R2 cleanup failed:',e);
+        return error('Unable to remove hunt photos from storage. The hunt was not deleted. Check R2 / Worker Logs and try again.',503)}
+
+      // Delete children explicitly inside one D1 batch transaction. Older base
+      // schema versions cannot be relied upon to cascade all dependencies.
+      // In Cloudflare D1, batch() runs all statements in one transaction.
+      const statements=[];
+      const add=(table,sql,...args)=>{if(existingTables.has(table))statements.push(db.prepare(sql).bind(...args))};
+      add('hunt_night_photos','DELETE FROM hunt_night_photos WHERE hunt_id=?',huntId);
+      add('hunt_night_progress','DELETE FROM hunt_night_progress WHERE night_id IN (SELECT id FROM hunt_nights WHERE hunt_id=?)',huntId);
+      add('hunt_direct_progress','DELETE FROM hunt_direct_progress WHERE player_id IN (SELECT id FROM hunt_players WHERE hunt_id=?)',huntId);
+      add('hunt_photos','DELETE FROM hunt_photos WHERE hunt_id=?',huntId);
+      add('hunt_nights','DELETE FROM hunt_nights WHERE hunt_id=?',huntId);
+      add('hunt_players','DELETE FROM hunt_players WHERE hunt_id=?',huntId);
+      add('hunt_collections','DELETE FROM hunt_collections WHERE hunt_id=?',huntId);
+      statements.push(db.prepare('DELETE FROM hunts WHERE id=? AND household_id=?').bind(huntId,owner.household_id));
+      try{
+        const results=await db.batch(statements);
+        if(!results.at(-1)?.meta?.changes)return error('Hunt no longer exists.',404);
+      }catch(e){console.error('Hunt deletion D1 transaction failed:',e);
+        return error('Cloudflare could not remove this hunt from the database. The hunt is still saved. Check Worker Logs for “Hunt deletion D1 transaction failed.”',503)}
+
       return json({ok:true,deleted:true});
     }
     return error('Choose rename, archive, restore, or delete.');

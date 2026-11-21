@@ -1,3 +1,37 @@
+# Santa HQ — Fix for “Delete Hunt” server error
+
+This update keeps **Archive and Delete** as separate actions. It fixes two potential causes of “An unexpected server error occurred” when clicking **Delete → OK**:
+
+1. Older Santa HQ hunts may not have the optional hunt-photo or themed-night tables installed. The previous Delete endpoint tried to read those tables unconditionally, causing a 500 response if one was missing. The updated code checks which optional tables exist before accessing them.
+2. Older hunt/player schemas may not cascade-delete all linked records. The updated Delete endpoint explicitly removes hunt-specific progress, photos, themed nights, and players inside a single Cloudflare D1 batch transaction.
+
+The server still checks family ownership and that the specific hunt ID was confirmed, attempts to delete only that hunt's private R2 photos, and fails with a specific message if storage or database cleanup fails. The existing **Archive** and **Restore** paths are unchanged. Existing gifts, other families' data, and other competitions are outside the deletion scope.
+
+## Installation
+
+**If you already uploaded `Santa_HQ_Archive_Or_Delete_Patch.zip` or the matching full build:**
+
+1. Back up your gifts and save the current GitHub commit ID so it can be restored if needed.
+2. Extract **`Santa_HQ_Delete_Hunt_Error_Fix_Patch.zip`** and upload **`worker.js`, `index.html`, `sw.js`** to the ROOT of the same GitHub repository (`uiowa-pcc/santa-hq-families`). Commit the changes. `README.md` is just the instructions.
+3. Verify the Cloudflare deployment completed. Hard-refresh the app or reopen your installed Santa HQ app.
+4. Try **Hunt HQ → Delete → OK** again.
+
+If you have not installed earlier releases, use the **full combined ZIP** instead; it includes the previous assets and migrations. Keep existing `hunt-images/` uploads.
+
+**No new SQL migration is required for this fix.** It can handle an old hunt even if the optional `0004`/`0005` tables were not installed. However, the other Photo Hunt / Hunt HQ functionality still requires its applicable earlier migrations; do not delete or recreate your database.
+
+## If deletion still fails
+
+The updated app now returns a more specific error, and the server logs contain a diagnostic entry starting with `Hunt deletion`. In Cloudflare, open **Workers & Pages → Santa HQ Worker → Logs**, retry the delete, and look for the resulting error. Copy that message (without cookies, tokens or account details) for troubleshooting.
+
+**Important note about the earlier failed deletion:** In the previous build, photo objects were removed from R2 before the database deletion. If an earlier attempt failed after that step, the hunt may still be shown but some of its uploaded photos may already be missing. The fix does not restore photos already removed.
+
+## Validation
+
+Locally tested owner-only deletion of archived and active hunts, a legacy hunt without `0004`/`0005` tables and non-cascading player foreign keys, multiple hunt groups, R2 cleanup failure, no gift changes, and JavaScript syntax. Not tested on the live production Cloudflare database or bucket.
+
+---
+
 # Santa HQ — Archive or Delete Hunt update
 
 This release adds **both** Archive and Delete to each Standalone and Mega Hunt, including archived hunts.

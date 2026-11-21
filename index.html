@@ -2917,7 +2917,7 @@ function holidayAction(action,el){const kind=el.dataset.kind,id=el.dataset.id;
     delete appState.huntHQSaves[huntId];appState.huntHQBusy.delete(huntId);
     const plan=holidayPlan();plan.hunts=(plan.hunts||[]).filter(h=>h?.id!==huntId);
     if(plan.hunt?.id===huntId)plan.hunt=plan.hunts.at(-1)||null;
-    holidayWrite(plan);showToast('Hunt permanently deleted');
+    holidayWrite(plan);showToast(data.warning||'Hunt permanently deleted');
    }else{
     if(Array.isArray(appState.huntHQList))appState.huntHQList=appState.huntHQList.map(h=>h.id===huntId?{...h,...(operation==='rename'?{title}:{archived:data.archived})}:h);
     showToast(operation==='rename'?'Hunt renamed':operation==='archive'?'Hunt archived':'Hunt restored');render();
