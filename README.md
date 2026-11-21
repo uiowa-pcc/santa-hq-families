@@ -1,3 +1,25 @@
+# Santa HQ — Archive or Delete Hunt update
+
+This release adds **both** Archive and Delete to each Standalone and Mega Hunt, including archived hunts.
+
+- **Archive**: makes a hunt read-only; keeps its results, photos, participant list, and invite link for viewing; Restore is available before the hunt's original end date.
+- **Delete**: a separate, irreversible option with an explicit confirmation. Removes the selected hunt's scoreboard, participants, all attached themed nights, and associated hunt photos (including files from Cloudflare R2). Its invite link stops working. All other hunts, families, gifts, Santa Mail, and settings are not deleted.
+- Only the **owner of the hosting household account** may permanently delete. A caregiver can still archive and restore.
+- If Cloudflare R2 storage cleanup fails, the server does **not** remove the hunt from D1; it reports an error so deletion can be retried. If cleanup partially succeeds and fails, some pictures may be missing until the retry succeeds.
+- No new SQL migration is required **if migrations 0004, 0005, and 0006 were already applied**.
+
+## Install the small patch
+
+Use **Santa_HQ_Archive_Or_Delete_Patch.zip** only if the **Standalones + Multi-Group** version is already installed. Extract and upload these three files to the repository root, replacing matching versions: `index.html`, `worker.js`, and `sw.js`. Commit and verify Cloudflare redeploys. You **do not** need to run new D1 SQL.
+
+## Install the complete combined release
+
+Use **Santa_HQ_Archive_Or_Delete_Full.zip** if the latest combined multi-group Hunt HQ version has not yet been installed. Extract and upload the app files and folders, preserving their paths. Run **only missing** migrations 0004, 0005, 0006 in your existing D1 database, in order. Do not delete/recreate the database or run an earlier reset schema.
+
+Always export a gift backup before deploying app updates. This code was tested locally, but not deployed to the live Cloudflare environment.
+
+---
+
 # Santa HQ — Hunt HQ: Standalone + Mega, multiple groups and cross-hunt photos
 
 This release **extends** the previous linked Hunt HQ + Photo Hunt build. It keeps existing gifts, account data, gift boards, Santa artwork, uploaded GitHub clue photos, old links and existing hunt player data.

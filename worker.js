@@ -436,7 +436,48 @@ async function handleApi(request,env,url){
       await db.prepare('UPDATE hunt_collections SET archived_at=? WHERE hunt_id=?').bind(archived,huntId).run();
       return json({ok:true,archived:!!archived});
     }
-    return error('Choose rename, archive, or restore.');
+    if(body.action==='delete'){
+      // Destructive operations are restricted to the owning household's account owner.
+      // Never derive a household from the link or trust a supplied household identifier.
+      if(owner.role!=='owner')return error('Only the family account owner can permanently delete a hunt.',403);
+      if(body.confirmHuntId!==huntId)return error('Confirm the selected hunt before deleting it.',400);
+      // Both main-hunt and themed-night photos live under this single R2 prefix.
+      // Remove files BEFORE dropping their D1 references so a storage failure is
+      // retriable; other groups' images and private Santa Mail are never touched.
+      const prefix=`${room.household_id}/hunt/${huntId}/`;
+      const [main,night]=await Promise.all([
+        db.prepare('SELECT object_key FROM hunt_photos WHERE hunt_id=?').bind(huntId).all(),
+        db.prepare('SELECT object_key FROM hunt_night_photos WHERE hunt_id=?').bind(huntId).all()
+      ]);
+      const keys=new Set([...main.results||[],...night.results||[]].map(row=>row.object_key).filter(key=>typeof key==='string'&&key.startsWith(prefix)));
+      if(env.MEDIA?.list){
+        let cursor;
+        try{
+          for(let pageNumber=0;pageNumber<100;pageNumber++){
+            const page=await env.MEDIA.list({prefix,limit:1000,...(cursor?{cursor}:{})});
+            for(const obj of page.objects||[])if(obj.key.startsWith(prefix))keys.add(obj.key);
+            if(!page.truncated){cursor=null;break}
+            if(!page.cursor)throw Error('Storage did not provide a continuation cursor.');
+            cursor=page.cursor;
+          }
+          if(cursor)throw Error('Too many photos to clean in one request.');
+        }catch(e){console.error('Hunt photo listing failed:',e);return error('Unable to verify photo cleanup. Hunt was not deleted; please try again.',503)}
+      }
+      if(keys.size&&!env.MEDIA)return error('Photo storage is unavailable. Hunt was not deleted; please try again.',503);
+      try{
+        const list=[...keys];
+        for(let i=0;i<list.length;i+=500)await env.MEDIA.delete(list.slice(i,i+500));
+      }catch(e){
+        console.error('Hunt photo cleanup failed:',e);
+        return error('Could not finish removing hunt photos. Hunt was not deleted; please try again.',503);
+      }
+      // D1 foreign-key cascades remove this hunt's players, scores, themed nights,
+      // photo metadata, and collection row. No records/gifts or other hunts touched.
+      const result=await db.prepare('DELETE FROM hunts WHERE id=? AND household_id=?').bind(huntId,owner.household_id).run();
+      if(!result.meta?.changes)return error('Hunt no longer exists.',404);
+      return json({ok:true,deleted:true});
+    }
+    return error('Choose rename, archive, restore, or delete.');
   }
   // Shared lights hunts are capability links. No parent account data is exposed here.
   const huntMatch=path.match(/^\/api\/hunts\/([a-f0-9]{32})(?:\/(join|progress))?$/);
