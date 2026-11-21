@@ -304,6 +304,9 @@ async function handleApi(request,env,url){
   // The installed D1 schema restricts mode to easy/family. A versioned seed marks
   // 30-clue mega hunts without changing that CHECK constraint or migrating old data.
   const publicHuntMode = room => String(room.seed||'').startsWith('mega-v')?'mega':room.mode;
+  const collectionFor=async huntId=>await db.prepare('SELECT title,kind,theme,play_mode,clues_json,archived_at FROM hunt_collections WHERE hunt_id=?').bind(huntId).first();
+  const publicMode=(room,collection)=>collection?.kind==='standalone'?'standalone':publicHuntMode(room);
+  const allowChanges=(room,collection,now)=>room.expires_at>now&&!collection?.archived_at;
   const huntOptions = room => {
     const seed=String(room.seed||''),photoMode=seed.startsWith('photo-v1-');
     if(!seed.startsWith('mega-v2-'))return {photoMode,characters:[]};
@@ -313,7 +316,90 @@ async function handleApi(request,env,url){
       return {photoMode:payload.photoMode===true,characters:characters.length===5?characters:[]};
     }catch{return {photoMode:false,characters:[]}}
   };
-  const huntPublic=room=>({id:room.id,mode:publicHuntMode(room),seed:room.seed,expiresAt:room.expires_at,...huntOptions(room)});
+  const huntPublic=(room,collection)=>({id:room.id,mode:publicMode(room,collection),seed:room.seed,expiresAt:room.expires_at,title:collection?.title|| (publicHuntMode(room)==='mega'?'Mega Lights Hunt':'Christmas Lights Hunt'),theme:collection?.theme||'',playMode:collection?.play_mode||'competition',archived:!!collection?.archived_at,clues:collection?.kind==='standalone'?JSON.parse(collection.clues_json||'[]'):[],...huntOptions(room)});
+  // Hunt HQ: a Mega room owns all its themed mini hunts. One guest token and
+  // one set of private player photos cover the entire linked competition.
+  const MEGA_LABELS=['Christmas tree','Glowing star','Candy cane','Santa Claus','Snowman','Reindeer','Holiday wreath','Big light-up gift','Christmas elf','Icicle lights','Colorful roof','Gingerbread person','Penguin','Glowing snowflake','Santa sleigh','Pink or purple lights','Giant inflatable','Giant ornament','Nativity scene','Light-up mailbox','','','','','','Music-synced lights','Holiday projector','Chasing light pattern','Light tunnel or arch','Lights spelling a word'];
+  const NIGHT_THEMES={
+   colors:{title:'Color Quest',entries:[['Red lights','Find a red light display'],['Green lights','Find something glowing green'],['Blue lights','Find a blue light display'],['White lights','Find a glowing white display'],15,['Two colors together','Find two light colors beside each other'],['Rainbow lights','Find a display using many colors'],10]},
+   characters:{title:'Character Quest',entries:[20,21,22,23,24,3,8,4]},
+   disney:{title:'Disney Night',entries:[['Mickey Mouse','A Mickey Mouse light-up decoration'],['Minnie Mouse','Minnie Mouse lights or inflatable'],['Donald Duck','A Donald Duck light-up decoration'],['Goofy','Goofy illuminated outdoors'],['Pluto','Pluto in a festive yard display'],['Winnie-the-Pooh','Pooh lit up for Christmas'],['Stitch','A Stitch Christmas yard decoration'],['Olaf','An Olaf decoration glowing with lights']]},
+   classic:{title:'Christmas Classics',entries:[0,1,2,3,4,5,6,7]},
+   effects:{title:'Light Show Night',entries:[9,10,15,25,26,27,28,29]},
+   winter:{title:'Winter Wonderland',entries:[4,5,11,12,13,9,16,17]},
+   surprise:{title:'Holiday Mix',entries:[8,14,6,22,25,15,19,29]}
+  };
+  function themedClues(theme,seed='',characters=[]){
+    const spec=NIGHT_THEMES[theme];
+    const names=MEGA_LABELS.map((name,i)=>i>=20&&i<=24?(characters[i-20]||['Mickey Mouse','Winnie-the-Pooh','The Grinch','Snoopy','Olaf'][i-20]):name);
+    const make=(entry,kind)=>{if(Number.isInteger(entry))return {name:names[entry],hint:'Find this illuminated holiday decoration',megaIndex:entry};
+      const ix=kind==='disney'?characters.findIndex(x=>x.toLowerCase()===entry[0].toLowerCase()):-1;
+      return {name:entry[0],hint:entry[1],megaIndex:ix>=0?20+ix:null};};
+    if(spec)return spec.entries.map(e=>make(e,theme));
+    if(theme!=='random')return null;
+    const pool=[...MEGA_LABELS.map((name,i)=>({name:names[i],hint:'Find this light-up decoration',megaIndex:i})),
+      ...NIGHT_THEMES.colors.entries.filter(Array.isArray).map(e=>make(e,'colors')),
+      ...NIGHT_THEMES.disney.entries.map(e=>make(e,'disney'))];
+    let h=2166136261;for(const c of seed)h=Math.imul(h^c.charCodeAt(0),16777619);
+    const rand=()=>{h+=0x6d2b79f5;let t=h;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296};
+    for(let i=pool.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
+    return [...new Map(pool.map(c=>[c.name.toLowerCase(),c])).values()].slice(0,8);
+  }
+  const listNights=async huntId=>{
+    const rows=await db.prepare('SELECT id,hunt_id,theme,title,clues_json,created_at FROM hunt_nights WHERE hunt_id=? ORDER BY created_at,id').bind(huntId).all();
+    return (rows.results||[]).map(n=>({id:n.id,theme:n.theme,title:n.title,clues:JSON.parse(n.clues_json||'[]'),createdAt:n.created_at}));
+  };
+  function safeFound(value,max){let items=[];try{items=typeof value==='string'?JSON.parse(value||'[]'):value||[]}catch{}return Array.isArray(items)?[...new Set(items.filter(n=>Number.isInteger(n)&&n>=0&&n<max))]:[]}
+  async function recomputeMegaPlayer(huntId,playerId,now){
+    const original=await db.prepare('SELECT found_json,finished_at FROM hunt_players WHERE id=? AND hunt_id=?').bind(playerId,huntId).first();
+    if(!original)return [];
+    let base=await db.prepare('SELECT found_json FROM hunt_direct_progress WHERE player_id=?').bind(playerId).first();
+    if(!base){await db.prepare('INSERT OR IGNORE INTO hunt_direct_progress(player_id,found_json,updated_at) VALUES(?,?,?)').bind(playerId,original.found_json||'[]',now).run();base={found_json:original.found_json||'[]'}}
+    const score=new Set(safeFound(base.found_json,30));
+    const mini=await db.prepare(`SELECT p.found_json,n.clues_json FROM hunt_night_progress p JOIN hunt_nights n ON n.id=p.night_id WHERE n.hunt_id=? AND p.player_id=?`).bind(huntId,playerId).all();
+    for(const row of mini.results||[]){const clues=JSON.parse(row.clues_json||'[]');for(const index of safeFound(row.found_json,clues.length)){const mapped=clues[index]?.megaIndex;if(Number.isInteger(mapped)&&mapped>=0&&mapped<30)score.add(mapped)}}
+    const values=[...score].sort((a,b)=>a-b);
+    await db.prepare('UPDATE hunt_players SET found_json=?,finished_at=?,updated_at=? WHERE id=? AND hunt_id=?')
+      .bind(JSON.stringify(values),values.length===30?(original.finished_at||now):null,now,playerId,huntId).run();
+    return values;
+  }
+  const nightRoute=path.match(/^\/api\/hunts\/([a-f0-9]{32})\/nights(?:\/([a-f0-9]{32})\/progress)?$/);
+  if(nightRoute){
+    const huntId=nightRoute[1],nightId=nightRoute[2],now=Date.now();
+    const room=await db.prepare('SELECT id,household_id,mode,seed,expires_at FROM hunts WHERE id=?').bind(huntId).first();
+    if(!room||room.expires_at<=now||publicHuntMode(room)!=='mega')return error('This ongoing competition is unavailable.',404);
+    const collection=await collectionFor(huntId);
+    if(!allowChanges(room,collection,now))return error('This competition is archived and read-only.',409);
+    if(method==='POST'&&!nightId){
+      const current=await session(request,db);
+      if(!current||current.household_id!==room.household_id)return error('Only the family hosting this competition can add a themed night.',403);
+      if(!await guardLimit(db,'hunt-night-create',huntId,25,86400000))return error('Too many theme nights created today.',429);
+      const b=await bodyJSON(request),theme=String(b.theme||''),spec=NIGHT_THEMES[theme];
+      if(!spec)return error('Choose a supported theme.');
+      const existing=await db.prepare('SELECT COUNT(*) AS total FROM hunt_nights WHERE hunt_id=?').bind(huntId).first();
+      if(existing.total>=45)return error('This competition already has 45 themed nights.',409);
+      const options=huntOptions(room),names=MEGA_LABELS.map((name,i)=>i>=20&&i<=24?(options.characters[i-20]||['Mickey Mouse','Winnie-the-Pooh','The Grinch','Snoopy','Olaf'][i-20]):name);
+      const clues=spec.entries.map(entry=>{if(Number.isInteger(entry))return {name:names[entry],hint:'Spot this illuminated decoration',megaIndex:entry};const ix=theme==='disney'?options.characters.findIndex(x=>x.toLowerCase()===entry[0].toLowerCase()):-1;return {name:entry[0],hint:entry[1],megaIndex:ix>=0?20+ix:null}});
+      const idNew=hex(bytes(16));
+      await db.prepare('INSERT INTO hunt_nights(id,hunt_id,theme,title,clues_json,created_at) VALUES(?,?,?,?,?,?)').bind(idNew,huntId,theme,spec.title,JSON.stringify(clues),now).run();
+      return json({ok:true,night:{id:idNew,theme,title:spec.title,clues,createdAt:now}});
+    }
+    if(method==='POST'&&nightId){
+      if(!await guardLimit(db,'hunt-night-progress',ip+':'+huntId,240,3600000))return error('Too many updates. Try shortly.',429);
+      const night=await db.prepare('SELECT clues_json FROM hunt_nights WHERE id=? AND hunt_id=?').bind(nightId,huntId).first();if(!night)return error('Themed night not found.',404);
+      const b=await bodyJSON(request),clues=JSON.parse(night.clues_json||'[]');
+      if(!Array.isArray(b.found)||b.found.length>clues.length||b.found.some(n=>!Number.isInteger(n)||n<0||n>=clues.length))return error('Invalid nightly progress.');
+      const token=String(b.playerToken||''),player=await huntPlayer(huntId,token);if(!player)return error('Join the ongoing competition first.',401);
+      // Protect existing Mega progress when this player first switches to themed nights.
+      await recomputeMegaPlayer(huntId,player.id,now);
+      const found=[...new Set(b.found)];
+      await db.prepare(`INSERT INTO hunt_night_progress(night_id,player_id,found_json,updated_at) VALUES(?,?,?,?) ON CONFLICT(night_id,player_id) DO UPDATE SET found_json=excluded.found_json,updated_at=excluded.updated_at`).bind(nightId,player.id,JSON.stringify(found),now).run();
+      const megaFound=await recomputeMegaPlayer(huntId,player.id,now);
+      return json({ok:true,score:found.length,megaScore:megaFound.length});
+    }
+    return error('Not found.',404);
+  }
+
   async function huntPlayer(roomId,auth){
     const token=String(auth||'').replace(/^Bearer\s+/i,'');
     if(!/^[a-f0-9]{64}$/.test(token))return null;
@@ -321,24 +407,79 @@ async function handleApi(request,env,url){
       .bind(roomId,await digest(token)).first();
   }
 
-  const huntClueCount = room => publicHuntMode(room)==='mega'?30:room.mode==='family'?16:9;
+  const huntClueCount = (room,collection) => collection?.kind==='standalone'?8:publicHuntMode(room)==='mega'?30:room.mode==='family'?16:9;
+  // Private owner index is authoritative across devices; guest links never expose household IDs.
+  if(path==='/api/hunts/mine'&&method==='GET'){
+    const owner=await session(request,db);if(!owner)return error('Sign in to see your hunts.',401);
+    const results=await db.prepare(`SELECT h.id,h.mode,h.seed,h.created_at,h.expires_at,c.title,c.kind,c.theme,c.play_mode,c.archived_at
+      FROM hunts h LEFT JOIN hunt_collections c ON c.hunt_id=h.id WHERE h.household_id=? ORDER BY h.created_at DESC LIMIT 100`).bind(owner.household_id).all();
+    return json({hunts:(results.results||[]).map(r=>({id:r.id,mode:r.kind&&r.kind!=='legacy'?r.kind:publicHuntMode(r),title:r.title||(publicHuntMode(r)==='mega'?'Mega Lights Hunt':'Classic Lights Hunt'),theme:r.theme||'',playMode:r.play_mode||'competition',archived:!!r.archived_at,createdAt:r.created_at,expiresAt:r.expires_at,photoMode:huntOptions(r).photoMode}))});
+  }
+  const manageRoute=path.match(/^\/api\/hunts\/([a-f0-9]{32})\/manage$/);
+  if(manageRoute&&method==='POST'){
+    const owner=await session(request,db);if(!owner)return error('Sign in to manage your hunts.',401);
+    const huntId=manageRoute[1],room=await db.prepare('SELECT household_id,mode,seed,created_at,expires_at FROM hunts WHERE id=?').bind(huntId).first();
+    if(!room||room.household_id!==owner.household_id)return error('Hunt not found in your family.',404);
+    const body=await bodyJSON(request);let collection=await collectionFor(huntId);
+    if(!collection){const defaultTitle=publicHuntMode(room)==='mega'?'Earlier Mega Hunt':'Earlier Lights Hunt';
+      await db.prepare('INSERT OR IGNORE INTO hunt_collections(hunt_id,title,kind,theme,play_mode,clues_json,created_at) VALUES(?,?,?,?,?,?,?)')
+        .bind(huntId,defaultTitle,'legacy','', 'competition','[]',room.created_at||Date.now()).run();
+      collection=await collectionFor(huntId);}
+    if(body.action==='rename'){
+      const title=String(body.title||'').trim().replace(/[<>\x00-\x1f]/g,'').slice(0,65);
+      if(!title)return error('Enter a competition name.');
+      await db.prepare('UPDATE hunt_collections SET title=? WHERE hunt_id=?').bind(title,huntId).run();return json({ok:true,title});
+    }
+    if(body.action==='archive'||body.action==='restore'){
+      if(body.action==='restore'&&room.expires_at<=Date.now())return error('This hunt has ended; keep it archived as a memory.',409);
+      const archived=body.action==='archive'?Date.now():null;
+      await db.prepare('UPDATE hunt_collections SET archived_at=? WHERE hunt_id=?').bind(archived,huntId).run();
+      return json({ok:true,archived:!!archived});
+    }
+    return error('Choose rename, archive, or restore.');
+  }
   // Shared lights hunts are capability links. No parent account data is exposed here.
   const huntMatch=path.match(/^\/api\/hunts\/([a-f0-9]{32})(?:\/(join|progress))?$/);
   if(huntMatch){
     const huntId=huntMatch[1],action=huntMatch[2]||'',now=Date.now();
     const room=await db.prepare('SELECT id,mode,seed,created_at,expires_at FROM hunts WHERE id=?').bind(huntId).first();
-    if(!room||room.expires_at<=now)return error('This hunt is unavailable or has expired.',404);
+    const collection=room?await collectionFor(huntId):null;
+    if(!room||(!allowChanges(room,collection,now)&&!collection?.archived_at))return error('This hunt is unavailable or has expired.',404);
     if(method==='GET'&&!action){
       const rows=await db.prepare('SELECT id,nickname,found_json,finished_at,updated_at FROM hunt_players WHERE hunt_id=?').bind(huntId).all();
-      const maximum=huntClueCount(room);
+      const maximum=huntClueCount(room,collection);
       const leaders=(rows.results||[]).map(p=>{
         let found=[];try{found=JSON.parse(p.found_json||'[]')}catch{}
         const score=Array.isArray(found)?new Set(found.filter(n=>Number.isInteger(n)&&n>=0&&n<maximum)).size:0;
         return {id:p.id,nickname:p.nickname,score,finishedAt:p.finished_at||null,updatedAt:p.updated_at};
       }).sort((a,b)=>b.score-a.score||(a.finishedAt||Infinity)-(b.finishedAt||Infinity)||a.updatedAt-b.updatedAt);
-      return json({hunt:huntPublic(room),leaders});
+      let nights=[],nightLeaders={},myProgress=null;
+      if(publicHuntMode(room)==='mega'){
+        try{
+          nights=await listNights(huntId);
+          const progress=await db.prepare(`SELECT n.id AS night_id,p.player_id,p.found_json,hp.nickname,hp.updated_at FROM hunt_night_progress p JOIN hunt_nights n ON n.id=p.night_id JOIN hunt_players hp ON hp.id=p.player_id WHERE n.hunt_id=?`).bind(huntId).all();
+          for(const row of progress.results||[]){(nightLeaders[row.night_id]??=[]).push({id:row.player_id,nickname:row.nickname,score:safeFound(row.found_json,8).length,updatedAt:row.updated_at})}
+          for(const rows of Object.values(nightLeaders))rows.sort((a,b)=>b.score-a.score||a.updatedAt-b.updatedAt);
+        }catch(e){console.error('Hunt HQ migration unavailable:',e.message)}
+      }
+      const authPlayer=await huntPlayer(huntId,request.headers.get('Authorization'));
+      if(authPlayer){
+        const own=await db.prepare('SELECT found_json FROM hunt_players WHERE id=? AND hunt_id=?').bind(authPlayer.id,huntId).first();
+        let direct=own?.found_json||'[]',nightFound={};
+        if(publicHuntMode(room)==='mega'){
+          try{
+            const row=await db.prepare('SELECT found_json FROM hunt_direct_progress WHERE player_id=?').bind(authPlayer.id).first();
+            if(row)direct=row.found_json;
+            const mini=await db.prepare('SELECT night_id,found_json FROM hunt_night_progress WHERE player_id=?').bind(authPlayer.id).all();
+            for(const row of mini.results||[])nightFound[row.night_id]=safeFound(row.found_json,8);
+          }catch{}
+        }
+        myProgress={found:safeFound(own?.found_json||'[]',huntClueCount(room,collection)),direct:safeFound(direct,huntClueCount(room,collection)),nights:nightFound};
+      }
+      return json({hunt:huntPublic(room,collection),leaders:collection?.play_mode==='solo'?[]:leaders,nights,nightLeaders:collection?.play_mode==='solo'?{}:nightLeaders,myProgress});
     }
     if(method==='POST'&&action==='join'){
+      if(!allowChanges(room,collection,now))return error('This hunt is archived or has ended.',409);
       if(!await guardLimit(db,'hunt-join',ip+':'+huntId,25,3600000))return error('Too many players joining from this network. Try later.',429);
       const b=await bodyJSON(request);
       const name=String(b.nickname||'').trim().replace(/[<>\x00-\x1f]/g,'').slice(0,24);
@@ -351,8 +492,9 @@ async function handleApi(request,env,url){
       return json({playerId,playerToken:token,nickname:name});
     }
     if(method==='POST'&&action==='progress'){
+      if(!allowChanges(room,collection,now))return error('This hunt is archived or has ended.',409);
       if(!await guardLimit(db,'hunt-progress',ip+':'+huntId,240,3600000))return error('Too many updates. Try again in a moment.',429);
-      const b=await bodyJSON(request),token=String(b.playerToken||''),maximum=huntClueCount(room);
+      const b=await bodyJSON(request),token=String(b.playerToken||''),maximum=huntClueCount(room,collection);
       if(!/^[0-9a-f]{64}$/.test(token)||!Array.isArray(b.found)||b.found.length>maximum)return error('Invalid hunt progress.');
       const found=[...new Set(b.found)];
       if(found.some(n=>!Number.isInteger(n)||n<0||n>=maximum))return error('Invalid hunt clues.');
@@ -360,6 +502,11 @@ async function handleApi(request,env,url){
         .bind(huntId,await digest(token)).first();
       if(!player)return error('Your player session expired. Rejoin this hunt.',401);
       const done=found.length===maximum;
+      if(publicHuntMode(room)==='mega'){
+        await db.prepare(`INSERT INTO hunt_direct_progress(player_id,found_json,updated_at) VALUES(?,?,?) ON CONFLICT(player_id) DO UPDATE SET found_json=excluded.found_json,updated_at=excluded.updated_at`).bind(player.id,JSON.stringify(found),now).run();
+        const union=await recomputeMegaPlayer(huntId,player.id,now);
+        return json({ok:true,score:union.length});
+      }
       await db.prepare('UPDATE hunt_players SET found_json=?,finished_at=?,updated_at=? WHERE id=? AND hunt_id=?')
         .bind(JSON.stringify(found),done?(player.finished_at||now):null,now,player.id,huntId).run();
       return json({ok:true,score:found.length});
@@ -425,7 +572,8 @@ async function handleApi(request,env,url){
   if(pMatch){
     const huntId=pMatch[1],action=pMatch[2]||'list',photoId=pMatch[3]||'',now=Date.now();
     const room=await db.prepare('SELECT id,household_id,mode,seed,expires_at FROM hunts WHERE id=?').bind(huntId).first();
-    if(!room||room.expires_at<=now)return error('This hunt has expired or is unavailable.',404);
+    const collection=room?await collectionFor(huntId):null;
+    if(!room||(!allowChanges(room,collection,now)&&!collection?.archived_at))return error('This hunt has expired or is unavailable.',404);
     if(!huntOptions(room).photoMode)return error('This hunt does not allow photo submissions.',403);
     const token=request.headers.get('Authorization')||'',player=await huntPlayer(huntId,token);
     if(action==='list'&&method==='GET'){
@@ -433,53 +581,79 @@ async function handleApi(request,env,url){
        FROM hunt_photos hp JOIN hunt_players p ON p.id=hp.player_id
        WHERE hp.hunt_id=? AND (hp.shared=1 OR hp.player_id=?) ORDER BY hp.created_at DESC LIMIT 300`)
        .bind(huntId,player?.id||'').all();
-      return json({photos:(rows.results||[]).map(r=>({id:r.id,playerId:r.player_id,clueIndex:r.clue_index,shared:!!r.shared,createdAt:r.created_at,nickname:r.nickname}))});
+      let combined=(rows.results||[]).map(r=>({id:r.id,playerId:r.player_id,clueIndex:r.clue_index,nightId:null,shared:!!r.shared,createdAt:r.created_at,nickname:r.nickname}));
+      if(publicHuntMode(room)==='mega'){
+        const nightRows=await db.prepare(`SELECT hp.id,hp.player_id,hp.clue_index,hp.night_id,hp.shared,hp.created_at,p.nickname,n.title,n.clues_json
+         FROM hunt_night_photos hp JOIN hunt_players p ON p.id=hp.player_id JOIN hunt_nights n ON n.id=hp.night_id
+         WHERE hp.hunt_id=? AND (hp.shared=1 OR hp.player_id=?) ORDER BY hp.created_at DESC LIMIT 300`)
+         .bind(huntId,player?.id||'').all();
+        combined.push(...(nightRows.results||[]).map(r=>({id:r.id,playerId:r.player_id,clueIndex:r.clue_index,nightId:r.night_id,clueName:JSON.parse(r.clues_json||'[]')[r.clue_index]?.name||'Holiday lights',nightTitle:r.title,shared:!!r.shared,createdAt:r.created_at,nickname:r.nickname})));
+      }
+      return json({photos:combined.sort((a,b)=>b.createdAt-a.createdAt).slice(0,300)});
     }
     if(action==='file'&&method==='GET'){
       if(!env.MEDIA)return error('Photo storage is unavailable.',503);
-      const row=await db.prepare('SELECT player_id,object_key,shared FROM hunt_photos WHERE hunt_id=? AND id=?').bind(huntId,photoId).first();
+      let row=await db.prepare('SELECT player_id,object_key,shared FROM hunt_photos WHERE hunt_id=? AND id=?').bind(huntId,photoId).first();
+      if(!row&&publicHuntMode(room)==='mega')row=await db.prepare('SELECT player_id,object_key,shared FROM hunt_night_photos WHERE hunt_id=? AND id=?').bind(huntId,photoId).first();
       if(!row||(row.shared!==1&&row.player_id!==player?.id))return error('Photo unavailable.',404);
       const object=await env.MEDIA.get(row.object_key);if(!object)return error('Photo unavailable.',404);
       return new Response(object.body,{status:200,headers:{'Content-Type':'image/jpeg','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','Cross-Origin-Resource-Policy':'same-origin','Content-Security-Policy':"default-src 'none'; sandbox"}});
     }
     if(!player)return error('Join this hunt to manage your photos.',401);
     if(action==='upload'&&method==='POST'){
+      if(!allowChanges(room,collection,now))return error('This hunt is archived or has ended.',409);
       if(!env.MEDIA)return error('Private R2 media storage must be configured first.',503);
       if(!(request.headers.get('Content-Type')||'').toLowerCase().startsWith('multipart/form-data'))return error('Upload a photo.',415);
       if(!await guardLimit(db,'hunt-photo-upload',huntId+':'+player.id,45,86400000))return error('Photo limit reached for today.',429);
       if(Number(request.headers.get('Content-Length')||0)>2.3*1024*1024)return error('Photo exceeds the 2 MB upload limit.',413);
       const fd=await request.formData();
-      const file=fd.get('photo'),clue=Number(fd.get('clueIndex')),share=String(fd.get('shared'))==='1';
-      const maximum=huntClueCount(room);
-      if(!Number.isInteger(clue)||clue<0||clue>=maximum)return error('Choose a valid hunt clue.',400);
+      const file=fd.get('photo'),clue=Number(fd.get('clueIndex')),share=String(fd.get('shared'))==='1',nightId=String(fd.get('nightId')||'');
+      const maximum=huntClueCount(room,collection);
+      let night=null;
+      if(nightId){
+        if(publicHuntMode(room)!=='mega'||!/[a-f0-9]{32}/.test(nightId))return error('Invalid themed hunt.',400);
+        night=await db.prepare('SELECT clues_json FROM hunt_nights WHERE id=? AND hunt_id=?').bind(nightId,huntId).first();
+        if(!night)return error('Themed hunt not found.',404);
+        const clues=JSON.parse(night.clues_json||'[]');
+        if(!Number.isInteger(clue)||clue<0||clue>=clues.length||Number.isInteger(clues[clue].megaIndex))return error('Only bonus finds need a separate nightly photo.',400);
+      }else if(!Number.isInteger(clue)||clue<0||clue>=maximum)return error('Choose a valid hunt clue.',400);
       if(!file||typeof file.arrayBuffer!=='function'||file.type!=='image/jpeg')return error('Choose a supported JPEG photo.',415);
       if(!file.size||file.size>2*1024*1024)return error('Photo must be smaller than 2 MB.',413);
       const buffer=await file.arrayBuffer(),magic=new Uint8Array(buffer.slice(0,4));
       if(magic[0]!==255||magic[1]!==216||magic[2]!==255)return error('This is not a valid JPEG photo.',415);
-      const previous=await db.prepare('SELECT id,object_key FROM hunt_photos WHERE hunt_id=? AND player_id=? AND clue_index=?')
-       .bind(huntId,player.id,clue).first();
+      const previous=night
+       ?await db.prepare('SELECT id,object_key FROM hunt_night_photos WHERE hunt_id=? AND night_id=? AND player_id=? AND clue_index=?').bind(huntId,nightId,player.id,clue).first()
+       :await db.prepare('SELECT id,object_key FROM hunt_photos WHERE hunt_id=? AND player_id=? AND clue_index=?').bind(huntId,player.id,clue).first();
       const newId=id(),objectKey=`${room.household_id}/hunt/${huntId}/${newId}.jpg`;
       await env.MEDIA.put(objectKey,buffer,{httpMetadata:{contentType:'image/jpeg'},customMetadata:{huntId,playerId:player.id}});
-      try{await db.prepare(`INSERT INTO hunt_photos(id,hunt_id,player_id,clue_index,object_key,shared,created_at)
-        VALUES(?,?,?,?,?,?,?) ON CONFLICT(hunt_id,player_id,clue_index)
-        DO UPDATE SET id=excluded.id,object_key=excluded.object_key,shared=excluded.shared,created_at=excluded.created_at`)
-        .bind(newId,huntId,player.id,clue,objectKey,share?1:0,now).run();}
-      catch(e){await env.MEDIA.delete(objectKey);throw e}
+      try{
+        if(night)await db.prepare(`INSERT INTO hunt_night_photos(id,hunt_id,night_id,player_id,clue_index,object_key,shared,created_at)
+          VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(night_id,player_id,clue_index)
+          DO UPDATE SET id=excluded.id,object_key=excluded.object_key,shared=excluded.shared,created_at=excluded.created_at`)
+          .bind(newId,huntId,nightId,player.id,clue,objectKey,share?1:0,now).run();
+        else await db.prepare(`INSERT INTO hunt_photos(id,hunt_id,player_id,clue_index,object_key,shared,created_at)
+          VALUES(?,?,?,?,?,?,?) ON CONFLICT(hunt_id,player_id,clue_index)
+          DO UPDATE SET id=excluded.id,object_key=excluded.object_key,shared=excluded.shared,created_at=excluded.created_at`)
+          .bind(newId,huntId,player.id,clue,objectKey,share?1:0,now).run();
+      }catch(e){await env.MEDIA.delete(objectKey);throw e}
       if(previous)await env.MEDIA.delete(previous.object_key);
       return json({ok:true,photoId:newId,clueIndex:clue,shared:share});
     }
     if(['visibility','delete'].includes(action)&&method==='POST'){
       if(!photoId)return error('Photo ID required.',400);
-      const row=await db.prepare('SELECT player_id,object_key,shared FROM hunt_photos WHERE hunt_id=? AND id=?').bind(huntId,photoId).first();
+      let isNight=false,row=await db.prepare('SELECT player_id,object_key,shared FROM hunt_photos WHERE hunt_id=? AND id=?').bind(huntId,photoId).first();
+      if(!row&&publicHuntMode(room)==='mega'){
+        row=await db.prepare('SELECT player_id,object_key,shared FROM hunt_night_photos WHERE hunt_id=? AND id=?').bind(huntId,photoId).first();isNight=!!row;
+      }
       if(!row||row.player_id!==player.id)return error('You can only change your own photos.',403);
       if(action==='visibility'){
         const b=await bodyJSON(request);
         if(typeof b.shared!=='boolean')return error('Choose whether to share this photo.');
-        await db.prepare('UPDATE hunt_photos SET shared=? WHERE hunt_id=? AND id=?').bind(b.shared?1:0,huntId,photoId).run();
+        await db.prepare(isNight?'UPDATE hunt_night_photos SET shared=? WHERE hunt_id=? AND id=?':'UPDATE hunt_photos SET shared=? WHERE hunt_id=? AND id=?').bind(b.shared?1:0,huntId,photoId).run();
         return json({ok:true,shared:b.shared});
       }
       if(!env.MEDIA)return error('Photo storage is unavailable.',503);
-      await db.prepare('DELETE FROM hunt_photos WHERE hunt_id=? AND id=?').bind(huntId,photoId).run();
+      await db.prepare(isNight?'DELETE FROM hunt_night_photos WHERE hunt_id=? AND id=?':'DELETE FROM hunt_photos WHERE hunt_id=? AND id=?').bind(huntId,photoId).run();
       await env.MEDIA.delete(row.object_key);
       return json({ok:true});
     }
@@ -562,20 +736,29 @@ async function handleApi(request,env,url){
 
   if(path==='/api/hunts'&&method==='POST'){
     if(!await guardLimit(db,'hunt-create',ip,30,86400000))return error('Hunt creation limit reached. Try tomorrow.',429);
-    const b=await bodyJSON(request),mode=['easy','family','mega'].includes(b.mode)?b.mode:null;
-    if(!mode)return error('Choose a little lights, family, or mega hunt.');
+    const b=await bodyJSON(request),mode=['easy','family','mega','standalone'].includes(b.mode)?b.mode:null;
+    if(!mode)return error('Choose Standalone Hunt or Mega Hunt.');
     const photoMode=b.photoMode===true;
-    if(photoMode&&!env.MEDIA)return error('Photo Hunt requires the private R2 media bucket. Ask the owner to configure MEDIA.',503);
+    if(photoMode&&!env.MEDIA)return error('Photo Hunt needs private R2 MEDIA storage.',503);
+    const title=String(b.title||'').trim().replace(/[<>\x00-\x1f]/g,'').slice(0,65) || (mode==='mega'?'Mega Lights Competition':'Christmas Lights Hunt');
+    const theme=String(b.theme||'random'),playMode=b.playMode==='solo'?'solo':'competition';
+    const themes=Object.keys(NIGHT_THEMES);
+    if(mode==='standalone'&&theme!=='random'&&!themes.includes(theme))return error('Choose a theme or Random Mix.');
     const defaultCharacters=['Mickey Mouse','Winnie-the-Pooh','The Grinch','Snoopy','Olaf'];
     const characters=mode==='mega'?(Array.isArray(b.characters)?b.characters:defaultCharacters):[];
     if(mode==='mega'&&(characters.length!==5||characters.some(x=>typeof x!=='string'||!x.trim()||x.trim().length>40||/[<>\x00-\x1f]/.test(x))||new Set(characters.map(x=>x.trim().toLowerCase())).size!==5))return error('Choose five different characters (up to 40 characters each).');
     const huntId=hex(bytes(16)),raw=hex(bytes(16)),now=Date.now();
     const seed=mode==='mega'?'mega-v2-'+raw+'~'+encodeURIComponent(JSON.stringify({characters,photoMode})):(photoMode?'photo-v1-':'')+raw;
-    // D1 currently allows easy/family, so use a versioned seed for Mega + photo settings.
-    const storedMode=mode==='mega'?'family':mode;
-    await db.prepare('INSERT INTO hunts(id,household_id,mode,seed,created_at,expires_at) VALUES(?,?,?,?,?,?)')
-      .bind(huntId,me.household_id,storedMode,seed,now,now+30*86400000).run();
-    return json({ok:true,hunt:{id:huntId,mode,seed,photoMode,characters,expiresAt:now+30*86400000}});
+    const storedMode=mode==='mega'?'family':mode==='standalone'?'easy':mode;
+    const clues=mode==='standalone'?themedClues(theme,raw,[]):[];
+    const insertHunt=db.prepare('INSERT INTO hunts(id,household_id,mode,seed,created_at,expires_at) VALUES(?,?,?,?,?,?)')
+      .bind(huntId,me.household_id,storedMode,seed,now,now+(mode==='mega'?45:30)*86400000);
+    if(mode==='mega'||mode==='standalone'){
+      const insertCollection=db.prepare('INSERT INTO hunt_collections(hunt_id,title,kind,theme,play_mode,clues_json,created_at) VALUES(?,?,?,?,?,?,?)')
+        .bind(huntId,title,mode,theme,playMode,JSON.stringify(clues),now);
+      await db.batch([insertHunt,insertCollection]); // atomic: no orphan hunt if migration missing
+    }else await insertHunt.run();
+    return json({ok:true,hunt:{id:huntId,mode,title,theme,playMode,seed,photoMode,characters,clues,expiresAt:now+(mode==='mega'?45:30)*86400000}});
   }
   const family=me.household_id;
   if(path==='/api/auth/logout'&&method==='POST'){
