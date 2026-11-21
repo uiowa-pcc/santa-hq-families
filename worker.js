@@ -226,7 +226,7 @@ async function handleApi(request,env,url){
   if(method==='POST'){
     // Cookie-authenticated writes must originate from THIS website; no cross-origin credential APIs.
     if(request.headers.get('Origin')!==url.origin)return error('Origin check failed.',403);
-    if(path!=='/api/private/media'&&!(request.headers.get('Content-Type')||'').startsWith('application/json'))return error('JSON required.',415);
+    if(path!=='/api/private/media'&&!/^\/api\/hunts\/[a-f0-9]{32}\/photos\/upload$/.test(path)&&!(request.headers.get('Content-Type')||'').startsWith('application/json'))return error('JSON required.',415);
   }
   const ip=request.headers.get('CF-Connecting-IP')||'local';
   if(path==='/api/auth/capabilities'&&method==='GET')return json({emailEnabled:emailReady(env),recoveryCodes:true});
@@ -303,7 +303,24 @@ async function handleApi(request,env,url){
   }
   // The installed D1 schema restricts mode to easy/family. A versioned seed marks
   // 30-clue mega hunts without changing that CHECK constraint or migrating old data.
-  const publicHuntMode = room => String(room.seed||'').startsWith('mega-v1-')?'mega':room.mode;
+  const publicHuntMode = room => String(room.seed||'').startsWith('mega-v')?'mega':room.mode;
+  const huntOptions = room => {
+    const seed=String(room.seed||''),photoMode=seed.startsWith('photo-v1-');
+    if(!seed.startsWith('mega-v2-'))return {photoMode,characters:[]};
+    try{
+      const payload=JSON.parse(decodeURIComponent(seed.split('~')[1]||''));
+      const characters=Array.isArray(payload.characters)?payload.characters:[];
+      return {photoMode:payload.photoMode===true,characters:characters.length===5?characters:[]};
+    }catch{return {photoMode:false,characters:[]}}
+  };
+  const huntPublic=room=>({id:room.id,mode:publicHuntMode(room),seed:room.seed,expiresAt:room.expires_at,...huntOptions(room)});
+  async function huntPlayer(roomId,auth){
+    const token=String(auth||'').replace(/^Bearer\s+/i,'');
+    if(!/^[a-f0-9]{64}$/.test(token))return null;
+    return await db.prepare('SELECT id,nickname FROM hunt_players WHERE hunt_id=? AND token_hash=?')
+      .bind(roomId,await digest(token)).first();
+  }
+
   const huntClueCount = room => publicHuntMode(room)==='mega'?30:room.mode==='family'?16:9;
   // Shared lights hunts are capability links. No parent account data is exposed here.
   const huntMatch=path.match(/^\/api\/hunts\/([a-f0-9]{32})(?:\/(join|progress))?$/);
@@ -319,7 +336,7 @@ async function handleApi(request,env,url){
         const score=Array.isArray(found)?new Set(found.filter(n=>Number.isInteger(n)&&n>=0&&n<maximum)).size:0;
         return {id:p.id,nickname:p.nickname,score,finishedAt:p.finished_at||null,updatedAt:p.updated_at};
       }).sort((a,b)=>b.score-a.score||(a.finishedAt||Infinity)-(b.finishedAt||Infinity)||a.updatedAt-b.updatedAt);
-      return json({hunt:{id:room.id,mode:publicHuntMode(room),seed:room.seed,expiresAt:room.expires_at},leaders});
+      return json({hunt:huntPublic(room),leaders});
     }
     if(method==='POST'&&action==='join'){
       if(!await guardLimit(db,'hunt-join',ip+':'+huntId,25,3600000))return error('Too many players joining from this network. Try later.',429);
@@ -402,6 +419,72 @@ async function handleApi(request,env,url){
     const cur=await session(new Request(url.origin,{headers:{Cookie:`__Host-santa_session=${token}`}}),db);
     return json({ok:true,...await who(db,cur)},200,{'Set-Cookie':cookie(token)});
   }
+  // Photo Hunt is capability-link based: guest player tokens grant rights to THEIR
+  // own photos, not parent-account gifts, mail, or anyone else's private photos.
+  const pMatch=path.match(/^\/api\/hunts\/([a-f0-9]{32})\/photos(?:\/(upload|visibility|delete|file)(?:\/([a-f0-9-]{36}))?)?$/);
+  if(pMatch){
+    const huntId=pMatch[1],action=pMatch[2]||'list',photoId=pMatch[3]||'',now=Date.now();
+    const room=await db.prepare('SELECT id,household_id,mode,seed,expires_at FROM hunts WHERE id=?').bind(huntId).first();
+    if(!room||room.expires_at<=now)return error('This hunt has expired or is unavailable.',404);
+    if(!huntOptions(room).photoMode)return error('This hunt does not allow photo submissions.',403);
+    const token=request.headers.get('Authorization')||'',player=await huntPlayer(huntId,token);
+    if(action==='list'&&method==='GET'){
+      const rows=await db.prepare(`SELECT hp.id,hp.player_id,hp.clue_index,hp.shared,hp.created_at,p.nickname
+       FROM hunt_photos hp JOIN hunt_players p ON p.id=hp.player_id
+       WHERE hp.hunt_id=? AND (hp.shared=1 OR hp.player_id=?) ORDER BY hp.created_at DESC LIMIT 300`)
+       .bind(huntId,player?.id||'').all();
+      return json({photos:(rows.results||[]).map(r=>({id:r.id,playerId:r.player_id,clueIndex:r.clue_index,shared:!!r.shared,createdAt:r.created_at,nickname:r.nickname}))});
+    }
+    if(action==='file'&&method==='GET'){
+      if(!env.MEDIA)return error('Photo storage is unavailable.',503);
+      const row=await db.prepare('SELECT player_id,object_key,shared FROM hunt_photos WHERE hunt_id=? AND id=?').bind(huntId,photoId).first();
+      if(!row||(row.shared!==1&&row.player_id!==player?.id))return error('Photo unavailable.',404);
+      const object=await env.MEDIA.get(row.object_key);if(!object)return error('Photo unavailable.',404);
+      return new Response(object.body,{status:200,headers:{'Content-Type':'image/jpeg','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','Cross-Origin-Resource-Policy':'same-origin','Content-Security-Policy':"default-src 'none'; sandbox"}});
+    }
+    if(!player)return error('Join this hunt to manage your photos.',401);
+    if(action==='upload'&&method==='POST'){
+      if(!env.MEDIA)return error('Private R2 media storage must be configured first.',503);
+      if(!(request.headers.get('Content-Type')||'').toLowerCase().startsWith('multipart/form-data'))return error('Upload a photo.',415);
+      if(!await guardLimit(db,'hunt-photo-upload',huntId+':'+player.id,45,86400000))return error('Photo limit reached for today.',429);
+      if(Number(request.headers.get('Content-Length')||0)>2.3*1024*1024)return error('Photo exceeds the 2 MB upload limit.',413);
+      const fd=await request.formData();
+      const file=fd.get('photo'),clue=Number(fd.get('clueIndex')),share=String(fd.get('shared'))==='1';
+      const maximum=huntClueCount(room);
+      if(!Number.isInteger(clue)||clue<0||clue>=maximum)return error('Choose a valid hunt clue.',400);
+      if(!file||typeof file.arrayBuffer!=='function'||file.type!=='image/jpeg')return error('Choose a supported JPEG photo.',415);
+      if(!file.size||file.size>2*1024*1024)return error('Photo must be smaller than 2 MB.',413);
+      const buffer=await file.arrayBuffer(),magic=new Uint8Array(buffer.slice(0,4));
+      if(magic[0]!==255||magic[1]!==216||magic[2]!==255)return error('This is not a valid JPEG photo.',415);
+      const previous=await db.prepare('SELECT id,object_key FROM hunt_photos WHERE hunt_id=? AND player_id=? AND clue_index=?')
+       .bind(huntId,player.id,clue).first();
+      const newId=id(),objectKey=`${room.household_id}/hunt/${huntId}/${newId}.jpg`;
+      await env.MEDIA.put(objectKey,buffer,{httpMetadata:{contentType:'image/jpeg'},customMetadata:{huntId,playerId:player.id}});
+      try{await db.prepare(`INSERT INTO hunt_photos(id,hunt_id,player_id,clue_index,object_key,shared,created_at)
+        VALUES(?,?,?,?,?,?,?) ON CONFLICT(hunt_id,player_id,clue_index)
+        DO UPDATE SET id=excluded.id,object_key=excluded.object_key,shared=excluded.shared,created_at=excluded.created_at`)
+        .bind(newId,huntId,player.id,clue,objectKey,share?1:0,now).run();}
+      catch(e){await env.MEDIA.delete(objectKey);throw e}
+      if(previous)await env.MEDIA.delete(previous.object_key);
+      return json({ok:true,photoId:newId,clueIndex:clue,shared:share});
+    }
+    if(['visibility','delete'].includes(action)&&method==='POST'){
+      if(!photoId)return error('Photo ID required.',400);
+      const row=await db.prepare('SELECT player_id,object_key,shared FROM hunt_photos WHERE hunt_id=? AND id=?').bind(huntId,photoId).first();
+      if(!row||row.player_id!==player.id)return error('You can only change your own photos.',403);
+      if(action==='visibility'){
+        const b=await bodyJSON(request);
+        if(typeof b.shared!=='boolean')return error('Choose whether to share this photo.');
+        await db.prepare('UPDATE hunt_photos SET shared=? WHERE hunt_id=? AND id=?').bind(b.shared?1:0,huntId,photoId).run();
+        return json({ok:true,shared:b.shared});
+      }
+      if(!env.MEDIA)return error('Photo storage is unavailable.',503);
+      await db.prepare('DELETE FROM hunt_photos WHERE hunt_id=? AND id=?').bind(huntId,photoId).run();
+      await env.MEDIA.delete(row.object_key);
+      return json({ok:true});
+    }
+    return error('Not found.',404);
+  }
   const me=await session(request,db);
   if(path==='/api/auth/me'&&method==='GET')return me?json({authenticated:true,...await who(db,me)}):json({authenticated:false});
   if(!me)return error('Please sign in to your family.',401);
@@ -481,12 +564,18 @@ async function handleApi(request,env,url){
     if(!await guardLimit(db,'hunt-create',ip,30,86400000))return error('Hunt creation limit reached. Try tomorrow.',429);
     const b=await bodyJSON(request),mode=['easy','family','mega'].includes(b.mode)?b.mode:null;
     if(!mode)return error('Choose a little lights, family, or mega hunt.');
-    const huntId=hex(bytes(16)),seed=(mode==='mega'?'mega-v1-':'')+hex(bytes(16)),now=Date.now();
-    // Store family for Mega to preserve the live database's easy/family CHECK.
+    const photoMode=b.photoMode===true;
+    if(photoMode&&!env.MEDIA)return error('Photo Hunt requires the private R2 media bucket. Ask the owner to configure MEDIA.',503);
+    const defaultCharacters=['Mickey Mouse','Winnie-the-Pooh','The Grinch','Snoopy','Olaf'];
+    const characters=mode==='mega'?(Array.isArray(b.characters)?b.characters:defaultCharacters):[];
+    if(mode==='mega'&&(characters.length!==5||characters.some(x=>typeof x!=='string'||!x.trim()||x.trim().length>40||/[<>\x00-\x1f]/.test(x))||new Set(characters.map(x=>x.trim().toLowerCase())).size!==5))return error('Choose five different characters (up to 40 characters each).');
+    const huntId=hex(bytes(16)),raw=hex(bytes(16)),now=Date.now();
+    const seed=mode==='mega'?'mega-v2-'+raw+'~'+encodeURIComponent(JSON.stringify({characters,photoMode})):(photoMode?'photo-v1-':'')+raw;
+    // D1 currently allows easy/family, so use a versioned seed for Mega + photo settings.
     const storedMode=mode==='mega'?'family':mode;
     await db.prepare('INSERT INTO hunts(id,household_id,mode,seed,created_at,expires_at) VALUES(?,?,?,?,?,?)')
       .bind(huntId,me.household_id,storedMode,seed,now,now+30*86400000).run();
-    return json({ok:true,hunt:{id:huntId,mode,seed,expiresAt:now+30*86400000}});
+    return json({ok:true,hunt:{id:huntId,mode,seed,photoMode,characters,expiresAt:now+30*86400000}});
   }
   const family=me.household_id;
   if(path==='/api/auth/logout'&&method==='POST'){

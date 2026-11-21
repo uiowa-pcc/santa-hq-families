@@ -33,7 +33,7 @@ for (const file of websiteFiles) {
 }
 
 // The SQL file was uploaded to the root; put a copy where Wrangler expects it.
-for (const migration of ['0001_multifamily.sql', '0002_account_security.sql', '0003_shared_hunts.sql']) {
+for (const migration of ['0001_multifamily.sql', '0002_account_security.sql', '0003_shared_hunts.sql', '0004_hunt_photos.sql']) {
   if (await exists(migration)) {
     await mkdir('migrations', { recursive: true });
     await copyFile(migration, join('migrations', migration));

@@ -76,7 +76,7 @@ const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'
 const frag=location.hash;
 const room=(frag.match(/^#room=([a-f0-9]{32})$/)||[])[1]||'';
 const legacy=(frag.match(/^#h=([ef]_[a-f0-9]{24})$/)||[])[1]||'';
-const state={room,legacy,hunt:null,picks:[],photoOverrides:{},playerId:'',token:'',nickname:'',found:new Set(),leaders:[],saving:false,error:'',offline:false};
+const state={room,legacy,hunt:null,picks:[],photoOverrides:{},playerId:'',token:'',nickname:'',found:new Set(),leaders:[],saving:false,error:'',offline:false,photos:[],photoUrls:{},feedExpanded:false,pendingFile:null,pendingIndex:null,photoMode:false,photoBusy:false,photoSignature:''};
 const key='santa_hq_hunt_player_v2_'+(room||legacy);
 const slugFor=name=>String(name||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 // The Cloudflare build automatically generates this manifest from the actual
@@ -101,7 +101,11 @@ function generate(seed,mode){
  let r=rng(seed);const shuffle=items=>{for(let i=items.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[items[i],items[j]]=[items[j],items[i]]}return items};
  if(mode==='mega'){
   const originals=cards.map((c,i)=>({...c,tier:MEGA_ORIGINAL_TIERS[i]}));
-  const extras=MEGA_NEW.map((c,i)=>({...c,photo:null,id:CLUES.length+i,slug:c.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}));
+  let names=Array.isArray(state.hunt?.characters)&&state.hunt.characters.length===5?state.hunt.characters:null;
+  const extras=MEGA_NEW.map((c,i)=>{
+   if(i>=4&&i<=8&&names){const name=String(names[i-4]||'').slice(0,40);const familiar=MEGA_NEW.find(x=>x.name===name);c={...c,name,hint:'Find '+name+' as a light-up decoration, inflatable or projection.',icon:familiar?.icon||'🎄'};}
+   return {...c,photo:null,id:CLUES.length+i,slug:slugFor(c.name)};
+  });
   return [...originals,...extras]; // All thirty: ten per difficulty level.
  }
  if(mode==='family')return shuffle(cards);
@@ -120,18 +124,22 @@ function store(){try{localStorage.setItem(key,JSON.stringify({playerId:state.pla
 function card(c,i){
  const picture=c.photo!==null&&c.photo!==undefined;
  const x=picture?(c.photo%4)*100/3:0,y=picture?Math.floor(c.photo/4)*100/3:0;
- const custom=state.photoOverrides[slugFor(c.name)];
- const fallback=picture?`<span class="photo" role="img" aria-label="Example photograph of ${safe(c.name)}" style="background-position:${x}% ${y}%"></span>`
-  :`<span class="photo graphic ${safe(c.type)} ${safe(c.slug||'') ? 'slug-'+safe(c.slug) : ''}" role="img" aria-label="Graphic clue: ${safe(c.name)}"><span class="graphic-glow" aria-hidden="true"></span><span class="graphic-sparkle" aria-hidden="true">✦</span><span class="graphic-icon" aria-hidden="true">${safe(c.icon||'✨')}</span></span>`;
- // Keep a working built-in fallback underneath every custom photo. If a photo
- // is missing or unsupported, the clue remains usable.
- const art=custom?`<span class="custom-photo-wrap">${fallback}<img class="custom-hunt-photo" src="${safe(custom)}" alt="" loading="lazy" decoding="async"></span>`:fallback;
- return `<button class="find ${state.found.has(i)?'found':''}" data-spot="${i}" aria-pressed="${state.found.has(i)}" type="button">${art}<span class="content"><strong>${safe(c.name)}</strong><small>${safe(c.hint)}</small><span class="found-label">${state.found.has(i)?'✓ Found':'Tap when found'}</span></span></button>`;
+ const custom=state.photoOverrides[slugFor(c.name)]||'';
+ const myPhoto=state.photos.find(p=>p.playerId===state.playerId&&p.clueIndex===i);
+ const mySrc=myPhoto&&(state.photoUrls[myPhoto.id]|| (myPhoto.shared?photoUrl(myPhoto.id):''));
+ const altSrc=mySrc||custom;
+ const image=altSrc?`<span class="photo custom-photo-wrap"><img class="custom-hunt-photo" src="${safe(altSrc)}" alt="${mySrc?'Your photo of ':'Example of '}${safe(c.name)}" loading="lazy"></span>`:
+  picture?`<span class="photo" role="img" aria-label="Example photograph of ${safe(c.name)}" style="background-position:${x}% ${y}%"></span>`:
+  `<span class="photo graphic ${safe(c.type)}" role="img" aria-label="Illustrated clue: ${safe(c.name)}"><span class="graphic-icon" aria-hidden="true">${safe(c.icon||'✨')}</span></span>`;
+ const content=`<span class="content"><strong>${safe(c.name)}</strong><small>${safe(c.hint)}</small><span class="found-label">${state.found.has(i)?'✓ Found':state.photoMode?'Add a photo to find':'Tap when found'}</span></span>`;
+ if(!state.photoMode)return `<button class="find ${state.found.has(i)?'found':''}" data-spot="${i}" aria-pressed="${state.found.has(i)}" type="button">${image}${content}</button>`;
+ return `<div class="find photo-find ${state.found.has(i)?'found':''}">${image}${content}<div class="photo-find-actions"><button type="button" class="btn primary" data-photo-for="${i}">${myPhoto?'Replace photo':'Take / add photo'}</button>${myPhoto?`<button type="button" class="photo-small-action" data-photo-share="${safe(myPhoto.id)}">${myPhoto.shared?'Unshare':'Share'}</button><button type="button" class="photo-small-action" data-photo-remove="${safe(myPhoto.id)}">Remove</button>`:''}</div></div>`;
 }
 function renderBoard(){
  const count=state.picks.length,done=state.found.size;
  $('joinPanel').hidden=!!state.playerId;
  $('gamePanel').hidden=!state.playerId;
+ $('classicHuntIntro').hidden=state.photoMode; $('photoModeIntro').hidden=!state.photoMode; $('photoFeedPanel').hidden=!state.photoMode; $('photoTakeBtn').hidden=!state.photoMode;
  $('boardTitle').textContent=state.nickname?state.nickname+"'s light hunt":'Christmas lights hunt';
  $('boardSubtitle').textContent=count===30?'30 clues · Mega lights hunt · easy, tricky & expert':count===16?'16 photo clues · family challenge':'9 photo clues · little lights hunt';
  $('progressCount').textContent=done+' / '+count;
@@ -160,18 +168,124 @@ function renderLeaders(){
  $('leaderboard').innerHTML=leaders.map((p,i)=>`<div class="rank ${p.id===state.playerId?'me':''}"><span class="place">${i+1}</span><div><div class="name">${safe(p.nickname)} ${p.id===state.playerId?'(you)':''}</div><div class="mini"><i style="width:${100*p.score/maximum}%"></i></div></div><strong class="score">${p.score}/${maximum}</strong></div>`).join('');
 }
 async function api(path,body){const response=await fetch(path,{method:body?'POST':'GET',credentials:'omit',headers:body?{'Content-Type':'application/json'}:{},...(body?{body:JSON.stringify(body)}:{})});let data={};try{data=await response.json()}catch{}if(!response.ok)throw Error(data.error||'Could not connect to the hunt');return data}
-async function refresh(){if(!room||document.hidden)return;try{const result=await api('/api/hunts/'+room);state.leaders=result.leaders||[];renderLeaders();$('liveStatus').textContent='● Live';state.offline=false;if(state.error==='Scores could not update. Check your connection.')errors('')}catch(e){state.offline=true;$('liveStatus').textContent='Offline';errors('Scores could not update. Check your connection.')}}
+async function refresh(){if(!room||document.hidden)return;try{const result=await api('/api/hunts/'+room);state.leaders=result.leaders||[];renderLeaders();$('liveStatus').textContent='● Live';state.offline=false;if(state.error==='Scores could not update. Check your connection.')errors('');if(state.photoMode&&state.playerId)await loadGallery()}catch(e){state.offline=true;$('liveStatus').textContent='Offline';errors('Scores could not update. Check your connection.')}}
 async function sendProgress(){if(!room||!state.token||state.saving)return;state.saving=true;try{await api('/api/hunts/'+room+'/progress',{playerToken:state.token,found:[...state.found]});errors('');await refresh()}catch(e){errors(e.message+' Your checkmarks are saved on this device; tap another clue when connected to retry.')}finally{state.saving=false}}
-async function start(){const nickname=$('playerName').value.trim().slice(0,24);if(!nickname){errors('Choose a nickname or team name first.');$('playerName').focus();return}try{if(room){const result=await api('/api/hunts/'+room+'/join',{nickname});state.playerId=result.playerId;state.token=result.playerToken;}else{state.playerId='local';state.token='';}state.nickname=nickname;state.found=new Set();if(legacy){try{state.found=new Set(JSON.parse(localStorage.getItem('santa_hq_guest_lights_v1_'+legacy+':checks:'+nickname.toLowerCase())||'[]'))}catch{}}store();errors('');renderBoard();await refresh()}catch(e){errors(e.message)}}
+async function start(){const nickname=$('playerName').value.trim().slice(0,24);if(!nickname){errors('Choose a nickname or team name first.');$('playerName').focus();return}try{if(room){const result=await api('/api/hunts/'+room+'/join',{nickname});state.playerId=result.playerId;state.token=result.playerToken;}else{state.playerId='local';state.token='';}state.nickname=nickname;state.found=new Set();if(legacy){try{state.found=new Set(JSON.parse(localStorage.getItem('santa_hq_guest_lights_v1_'+legacy+':checks:'+nickname.toLowerCase())||'[]'))}catch{}}store();errors('');renderBoard();await refresh();if(state.photoMode)await loadGallery()}catch(e){errors(e.message)}}
+// Guest photo hunt: private R2 originals with D1 metadata; only opted-in photos appear in the feed.
+const photoUrl=id=>'/api/hunts/'+room+'/photos/file/'+id;
+const photoAuth=()=>({'Authorization':'Bearer '+state.token});
+async function loadGallery(){
+ if(!state.photoMode||!room||!state.playerId||!state.token)return;
+ try{
+  const response=await fetch('/api/hunts/'+room+'/photos',{headers:photoAuth(),cache:'no-store'});
+  const data=await response.json();if(!response.ok)throw Error(data.error||'Photo feed unavailable');
+  const photos=Array.isArray(data.photos)?data.photos:[];
+  const signature=photos.map(p=>p.id+':'+p.shared).join('|');
+  state.photos=photos;
+  if(signature!==state.photoSignature){
+   state.photoSignature=signature;
+   for(const p of photos.filter(x=>x.playerId===state.playerId&&!x.shared)){
+    if(state.photoUrls[p.id])continue;
+    try{const r=await fetch(photoUrl(p.id),{headers:photoAuth(),cache:'no-store'});if(r.ok)state.photoUrls[p.id]=URL.createObjectURL(await r.blob())}catch{}
+   }
+   renderBoard();renderFeed();
+  }
+ }catch(e){errors(e.message)}
+}
+function renderFeed(){
+ const el=$('familyPhotoFeed');if(!el)return;
+ const photos=state.photos.filter(p=>p.shared).sort((a,b)=>b.createdAt-a.createdAt);
+ $('photoFeedCount').textContent=photos.length+' shared';
+ $('photoFeedExpand').hidden=photos.length<=8;
+ $('photoFeedExpand').textContent=state.feedExpanded?'Show fewer':'See all '+photos.length;
+ const visible=state.feedExpanded?photos:photos.slice(0,8);
+ el.innerHTML=visible.length?visible.map(p=>{
+   const name=state.picks[p.clueIndex]?.name||'Christmas light';
+   return `<button class="feed-card" type="button" data-photo-view="${safe(p.id)}"><img src="${safe(photoUrl(p.id))}" loading="lazy" alt="${safe(name)} shared by ${safe(p.nickname)}"><strong>${safe(name)}</strong><small>${safe(p.nickname)}</small></button>`;
+ }).join(''):'<p class="muted">No shared photos yet. Be the first to share a find!</p>';
+}
+function photoEditorClose(){
+ $('photoComposer').hidden=true;state.pendingFile=null;state.pendingIndex=null;
+ const preview=$('photoPreview');if(preview.dataset.objectUrl){URL.revokeObjectURL(preview.dataset.objectUrl);delete preview.dataset.objectUrl}preview.removeAttribute('src');
+ $('photoCapture').value='';
+}
+function openPhotoCapture(index=null){
+ if(!state.playerId){errors('Join the hunt first.');return}
+ if(!state.photoMode)return;
+ state.pendingIndex=index;
+ $('photoCapture').click();
+}
+async function resizeForHunt(file){
+ if(!file||!file.type.startsWith('image/'))throw Error('Choose a picture from your camera or photo library.');
+ const object=URL.createObjectURL(file);
+ try{
+  const img=await new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=()=>rej(Error('Cannot open this image. Try a JPG or PNG photo.'));im.src=object});
+  const width=img.naturalWidth,height=img.naturalHeight;if(!width||!height)throw Error('Invalid photo.');
+  const scale=Math.min(1,1280/Math.max(width,height));
+  const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(width*scale));canvas.height=Math.max(1,Math.round(height*scale));
+  canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+  const blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('Photo conversion failed.')),'image/jpeg',.77));
+  if(blob.size>2*1024*1024)throw Error('This photo is too large. Choose a smaller photo.');
+  return blob; // Redrawing via canvas strips the source image's EXIF/GPS metadata.
+ }finally{URL.revokeObjectURL(object)}
+}
+async function uploadPhoto(){
+ if(state.photoBusy||!state.pendingFile)return;
+ const index=Number($('photoClueSelect').value);
+ if(!Number.isInteger(index)||index<0||index>=state.picks.length){errors('Select the clue you photographed.');return}
+ state.photoBusy=true;$('photoSave').disabled=true;$('photoSave').textContent='Saving photo…';
+ try{
+  const blob=await resizeForHunt(state.pendingFile);
+  const form=new FormData();form.append('photo',blob,'hunt-photo.jpg');form.append('clueIndex',String(index));form.append('shared',$('photoShare').checked?'1':'0');
+  const r=await fetch('/api/hunts/'+room+'/photos/upload',{method:'POST',headers:photoAuth(),body:form});const data=await r.json();if(!r.ok)throw Error(data.error||'Could not upload photo');
+  state.found.add(index);store();photoEditorClose();await sendProgress();await loadGallery();errors('');
+ }catch(e){errors(e.message)}finally{state.photoBusy=false;$('photoSave').disabled=false;$('photoSave').textContent='Save this find'}
+}
+async function changePhoto(id,operation){
+ const row=state.photos.find(p=>p.id===id&&p.playerId===state.playerId);if(!row)return;
+ if(operation==='delete'&&!confirm('Remove this photo and its hunt find? This also removes it from the family photo feed if shared.'))return;
+ try{
+  const r=await fetch('/api/hunts/'+room+'/photos/'+operation+'/'+id,{method:'POST',headers:{...photoAuth(),'Content-Type':'application/json'},body:JSON.stringify(operation==='visibility'?{shared:!row.shared}:{})});
+  const data=await r.json();if(!r.ok)throw Error(data.error||'Could not update photo');
+  if(operation==='delete'){state.found.delete(row.clueIndex);store();await sendProgress()}
+  if(state.photoUrls[id]&&operation==='delete'){URL.revokeObjectURL(state.photoUrls[id]);delete state.photoUrls[id]}
+  state.photoSignature='';await loadGallery();
+ }catch(e){errors(e.message)}
+}
+$('photoTakeBtn').addEventListener('click',()=>openPhotoCapture());
+$('photoCapture').addEventListener('change',e=>{
+ const f=e.target.files?.[0];if(!f)return;
+ state.pendingFile=f;
+ const select=$('photoClueSelect');select.innerHTML=state.picks.map((x,i)=>`<option value="${i}">${safe(x.name)}</option>`).join('');
+ select.value=state.pendingIndex===null?'0':String(state.pendingIndex);
+ $('photoShare').checked=false;
+ const u=URL.createObjectURL(f);$('photoPreview').src=u;$('photoPreview').dataset.objectUrl=u;
+ $('photoComposer').hidden=false;$('photoComposer').scrollIntoView({block:'nearest',behavior:'smooth'});
+});
+$('photoCancel').addEventListener('click',photoEditorClose);
+$('photoSave').addEventListener('click',uploadPhoto);
+$('photoFeedExpand').addEventListener('click',()=>{state.feedExpanded=!state.feedExpanded;renderFeed()});
+$('huntBoard').addEventListener('click',e=>{
+ const shot=e.target.closest('[data-photo-for]');if(shot){openPhotoCapture(Number(shot.dataset.photoFor));return}
+ const share=e.target.closest('[data-photo-share]');if(share){changePhoto(share.dataset.photoShare,'visibility');return}
+ const remove=e.target.closest('[data-photo-remove]');if(remove){changePhoto(remove.dataset.photoRemove,'delete');return}
+});
+$('familyPhotoFeed').addEventListener('click',e=>{
+ const b=e.target.closest('[data-photo-view]');if(!b)return;
+ const p=state.photos.find(x=>x.id===b.dataset.photoView);if(!p)return;
+ $('photoViewerImg').src=photoUrl(p.id);$('photoViewerTitle').textContent=(state.picks[p.clueIndex]?.name||'Holiday lights')+' · '+p.nickname;
+ $('photoViewer').hidden=false;
+});
+$('photoViewerClose').addEventListener('click',()=>{$('photoViewer').hidden=true;$('photoViewerImg').removeAttribute('src')});
 async function init(){
  if(!room&&!legacy){errors('This is not a valid hunt link. Ask your family for a fresh link.');$('joinPanel').hidden=true;return;}
  try{if(room){const data=await api('/api/hunts/'+room);state.hunt=data.hunt;state.leaders=data.leaders||[];}else{state.hunt={mode:legacy.startsWith('f_')?'family':'easy',seed:legacy};state.leaders=[];$('liveStatus').textContent='Solo scoring';}}
  catch(e){errors(e.message);$('joinPanel').hidden=true;return}
- await loadPhotoOverrides();state.picks=legacy?legacyCards(legacy):generate(state.hunt.seed,state.hunt.mode);loadLocal();$('playerName').value=state.nickname;renderBoard();renderLeaders();if(room){if(state.playerId&&state.token)sendProgress();setInterval(refresh,8000)}
+ await loadPhotoOverrides();state.photoMode=!!state.hunt.photoMode;state.picks=legacy?legacyCards(legacy):generate(state.hunt.seed,state.hunt.mode);loadLocal();$('playerName').value=state.nickname;renderBoard();renderLeaders();if(room){if(state.playerId&&state.token)sendProgress();if(state.photoMode&&state.playerId)await loadGallery();setInterval(refresh,8000)}
 }
 $('startBtn').addEventListener('click',start);
 $('playerName').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();start()}});
-$('huntBoard').addEventListener('click',e=>{const b=e.target.closest('[data-spot]');if(!b||!state.playerId)return;const i=Number(b.dataset.spot);if(!Number.isInteger(i)||i<0||i>=state.picks.length)return;if(state.found.has(i))state.found.delete(i);else state.found.add(i);store();renderBoard();sendProgress()});
+$('huntBoard').addEventListener('click',e=>{if(state.photoMode)return;const b=e.target.closest('[data-spot]');if(!b||!state.playerId)return;const i=Number(b.dataset.spot);if(!Number.isInteger(i)||i<0||i>=state.picks.length)return;if(state.found.has(i))state.found.delete(i);else state.found.add(i);store();renderBoard();sendProgress()});
 $('resetBtn').addEventListener('click',()=>{if(!confirm('Clear your own checkmarks? Other family members keep theirs.'))return;state.found.clear();store();renderBoard();sendProgress()});
 $('printBtn').addEventListener('click',()=>window.print());
 $('shareBtn').addEventListener('click',async()=>{const url=location.href;try{if(navigator.share){await navigator.share({title:'Santa HQ Christmas lights hunt',url,text:'Join our family lights hunt!'});return}await navigator.clipboard.writeText(url);$('shareBtn').textContent='Link copied!';setTimeout(()=>$('shareBtn').textContent='Share hunt',2200)}catch(e){if(e.name!=='AbortError')prompt('Copy the hunt link:',url)}});
