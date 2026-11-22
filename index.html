@@ -2030,7 +2030,10 @@ function boardGiftRow(g){
    ${image?`<img src="${escapeHTML(image)}" alt="" loading="lazy">`:''}
    <span><strong>${name}</strong><small>${giftPriceLabel(g)}${status?' · '+status:''}</small></span>
   </button>
-  ${control}
+  <div class="gift-row-actions">
+   <button type="button" class="gift-row-move" data-action="board-move-menu" data-id="${id}" aria-label="Move ${name}">${ico('arrow')}<span>Move</span></button>
+   ${control}
+  </div>
  </article>`;
 }
 
@@ -2060,7 +2063,7 @@ function giftPlannerIdeas(){
   </div>
   <p class="gift-confirm-hint">Confirmed gifts appear on Christmas Morning. Gifts you still need to buy also go to the Shopping List.</p>
   ${Object.entries(giftPileLabels).map(([place,label])=>{
-   const gifts=wbGifts(kid,place);
+   const gifts=wbGifts(kid,place).sort((a,b)=>Number(morningConfirmed(b))-Number(morningConfirmed(a)));
    if(place==='stocking'&&kid==='both'&&!gifts.length)return '';
    return `<section class="gift-simple-pile">
     <button type="button" class="gift-pile-heading" data-action="board-pile" data-place="${place}" aria-expanded="${boardOpenPiles.has(place)}"><span>${label} <small>${gifts.length}</small></span><span aria-hidden="true">${boardOpenPiles.has(place)?'−':'+'}</span></button>
@@ -2097,15 +2100,20 @@ function openBoardMove(id){
  modalOpen('Move gift',`<p>${escapeHTML(g.name)}</p>${reorder}<div class="sq-move-grid">${[...childIds(),'both'].map(k=>`<section><strong>${escapeHTML(kidName(k))}</strong><div>${places.filter(([place])=>!(k==='both'&&place==='stocking')&&(k!==g.kid||place!==giftPlacement(g))).map(([place,label])=>`<button type="button" data-action="board-move" data-id="${escapeHTML(id)}" data-kid="${escapeHTML(k)}" data-place="${place}">${label}</button>`).join('')}</div></section>`).join('')}</div>`,`<button type="button" class="secondary" data-action="close">Cancel</button>`);
 }
 
-async function saveBoardMove(changed){
+async function saveBoardMove(changed,viewDestination=null){
  await dbExec('readwrite',store=>{changed.forEach(gift=>store.put(gift));});
  const updates=new Map(changed.map(gift=>[gift.id,gift]));
  appState.gifts=appState.gifts.map(gift=>updates.get(gift.id)||gift);
+ if(viewDestination&&appState.page==='gifts'&&appState.giftView!=='compare'){
+  boardRecipient=viewDestination.kid;
+  boardOpenPiles.add(viewDestination.place);
+  localStorage.setItem('santa-board-recipient',boardRecipient);
+ }
  render();
  await Promise.all(changed.map(cloudPutGift));
 }
 
-async function moveBoardGift(id,kid,place,before=null){
+async function moveBoardGift(id,kid,place,before=null,showDestination=false){
  if(boardMoveBusy||!validRecipient(kid)||!Object.hasOwn(giftPileLabels,place)||(kid==='both'&&place==='stocking'))return;
  const gift=appState.gifts.find(g=>g.id===id);
  if(!gift||id===before)return;
@@ -2128,9 +2136,9 @@ async function moveBoardGift(id,kid,place,before=null){
  if(!changed.length)return;
  boardMoveBusy=true;
  try{
-  await saveBoardMove(changed);
-  boardUndo={previous,changed};
-  showToast('Gift moved',true);
+  await saveBoardMove(changed,showDestination?{kid,place}:null);
+  boardUndo={previous,changed,source:showDestination?{kid:gift.kid,place:giftPlacement(gift)}:null};
+  showToast(showDestination?`Moved to ${kidName(kid)} · ${giftPileLabels[place]}`:'Gift moved',true);
  }catch(error){console.error(error);showToast('Could not move gift');}
  finally{boardMoveBusy=false;}
 }
@@ -2145,7 +2153,7 @@ async function undoBoardMove(){
  }
  boardMoveBusy=true;
  try{
-  await saveBoardMove(previous.map(g=>({...g,updatedAt:new Date().toISOString()})));
+  await saveBoardMove(previous.map(g=>({...g,updatedAt:new Date().toISOString()})),boardUndo.source);
   boardUndo=null;
   showToast('Move undone');
  }catch(error){console.error(error);showToast('Could not undo the move',true);}
@@ -2849,12 +2857,14 @@ case 'board-pile':
  break;
 case 'board-details':openBoardGift(id);break;
 case 'board-move-menu':openBoardMove(id);break;
-case 'board-move':
+case 'board-move': {
+ const {kid,place}=el.dataset;
  modalClose();
- if(appState.giftView==='compare')morningPile=el.dataset.place;
- if(el.dataset.kid===selectedBoardRecipient())boardOpenPiles.add(el.dataset.place);
- void moveBoardGift(id,el.dataset.kid,el.dataset.place);
+ if(appState.giftView==='compare')morningPile=place;
+ const fromGiftBoard=appState.giftView!=='compare';
+ void moveBoardGift(id,kid,place,null,fromGiftBoard);
  break;
+}
 case 'board-confirm-row': {
  el.disabled=true;
  const confirmed=el.getAttribute('aria-pressed')==='true';

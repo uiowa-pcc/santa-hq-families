@@ -389,3 +389,20 @@
 .gift-confirm-toggle[aria-pressed="true"] .gift-confirm-box{
   background:#2c6548;color:#fff;border-color:#2c6548
 }
+
+/* Gift Board row actions */
+.gift-row-actions{display:flex;align-items:center;gap:4px;flex:none}
+.gift-row-move{
+  display:inline-flex;align-items:center;justify-content:center;gap:4px;min-width:44px;min-height:44px;
+  padding:4px 7px;border:1px solid transparent;border-radius:8px;background:transparent;
+  color:#554b5d;cursor:pointer;font:inherit;font-size:.8rem;font-weight:700;
+}
+.gift-row-move svg{width:16px;height:16px;flex:none}
+.gift-row-move:hover{background:#f2edf5;border-color:#e7deec}
+.gift-row-move:focus-visible{outline:2px solid #74518b;outline-offset:1px}
+@media(max-width:420px){
+  .gift-row-actions{gap:1px}
+  .gift-row-move{padding-inline:4px}
+  .gift-row-move svg{display:none}
+  .gift-row-actions .gift-confirm-toggle{min-width:0;padding-inline:5px;gap:5px}
+}
