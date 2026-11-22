@@ -7,7 +7,7 @@
     "test": "node worker.test.mjs"
   },"devDependencies": {
   "wrangler": "4.165.0"
-}
+},
   "engines": {
     "node": ">=20"
   }
