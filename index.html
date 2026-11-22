@@ -1582,13 +1582,72 @@ body:has(.season-workspace) .mobile-add{display:none}
  .gift-inline-add .primary{padding-inline:9px}
  .gift-inline-more{font-size:12px}
 }
+
+/* Shared grown-up typography and surfaces */
+.app .sidebar{
+ background:transparent;color:var(--season-ink);border-right:1px solid var(--season-line);
+}
+.app .sidebar .logo strong,.app .sidebar .side-kid-launch,
+.app .sidebar .side-kid-launch strong,.app .sidebar .sync-indicator{color:var(--season-pine)}
+.app .sidebar .side-kid-launch{background:none;border:0;padding-inline:6px}
+.app .sidebar .kid-launch-symbol{background:none}
+.app .side-nav .nav-btn{color:var(--season-muted);background:none;border-color:transparent}
+.app .side-nav .nav-btn:hover{background:#e9eee5}
+.app .side-nav .nav-btn.active{color:var(--season-pine);background:#e2ebe0;border-color:transparent}
+.app .topbar{background:transparent;height:52px}
+.app .topbar .topbar-title{visibility:hidden}
+.app .topbar .countdown{background:none;padding:0;color:var(--season-muted)}
+.app .topbar :is(.top-setting,.top-kid){background:none;border:0}
+.app .content{max-width:1080px}
+.app .content :is(.heading,.sectiontitle),.season-workspace-header h1,.hq-page-heading h1,.hq-home-welcome h1{
+ font:650 clamp(27px,4vw,37px)/1.13 "DM Sans",system-ui,sans-serif;letter-spacing:-.04em;
+}
+.app .content :is(.sectiontitle,.cp-top h2,.tp-section-top h2){
+ font:650 18px/1.3 "DM Sans",system-ui,sans-serif;letter-spacing:-.025em;color:var(--season-ink);
+}
+.app .content .headrow .eyebrow:empty{display:none}
+.hq-home-welcome,.hq-page-heading{
+ display:flex;align-items:center;justify-content:space-between;gap:18px;padding-block:8px 19px;
+}
+.hq-home-welcome h1,.hq-page-heading h1{margin:0;color:var(--season-ink)}
+.hq-home-welcome p,.hq-page-heading p{margin:6px 0 0;color:var(--season-muted)}
+.hq-home-welcome img{object-fit:contain;flex:none;max-width:25vw;height:auto}
+.hq-home-link,.hq-text-action{
+ min-height:44px;background:none;border:0;padding:0;color:var(--season-pine);
+ font:inherit;font-weight:750;text-align:left;cursor:pointer;
+}
+.hq-home-link{text-decoration:underline;text-underline-offset:4px;margin-top:4px}
+.season-home-paths{margin-top:0;border-top:1px solid var(--season-line)}
+.season-home-paths .season-destination{grid-template-columns:auto minmax(0,1fr);padding:11px 5px;min-height:64px}
+.season-home-paths .season-icon{color:var(--season-pine)}
+.app #content :is(.mail-card,.mail-card.new,.cp-panel,.cp-item,.cp-shop-row,.settings-card){
+ background:transparent;border:0;border-top:1px solid var(--season-line);border-radius:0;box-shadow:none;
+}
+.app #content :is(.mail-card,.cp-panel,.settings-card){padding-inline:0}
+.app #content :is(.cp-item,.cp-shop-row){padding-inline:3px}
+.app #content :is(.mail-list,.cp-shop-items,.cp-list){gap:0}
+.app #content .mail-card.new .mail-meta strong{color:var(--season-pine)}
+.app #content .mail-new{padding:0;background:none;border:0;color:#406957}
+.app #content .mail-actions :is(button,.primary,.secondary),.app #content .cp-panel .cp-top>.secondary{
+ color:var(--season-pine);background:none;border:0;box-shadow:none;padding-inline:0;
+}
+.app #content .mail-actions{gap:13px}
+.app #content .mail-actions .danger{color:#863d43}
+.app #content .mail-actions button:hover,.hq-text-action:hover{text-decoration:underline}
+.app #content .hq-shopping .cp-panel{margin-top:12px}
+.app #content .cp-count{background:none;border:0;box-shadow:none;color:var(--season-muted)}
+@media(max-width:760px){
+ .app .topbar{height:49px}
+ .app .topbar .countdown{display:none}
+ .hq-home-welcome,.hq-page-heading{padding-top:2px}
+}
 </style>
 </head>
 <body><section id="familyGate" role="region" aria-label="Family account sign in"></section>
 <div class="app"><aside class="sidebar">
  <div class="logo"><div class="logo-mark"><img src="./icon-192.png" alt=""></div><div><strong>Santa HQ</strong></div></div>
  <nav class="side-nav" id="desktopNav"></nav>
- <div class="sidebar-bottom"><button class="side-kid-launch" data-action="enter-kid"><span class="kid-launch-symbol"><img src="./art/mailbox.svg" alt=""></span><span><strong>North Pole Post</strong><small>Kid-friendly view ↗</small></span></button><div class="sync-indicator" id="sideSync"><i></i><span>Saved on this device</span></div></div>
+ <div class="sidebar-bottom"><button class="side-kid-launch" data-action="enter-kid"><span class="kid-launch-symbol"><img src="./art/mailbox.svg" alt=""></span><span><strong>North Pole Post</strong></span></button><div class="sync-indicator" id="sideSync"><i></i><span>Saved on this device</span></div></div>
  </aside><main class="main"><header class="topbar"><div class="topbar-title"><span class="dotstar"></span><span>SANTA HQ <span class="topbar-year">· 2026</span></span></div><div class="mobile-top-logo"><span class="mobile-brand-art"><img src="./icon-192.png" alt=""></span> santa hq<span class="brand-period">.</span></div><div class="topbar-actions"><span class="sync-dot" id="topSyncDot" title="Local gift storage" aria-label="Gift sync status"></span><div class="countdown" id="countdown"></div><button class="top-kid" data-action="enter-kid" title="Open the kid-friendly Santa mailbox"><span>Kid view</span></button><button class="top-setting" data-action="nav" data-page="settings" aria-label="Settings">⚙</button></div></header><div class="content" id="content"></div></main></div>
 <nav class="mobile-nav" id="mobileNav"></nav><button class="mobile-add" aria-label="Add gift" id="mobileAdd">+</button>
 <div class="overlay" id="overlay" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div id="modalHeader" class="modal-header"></div><div class="modal-inner" id="modalBody"></div><div class="modal-footer" id="modalFooter"></div></div></div>
@@ -1719,18 +1778,18 @@ function dashboard(){
   {title:'Lights Hunt',detail:'Start a Christmas lights hunt',icon:'star',action:'go-lights-hunt'}
  ];
  return `<div class="season-home season-flow">
-  <section class="season-hero">
-   <div class="season-hero-copy">
-    <p class="season-countdown">${ico('calendar')} ${sleeps?`${sleeps} ${sleeps===1?'sleep':'sleeps'} until Christmas`:'Merry Christmas!'}</p>
-    <h1>Make Christmas<br><em>yours.</em></h1>
-    <button type="button" class="season-hero-button" data-action="home-open-gifts">Open Gift Board ${ico('arrow')}</button>
+  <header class="hq-home-welcome">
+   <div>
+    <h1>Your Christmas</h1>
+    <p>${sleeps?`${sleeps} ${sleeps===1?'sleep':'sleeps'} until Christmas`:'Merry Christmas!'}</p>
+    <button type="button" class="hq-home-link" data-action="home-open-gifts">Open Gift Board</button>
    </div>
-   <div class="season-hero-art" aria-hidden="true"><img src="./santa-home.webp" alt="" fetchpriority="high"></div>
-  </section>
+   <img src="./santa-home.webp" alt="" width="112" height="106" fetchpriority="high">
+  </header>
   <nav class="season-home-paths" aria-label="Christmas activities">
    ${destinations.map(({title,detail,icon,action,page='',view=''})=>`
     <button type="button" class="season-destination" data-action="${action}" data-page="${page}" data-view="${view}">
-     <span class="season-icon">${ico(icon)}</span><span><strong>${title}</strong><small>${escapeHTML(detail)}</small></span><span class="season-arrow">${ico('arrow')}</span>
+     <span class="season-icon">${ico(icon)}</span><span><strong>${title}</strong><small>${escapeHTML(detail)}</small></span>
     </button>`).join('')}
   </nav>
   <details class="season-budget"><summary>Family gift budgets <span>${money(totals().spent)} purchased</span></summary><div class="kid-grid">${childIds().map(kidCard).join('')}</div><button class="plain-btn" type="button" data-action="nav" data-page="settings">Edit budgets</button></details>
@@ -2614,7 +2673,10 @@ function openLetterGiftIdea(letterId){
  });
 }
 
-function mailPage(){const mail=[...appState.messages].sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))),unread=mail.filter(m=>!m.read).length;return heading('NORTH POLE POST','Letters to Santa','Kids’ updates land here. Reply with a Santa note when you like.',false)+`<section class="mail-hero"><div><div class="eyebrow">SPECIAL DELIVERY </div><h2>You've got <span>${unread} new</span> little letter${unread===1?'':'s'}.</h2><p>Nothing about gifts, budgets or hiding spots appears in Kid View.</p><button class="primary" data-action="enter-kid">Open Kid View <span>↗</span></button></div><img class="mail-envelope mail-illustration" src="./art/mailbox.svg" alt=""></section><div class="sectionhead" style="margin-top:26px"><h2 class="sectiontitle">The Santa inbox</h2><span class="quiet">${mail.length} total</span></div>${mail.length?`<div class="mail-list">${mail.map(m=>`<article class="mail-card ${m.read?'':'new'}"><div class="mail-avatar">${kidEmoji(m.kid)}</div><div class="mail-content"><div class="mail-meta"><strong>${escapeHTML(kidName(m.kid))}</strong><span>${new Date(m.createdAt).toLocaleDateString(undefined,{month:'short',day:'numeric'})}</span>${!m.read?'<span class="mail-new">NEW</span>':''}</div><div class="mail-kind">${escapeHTML(m.type)}</div><p>${escapeHTML(m.text||(m.format==='audio'?'A little voice message':m.format==='drawing'?'A drawing made just for Santa':'A little wave from the North Pole'))}</p>${mailMediaHTML(m)}${m.reply?`<div class="santa-reply"><strong>Your Santa reply</strong><p>${escapeHTML(m.reply)}</p></div>`:''}${letterGiftCount(m.id)?`<div class="mail-gift-count">${ico('check')} ${letterGiftCount(m.id)} gift idea${letterGiftCount(m.id)===1?'':'s'} saved to the Gift Board</div>`:''}<div class="mail-actions"><button type="button" class="primary mail-gift-action" data-action="mail-to-gift" data-id="${escapeHTML(m.id)}">${ico('plus')} ${letterGiftCount(m.id)?'Add another gift idea':'Add as gift idea'}</button><button class="secondary" data-action="reply-mail" data-id="${escapeHTML(m.id)}">${m.reply?'Edit reply':' Reply as Santa'}</button>${!m.read?`<button class="plain-btn" data-action="read-mail" data-id="${escapeHTML(m.id)}">Mark read ✓</button>`:''}<button type="button" class="plain-btn danger" data-action="delete-mail" data-id="${escapeHTML(m.id)}">Delete letter</button></div></div></article>`).join('')}</div>`:`<div class="empty mail-empty"><span class="empty-emoji"><img src="./art/mailbox.svg" alt=""></span><h3>The mailbox is waiting</h3><p>Open Kid View and have one of your elves send a quick note. It’ll appear right here.</p><button class="primary" data-action="enter-kid">Try the kid view ↗</button></div>`}<div class="note" style="margin-top:20px">Voice notes and drawings are saved in this device’s private app storage and can sync to your approved family account when sharing is configured. Keep backups of precious messages.</div>`}
+function mailPage(){const mail=[...appState.messages].sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))),unread=mail.filter(m=>!m.read).length;return `<header class="hq-page-heading">
+ <div><h1>Santa Mail</h1><p>${unread?`${unread} unread ${unread===1?'letter':'letters'}`:`${mail.length} ${mail.length===1?'letter':'letters'}`}</p></div>
+ <button type="button" class="hq-text-action" data-action="enter-kid">Open Kid View</button>
+ </header>${mail.length?`<div class="mail-list">${mail.map(m=>`<article class="mail-card ${m.read?'':'new'}"><div class="mail-avatar">${kidEmoji(m.kid)}</div><div class="mail-content"><div class="mail-meta"><strong>${escapeHTML(kidName(m.kid))}</strong><span>${new Date(m.createdAt).toLocaleDateString(undefined,{month:'short',day:'numeric'})}</span>${!m.read?'<span class="mail-new">NEW</span>':''}</div><div class="mail-kind">${escapeHTML(m.type)}</div><p>${escapeHTML(m.text||(m.format==='audio'?'A little voice message':m.format==='drawing'?'A drawing made just for Santa':'A little wave from the North Pole'))}</p>${mailMediaHTML(m)}${m.reply?`<div class="santa-reply"><strong>Your Santa reply</strong><p>${escapeHTML(m.reply)}</p></div>`:''}${letterGiftCount(m.id)?`<div class="mail-gift-count">${ico('check')} ${letterGiftCount(m.id)} gift idea${letterGiftCount(m.id)===1?'':'s'} saved to the Gift Board</div>`:''}<div class="mail-actions"><button type="button" class="primary mail-gift-action" data-action="mail-to-gift" data-id="${escapeHTML(m.id)}">${ico('plus')} ${letterGiftCount(m.id)?'Add another gift idea':'Add as gift idea'}</button><button class="secondary" data-action="reply-mail" data-id="${escapeHTML(m.id)}">${m.reply?'Edit reply':' Reply as Santa'}</button>${!m.read?`<button class="plain-btn" data-action="read-mail" data-id="${escapeHTML(m.id)}">Mark read</button>`:''}<button type="button" class="plain-btn danger" data-action="delete-mail" data-id="${escapeHTML(m.id)}">Delete letter</button></div></div></article>`).join('')}</div>`:`<div class="empty mail-empty"><span class="empty-emoji"><img src="./art/mailbox.svg" alt=""></span><h3>The mailbox is waiting</h3><p>Open Kid View and have one of your elves send a quick note. It’ll appear right here.</p><button class="primary" data-action="enter-kid">Open Kid View</button></div>`}<div class="note" style="margin-top:20px">Voice notes and drawings are saved in this device’s private app storage and can sync to your approved family account when sharing is configured. Keep backups of precious messages.</div>`}
 // Tiny post office: media helpers, touch drawing and kid-friendly voice notes.
 let kidRecorder=null,kidStream=null,kidRecordParts=[],kidRecordTimer=null,kidSeconds=0,kidAudio='',kidDrawing='',kidDrawTouched=false,kidSpeech=null,kidDrawColor='#8268d7',kidCanvasUndo=[],kidIsDrawing=false,kidMediaFile=null,kidMediaPreviewURL='';
 function safeKidMedia(v,format){const u=String(v||'');if(format==='drawing')return /^data:image\/(png|webp|jpeg);base64,[a-zA-Z0-9+/=]+$/.test(u)?u:'';if(format==='audio')return /^data:audio\/(mp4|x-m4a|webm|ogg|mpeg|wav|aac)(;codecs=[^;,]+)?;base64,[a-zA-Z0-9+/=]+$/i.test(u)?u:'';return ''}
@@ -3360,11 +3422,10 @@ function holidayShoppingPage(){
  const toBuy=appState.gifts.filter(g=>g.status==='To buy').sort((a,b)=>kidName(a.kid).localeCompare(kidName(b.kid))||a.name.localeCompare(b.name));
  const purchased=appState.gifts.filter(bought).sort((a,b)=>kidName(a.kid).localeCompare(kidName(b.kid))||a.name.localeCompare(b.name));
  const total=toBuy.reduce((n,g)=>n+giftTotal(g),0),spent=purchased.reduce((n,g)=>n+giftTotal(g),0);
- const row=(g,checked)=>`<div class="cp-shop-row"><input type="checkbox" ${checked?'checked':''}  data-action="${checked?'shop-undo':'shop-check'}" data-id="${escapeHTML(g.id)}" aria-label="${checked?'Return to shopping list':'Mark purchased'}: ${escapeHTML(g.name)}"><div class="cp-shop-details"><strong>${escapeHTML(g.name)}</strong><small>${escapeHTML(kidName(g.kid))} · ${escapeHTML(giftPlacement(g)==='stocking'?'Stocking':giftPlacement(g)==='undecided'?'Undecided':'Under the tree')}</small></div><span class="cp-shop-price">${giftPriceLabel(g)}${g.link?`<a href="${escapeHTML(safeLink(g.link))}" target="_blank" rel="noopener noreferrer" style="display:block;font-size:10px;color:#6055ac">View store ↗</a>`:''}</span><button type="button" class="cp-edit" data-action="edit" data-id="${escapeHTML(g.id)}" aria-label="Edit ${escapeHTML(g.name)}">Edit</button></div>`;
- return `<div class="cp-page">${heading('ONE PLACE TO PICK UP WHAT YOU NEED','Shopping list','Gifts you added to shopping, plus supplies connected to your holiday to-dos.',false)}
- <div class="cp-shopping-stats"><div><span>Still to buy</span><strong>${toBuy.length+toPickUp.length}</strong><small>${toBuy.length} gifts · ${toPickUp.length} holiday items</small></div><div><span>Picked up / purchased</span><strong>${purchased.length+pickedUp.length}</strong><small>${purchased.length} gifts · ${pickedUp.length} holiday items</small></div></div>
- <section class="cp-panel"><div class="cp-top"><div><h2>For your holiday plans <span class="cp-count">${toPickUp.length}</span></h2><p>Need a gingerbread kit, batteries, or cocoa? Add it directly from the related to-do. Buying the item never checks off the activity.</p></div><button type="button" class="secondary" data-action="holiday-view" data-view="overview">Go to to-dos →</button></div>${toPickUp.length?`<div class="cp-shop-items">${toPickUp.map(item=>holidaySupplyRow(item,plan)).join('')}</div>`:'<p class="cp-empty">No holiday supplies to pick up. Use “+ Add shopping item” under any to-do.</p>'}</section>
- <section class="cp-panel"><div class="cp-top"><div><h2>Gifts to buy <span class="cp-count">${toBuy.length}</span></h2><p>Tap “Lock it in” on the Gift Board, then check it off here when purchased. Estimated gift cost: ${money(total)}.</p></div><button type="button" class="secondary" data-action="nav" data-page="gifts">Gift Board →</button></div>${toBuy.length?`<div class="cp-shop-items">${toBuy.map(g=>row(g,false)).join('')}</div>`:'<p class="cp-empty">No gifts waiting to buy.</p>'}</section>
+ const row=(g,checked)=>`<div class="cp-shop-row"><input type="checkbox" ${checked?'checked':''}  data-action="${checked?'shop-undo':'shop-check'}" data-id="${escapeHTML(g.id)}" aria-label="${checked?'Return to shopping list':'Mark purchased'}: ${escapeHTML(g.name)}"><div class="cp-shop-details"><strong>${escapeHTML(g.name)}</strong><small>${escapeHTML(kidName(g.kid))} · ${escapeHTML(giftPlacement(g)==='stocking'?'Stocking':giftPlacement(g)==='undecided'?'Undecided':'Under the tree')}</small></div><span class="cp-shop-price">${giftPriceLabel(g)}${g.link?`<a href="${escapeHTML(safeLink(g.link))}" target="_blank" rel="noopener noreferrer" style="display:block;font-size:10px;color:#6055ac">View store</a>`:''}</span><button type="button" class="cp-edit" data-action="edit" data-id="${escapeHTML(g.id)}" aria-label="Edit ${escapeHTML(g.name)}">Edit</button></div>`;
+ return `<div class="cp-page hq-shopping">${heading('','Shopping List',`${toBuy.length+toPickUp.length} to pick up · ${money(total)} estimated for gifts`,false)}
+ <section class="cp-panel"><div class="cp-top"><div><h2>For your holiday plans <span class="cp-count">${toPickUp.length}</span></h2><p>Need a gingerbread kit, batteries, or cocoa? Add it directly from the related to-do. Buying the item never checks off the activity.</p></div><button type="button" class="secondary" data-action="holiday-view" data-view="overview">To-dos</button></div>${toPickUp.length?`<div class="cp-shop-items">${toPickUp.map(item=>holidaySupplyRow(item,plan)).join('')}</div>`:'<p class="cp-empty">No holiday supplies to pick up. Use “+ Add shopping item” under any to-do.</p>'}</section>
+ <section class="cp-panel"><div class="cp-top"><div><h2>Gifts to buy <span class="cp-count">${toBuy.length}</span></h2><p>Check off each gift as you buy it.</p></div><button type="button" class="secondary" data-action="nav" data-page="gifts">Gift Board</button></div>${toBuy.length?`<div class="cp-shop-items">${toBuy.map(g=>row(g,false)).join('')}</div>`:'<p class="cp-empty">No gifts waiting to buy.</p>'}</section>
  ${dealWatchSection()}
  <section class="cp-panel cp-purchased"><div class="cp-top"><div><h2>Purchased <span class="cp-count">${purchased.length+pickedUp.length}</span></h2><p>Everything checked off stays here, including gifts and supplies. Uncheck to return it to shopping. Gift spending: ${money(spent)}.</p></div></div>${pickedUp.length?`<h3 class="cp-purchased-subtitle">Holiday items</h3><div class="cp-shop-items">${pickedUp.map(i=>holidaySupplyRow(i,plan)).join('')}</div>`:''}${purchased.length?`<h3 class="cp-purchased-subtitle">Gifts</h3><div class="cp-shop-items">${purchased.map(g=>row(g,true)).join('')}</div>`:''}${!pickedUp.length&&!purchased.length?'<p class="cp-empty">Purchased gifts and picked-up supplies will appear here.</p>':''}</section></div>`;
 }
