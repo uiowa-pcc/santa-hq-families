@@ -1,4 +1,4 @@
-/* Santa HQ — North Pole Adventure
+/* Santa HQ Families — North Pole Adventure (2026-11-22 compatible)
  * Additive Kid View enhancement. Load after kid-view-recording-fix.js.
  * Does not touch gifts, budgets, shopping, family sync or other adult pages.
  */
@@ -12,6 +12,7 @@
   }
   if (window.__santaNorthPoleAdventureLoaded) return;
   window.__santaNorthPoleAdventureLoaded = true;
+  console.info("Santa HQ North Pole Adventure loaded successfully (Families-compatible).");
 
   const originalRender = renderKidPortal;
   const originalEnter = enterKid;
@@ -34,9 +35,19 @@
       .replace(/&/g, '&amp;').replace(/</g, '&lt;')
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
-  function child() { return appState.kidSelected === '2' ? '2' : '1'; }
+  // Work with newer Santa HQ Families (up to six children), and earlier two-child releases.
+  function familyChildren() {
+    if (typeof configuredChildren === 'function') return configuredChildren();
+    return [{ id: '1', name: settings.child1 || 'Child 1', icon: 'star' },
+            { id: '2', name: settings.child2 || 'Child 2', icon: 'heart' }];
+  }
+  function child() {
+    const kids = familyChildren();
+    const selected = String(appState.kidSelected || '');
+    return kids.find(c => String(c.id) === selected)?.id || kids[0]?.id || '1';
+  }
   function childName() {
-    return htmlEscape(child() === '2' ? settings.child2 || 'Little elf' : settings.child1 || 'Little elf');
+    return htmlEscape(familyChildren().find(c => String(c.id) === String(child()))?.name || 'Little elf');
   }
   function getAllStamps() {
     try {
@@ -118,10 +129,11 @@
     return `<button type="button" class="np-back" data-np-action="village">${chevron()} Back to the village</button>`;
   }
   function childPicker() {
+    const kids = familyChildren();
     return `<div class="np-traveler-picker" role="group" aria-label="Who's visiting the North Pole?">
       <span>WHO'S VISITING?</span>
       <div class="np-traveler-options">
-        ${['1', '2'].map(n => `<button type="button" data-np-action="child" data-child="${n}" aria-pressed="${child() === n}" class="np-traveler ${child() === n ? 'selected' : ''}"><span class="np-traveler-symbol ${n === '1' ? 'np-purple' : 'np-pink'}">${n === '1' ? starIcon(17) : '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path fill="currentColor" d="M12 21.3 3.1 12.4A5.7 5.7 0 0 1 11.2 4l.8.8.8-.8a5.7 5.7 0 0 1 8.1 8.4Z"/></svg>'}</span>${htmlEscape(n === '1' ? settings.child1 : settings.child2)}</button>`).join('')}
+        ${kids.map((c, i) => `<button type="button" data-np-action="child" data-child="${htmlEscape(c.id)}" aria-pressed="${String(child()) === String(c.id)}" class="np-traveler ${String(child()) === String(c.id) ? 'selected' : ''}"><span class="np-traveler-symbol ${i === 0 ? 'np-purple' : i === 1 ? 'np-pink' : ''}">${i === 1 ? '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path fill="currentColor" d="M12 21.3 3.1 12.4A5.7 5.7 0 0 1 11.2 4l.8.8.8-.8a5.7 5.7 0 0 1 8.1 8.4Z"/></svg>' : starIcon(17)}</span>${htmlEscape(c.name)}</button>`).join('')}
       </div>
     </div>`;
   }
@@ -350,7 +362,7 @@
       exitKid();
     } else if (action === 'child') {
       const nextChild = node.dataset.child;
-      if (!['1', '2'].includes(nextChild)) return;
+      if (!familyChildren().some(c => String(c.id) === nextChild)) return;
       if (nextChild !== appState.kidSelected) {
         if (typeof resetKidDraft === 'function') resetKidDraft();
         appState.kidSelected = nextChild;
