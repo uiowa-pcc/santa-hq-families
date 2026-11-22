@@ -1850,8 +1850,8 @@ async function moveToPlan(id,lane,beforeId=null){
 async function lockGiftIn(id,place='tree'){
  const g=appState.gifts.find(x=>x.id===id);if(!g)return;
  const nextPlace=place==='stocking'?'stocking':'tree';
- const updated={...g,status:'To buy',giftPlacement:nextPlace,category:categoryFromPlacement(nextPlace,g.category,g.categoryBeforeStocking),planLane:placementLane(g,nextPlace),updatedAt:new Date().toISOString()};
- try{await putGift(updated);appState.gifts=appState.gifts.map(x=>x.id===id?updated:x);appState.compareIds=compareIds().filter(x=>x!==id);render();await cloudPutGift(updated);showToast(`Locked in for ${nextPlace==='stocking'?'the stocking':'under the tree'} and added to your shopping list`);}
+ const updated={...applyPlacement(g,nextPlace),status:bought(g)?g.status:'To buy',lockedIn:true,updatedAt:new Date().toISOString()};
+ try{await putGift(updated);appState.gifts=appState.gifts.map(x=>x.id===id?updated:x);appState.compareIds=compareIds().filter(x=>x!==id);render();await cloudPutGift(updated);showToast(`Confirmed ${nextPlace==='stocking'?'for the stocking':'under the tree'}${!bought(g)&&g.status!=='To buy'?' and added to your shopping list':''}`);}
  catch(err){console.error(err);showToast('Could not lock in this gift.');render();}
 }
 
@@ -1914,10 +1914,10 @@ d.ghost.style.left=Math.max(2,Math.min(innerWidth-d.rect.width-2,e.clientX-d.rec
 function sqPointerEnd(cancel){document.removeEventListener('pointermove',sqPointerMove);document.removeEventListener('pointerup',sqPointerUp);document.removeEventListener('pointercancel',sqPointerCancel);let d=sqDragging;sqDragging=null;if(!d)return;d.ghost?.remove();d.card.classList.remove('sq-source');document.querySelectorAll('.sq-hover,.sq-before').forEach(x=>x.classList.remove('sq-hover','sq-before'));if(!cancel&&d.active&&d.zone){nwSelectedId=null;if(appState.giftView==='compare'){
  const gift=appState.gifts.find(g=>g.id===d.id);
  const target=document.elementFromPoint(d.lastX,d.lastY)?.closest('[data-sq-card]');
- if(gift?.kid!==d.zone.dataset.sqZone||target===d.card)return;
+ if(!gift||target===d.card)return;
  const cards=[...d.zone.querySelectorAll('[data-sq-card]')].filter(card=>card!==d.card);
  const next=cards.find(card=>{const rect=card.getBoundingClientRect();return d.lastY<rect.top+rect.height/2;});
- void moveBoardGift(d.id,gift.kid,d.zone.dataset.sqPlace,next?.dataset.sqCard);
+ void moveBoardGift(d.id,d.zone.dataset.sqZone,d.zone.dataset.sqPlace,next?.dataset.sqCard);
 }else void sqMove(d.id,d.zone.dataset.sqZone,d.zone.dataset.sqPlace,d.before)}}
 function sqPointerUp(){sqPointerEnd(false)}function sqPointerCancel(){sqPointerEnd(true)}
 
@@ -1999,7 +1999,6 @@ const giftPileLabels={undecided:'Ideas',tree:'Under the Tree',stocking:'Stocking
 let boardRecipient='',
     boardOpenPiles=new Set(['undecided']),
     morningPile='tree',
-    morningBoughtOnly=false,
     boardMoveBusy=false,
     boardUndo=null;
 
@@ -2010,20 +2009,29 @@ function selectedBoardRecipient(){
  return available.includes(saved)?saved:available[0];
 }
 
-function boardGiftRow(g,index=0,count=0,compare=false){
+function boardGiftRow(g){
  const id=escapeHTML(g.id),name=escapeHTML(g.name),image=safeImage(g.image);
- const status=bought(g)?'Bought':g.status==='To buy'?'On shopping list':compare?'Planned':'';
- return `<article class="gift-simple-row" data-sq-card="${id}">
-  ${compare&&count>1?`<span class="gift-drag wb-handle" data-sq-grab="${id}" title="Drag to reorder" aria-hidden="true">⠿</span>`:''}
+ const status=bought(g)?'Bought':g.status==='To buy'?'On shopping list':'';
+ return `<article class="gift-simple-row">
   <button class="gift-simple-detail" type="button" data-action="board-details" data-id="${id}">
    ${image?`<img src="${escapeHTML(image)}" alt="" loading="lazy">`:''}
    <span><strong>${name}</strong><small>${giftPriceLabel(g)}${status?' · '+status:''}</small></span>
   </button>
-  ${compare?`<div class="gift-compare-actions">
-   <button type="button" data-action="board-reorder" data-id="${id}" data-direction="-1" aria-label="Move ${name} up" ${index===0?'disabled':''}>↑</button>
-   <button type="button" data-action="board-reorder" data-id="${id}" data-direction="1" aria-label="Move ${name} down" ${index===count-1?'disabled':''}>↓</button>
-   <button type="button" data-action="board-move-menu" data-id="${id}" aria-label="Move ${name} to another pile">Move</button>
-  </div>`:''}
+ </article>`;
+}
+
+function morningConfirmed(g){
+ return isLocked(g)&&(g.status==='To buy'||bought(g));
+}
+
+function morningGiftRow(g){
+ const id=escapeHTML(g.id),name=escapeHTML(g.name),image=safeImage(g.image);
+ return `<article class="gift-morning-card" data-sq-card="${id}">
+  <button type="button" class="gift-simple-detail" data-action="board-move-menu" data-id="${id}" aria-label="Move ${name}">
+   ${image?`<img src="${escapeHTML(image)}" alt="" loading="lazy">`:''}
+   <span><strong>${name}</strong></span>
+  </button>
+  <span class="gift-drag wb-handle" data-sq-grab="${id}" title="Drag to move" aria-hidden="true">⠿</span>
  </article>`;
 }
 
@@ -2051,6 +2059,10 @@ function openBoardGift(id){
  const g=appState.gifts.find(gift=>gift.id===id);
  if(!g)return;
  const image=safeImage(g.image),link=safeLink(g.link);
+ const place=giftPlacement(g)==='stocking'&&g.kid!=='both'?'stocking':'tree';
+ const destination=place==='stocking'?'for Stocking':'Under the Tree';
+ const canConfirm=(childIds().includes(g.kid)||g.kid==='both')&&!morningConfirmed(g);
+ const confirmLabel=bought(g)||g.status==='To buy'?`Confirm ${destination}`:`Confirm ${destination} & Add to Shopping List`;
  const moves=Object.entries(giftPileLabels).filter(([place])=>place!==giftPlacement(g)&&(place!=='stocking'||g.kid!=='both'));
  modalOpen(escapeHTML(g.name),`<div class="gift-detail-body">
   ${image?`<img class="gift-detail-photo" src="${escapeHTML(image)}" alt="">`:''}
@@ -2058,13 +2070,18 @@ function openBoardGift(id){
   ${g.notes?`<p>${escapeHTML(g.notes)}</p>`:''}
   ${link?`<a href="${escapeHTML(link)}" target="_blank" rel="noopener noreferrer">Open product link</a>`:''}
   <div class="gift-board-tabs" role="group" aria-label="Move to another pile">${moves.map(([place,label])=>`<button type="button" data-action="board-move" data-id="${escapeHTML(id)}" data-kid="${escapeHTML(g.kid)}" data-place="${place}">Move to ${label}</button>`).join('')}</div>
- </div>`,`<button type="button" class="secondary" data-action="edit" data-id="${escapeHTML(id)}">Edit details</button><button type="button" class="secondary" data-action="board-move-menu" data-id="${escapeHTML(id)}">Change recipient</button><button type="button" class="secondary" data-action="duplicate" data-id="${escapeHTML(id)}">Duplicate</button>${!bought(g)&&g.status!=='To buy'?`<button type="button" class="primary" data-action="board-shop" data-id="${escapeHTML(id)}">Add to Shopping List</button>`:''}`);
+ </div>`,`<button type="button" class="secondary" data-action="edit" data-id="${escapeHTML(id)}">Edit details</button><button type="button" class="secondary" data-action="board-move-menu" data-id="${escapeHTML(id)}">Change recipient</button><button type="button" class="secondary" data-action="duplicate" data-id="${escapeHTML(id)}">Duplicate</button>${canConfirm?`<button type="button" class="primary" data-action="board-shop" data-id="${escapeHTML(id)}" data-place="${place}">${confirmLabel}</button>`:''}`);
 }
 
 function openBoardMove(id){
  const g=appState.gifts.find(gift=>gift.id===id);
  if(!g)return;
- modalOpen('Move gift',`<p>${escapeHTML(g.name)}</p><div class="sq-move-grid">${[...childIds(),'both'].map(k=>`<section><strong>${escapeHTML(kidName(k))}</strong><div>${Object.entries(giftPileLabels).filter(([place])=>!(k==='both'&&place==='stocking')&&(k!==g.kid||place!==giftPlacement(g))).map(([place,label])=>`<button type="button" data-action="board-move" data-id="${escapeHTML(id)}" data-kid="${escapeHTML(k)}" data-place="${place}">${label}</button>`).join('')}</div></section>`).join('')}</div>`,`<button type="button" class="secondary" data-action="close">Cancel</button>`);
+ const morning=appState.giftView==='compare';
+ const places=Object.entries(giftPileLabels).filter(([place])=>!morning||place!=='undecided');
+ const siblings=wbGifts(g.kid,giftPlacement(g)).filter(morningConfirmed);
+ const index=siblings.findIndex(item=>item.id===id);
+ const reorder=morning&&siblings.length>1?`<div class="gift-board-tabs" aria-label="Reorder in this pile">${[[-1,'Move up'],[1,'Move down']].map(([dir,label])=>`<button type="button" data-action="board-reorder" data-id="${escapeHTML(id)}" data-direction="${dir}" ${!siblings[index+dir]?'disabled':''}>${label}</button>`).join('')}</div>`:'';
+ modalOpen('Move gift',`<p>${escapeHTML(g.name)}</p>${reorder}<div class="sq-move-grid">${[...childIds(),'both'].map(k=>`<section><strong>${escapeHTML(kidName(k))}</strong><div>${places.filter(([place])=>!(k==='both'&&place==='stocking')&&(k!==g.kid||place!==giftPlacement(g))).map(([place,label])=>`<button type="button" data-action="board-move" data-id="${escapeHTML(id)}" data-kid="${escapeHTML(k)}" data-place="${place}">${label}</button>`).join('')}</div></section>`).join('')}</div>`,`<button type="button" class="secondary" data-action="close">Cancel</button>`);
 }
 
 async function saveBoardMove(changed){
@@ -2082,6 +2099,10 @@ async function moveBoardGift(id,kid,place,before=null){
  const siblings=wbGifts(kid,place).filter(g=>g.id!==id);
  const destination=siblings.findIndex(g=>g.id===before);
  const moved=gift.kid===kid&&giftPlacement(gift)===place?gift:applyPlacement({...gift,kid},place);
+ if(place==='undecided'&&moved!==gift){
+  moved.lockedIn=false;
+  if(moved.status==='To buy')moved.status='Idea';
+ }
  siblings.splice(destination<0?siblings.length:destination,0,moved);
  const now=new Date().toISOString(),previous=[];
  const changed=siblings.flatMap((g,index)=>{
@@ -2122,7 +2143,7 @@ function reorderMorningGift(id,direction){
  const gift=appState.gifts.find(g=>g.id===id);
  if(!gift)return;
  const siblings=wbGifts(gift.kid,morningPile);
- const visible=siblings.filter(g=>!morningBoughtOnly||bought(g));
+ const visible=siblings.filter(morningConfirmed);
  const index=visible.findIndex(g=>g.id===id);
  const neighbor=visible[index+direction];
  if(index<0||!neighbor)return;
@@ -2165,18 +2186,18 @@ function sqMorningSection(place,title,kids,allLocked){
 
 function giftPlannerCompare(){
  const pile=(kid)=>{
-  const all=wbGifts(kid,morningPile),purchased=all.filter(bought);
-  const gifts=morningBoughtOnly?purchased:all;
+  const gifts=wbGifts(kid,morningPile).filter(morningConfirmed);
   return `<section class="gift-morning-pile" data-sq-zone="${escapeHTML(kid)}" data-sq-place="${morningPile}">
-   <header>${kid!=='both'?childChoiceIcon(kid):''}<h2>${escapeHTML(kid==='both'?'Shared gifts':kidName(kid))}</h2><small>${all.length} gifts · ${purchased.length} bought</small></header>
-   ${gifts.map((g,i)=>boardGiftRow(g,i,gifts.length,true)).join('')||`<p class="gift-pile-empty">${morningBoughtOnly?'No bought gifts yet.':'No gifts in this pile yet.'}</p>`}
+   <header>${kid!=='both'?childChoiceIcon(kid):''}<h2>${escapeHTML(kid==='both'?'Shared gifts':kidName(kid))}</h2><span class="gift-morning-count" aria-label="${gifts.length} confirmed gifts">${gifts.length}</span></header>
+   <div class="gift-morning-cards">${gifts.map(morningGiftRow).join('')||'<p class="gift-pile-empty">No confirmed gifts yet.</p>'}</div>
   </section>`;
  };
- return `<div class="gift-simple-board">
+ const hasShared=wbGifts('both',morningPile).some(morningConfirmed);
+ return `<div class="gift-simple-board gift-morning-board">
   <div class="gift-board-tools"><div class="gift-board-tabs" role="group" aria-label="Piles to compare">${[['tree','Under the Tree'],['stocking','Stockings']].map(([place,label])=>`<button type="button" data-action="board-morning-pile" data-place="${place}" aria-pressed="${place===morningPile}">${label}</button>`).join('')}</div>
-  <button type="button" class="secondary" data-action="board-bought" aria-pressed="${morningBoughtOnly}">Bought only</button></div>
+  <p>Drag or tap a gift to move it.</p></div>
   <div class="gift-morning-grid">${childIds().map(pile).join('')}</div>
-  ${morningPile==='tree'||wbGifts('both',morningPile).length?pile('both'):''}
+  ${morningPile==='tree'||hasShared?pile('both'):''}
  </div>`;
 }
 
@@ -2817,13 +2838,17 @@ case 'board-details':openBoardGift(id);break;
 case 'board-move-menu':openBoardMove(id);break;
 case 'board-move':
  modalClose();
+ if(appState.giftView==='compare')morningPile=el.dataset.place;
  if(el.dataset.kid===selectedBoardRecipient())boardOpenPiles.add(el.dataset.place);
  void moveBoardGift(id,el.dataset.kid,el.dataset.place);
  break;
-case 'board-shop':modalClose();void setGiftStatus(id,'To buy');break;
+case 'board-shop':
+ modalClose();
+ boardOpenPiles.add(el.dataset.place);
+ void lockGiftIn(id,el.dataset.place);
+ break;
 case 'board-morning-pile':morningPile=el.dataset.place;render();break;
-case 'board-bought':morningBoughtOnly=!morningBoughtOnly;render();break;
-case 'board-reorder':reorderMorningGift(id,Number(el.dataset.direction));break;
+case 'board-reorder':modalClose();reorderMorningGift(id,Number(el.dataset.direction));break;
 case 'morning-size':appState.morningCompact=!appState.morningCompact;render();break;case 'morning-prices':appState.morningPrices=!appState.morningPrices;render();break;case 'plan-menu':planMoveMenu(id);break;case 'plan-move':{const lane=el.dataset.lane;modalClose();moveToPlan(id,lane);break}case 'plan-up':shiftPlanCard(id,-1);break;case 'plan-down':shiftPlanCard(id,1);break;case 'nav':navigate(el.dataset.page);break;case 'home-open-plan':appState.holidayView=el.dataset.view||'overview';navigate('traditions');if(appState.holidayView==='hunt'){void loadHuntHQRounds();void loadUploadedHuntCharacters()}break;case 'home-open-gifts':appState.giftView='ideas';navigate('gifts');break;case 'enter-kid':enterKid();break;case 'change-pin':{if(settings.grownupPin&&prompt('Current PIN:')!==settings.grownupPin){showToast('Incorrect PIN.');break}const pin=prompt('Set a new 4–6 digit PIN:');if(pin===null)break;if(!/^\d{4,6}$/.test(pin)){showToast('Choose 4–6 digits.');break}settings.grownupPin=pin;saveSettingsLocal();showToast('Kid View PIN updated');break}case 'exit-kid':exitKid();break;case 'child-add':addChildSettings();break;case 'child-remove':removeChildSettings(el.dataset.kid);break;case 'kid-select':resetKidDraft();appState.kidSelected=el.dataset.kid;renderKidPortal();break;case 'kid-choice':appState.kidChoice=el.dataset.choice;document.querySelectorAll('.kid-topic').forEach(b=>b.classList.toggle('active',b.dataset.choice===appState.kidChoice));break;case 'kid-mode':resetKidDraft();appState.kidMode=el.dataset.mode;renderKidPortal();break;case 'kid-record':if(kidRecorder?.state==='recording')finishKidRecording();else startKidRecording();break;case 'kid-redo-record':resetKidDraft();renderKidPortal();break;case 'kid-dictate':kidDictate();break;case 'kid-color':kidDrawColor=el.dataset.color;document.querySelectorAll('.kid-color').forEach(b=>b.classList.toggle('active',b.dataset.color===kidDrawColor));break;case 'kid-undo':case 'kid-clear':kidCanvasAction(action);break;case 'kid-insert':{const input=document.getElementById('kidMessage');if(input)input.value+=(input.value?' ':'')+el.dataset.text.replace(/^[^ ]+ /,'');break}case 'kid-again':renderKidPortal();break;case 'delete-mail':deleteKidLetter(id);break;case 'mail-to-gift':openLetterGiftIdea(id);break;case 'reply-mail':replyMail(id);break;case 'read-mail':{const m=appState.messages.find(x=>x.id===id);if(m){putMail({...m,read:true}).then(render)}break}case 'gift-view':appState.giftView=el.dataset.view;render();break;case 'gift-ready':setGiftStatus(id,'To buy');break;case 'gift-watch':openGiftWatch(id);break;case 'gift-refresh-price':if(el.hasAttribute('data-close-options'))modalClose();void refreshDealPrices(id);break;case 'add-link':openLinkedGift();break;case 'gift-refresh-all':refreshDealPrices();break;case 'gift-unwatch':stopGiftWatch(id);break;case 'quick-lookup':quickLookupLink();break;case 'gift-go-shopping':appState.page='traditions';appState.holidayView='shopping';render();break;case 'go-lights-hunt':appState.page='traditions';appState.holidayView='hunt';render();void loadHuntHQRounds();void loadUploadedHuntCharacters();window.scrollTo({top:0,behavior:'smooth'});break;case 'shop-check':{const gift=appState.gifts.find(g=>g.id===id);if(gift&&gift.status==='To buy')setGiftStatus(id,'Bought');break;}case 'shop-undo':{const gift=appState.gifts.find(g=>g.id===id);if(gift&&bought(gift))setGiftStatus(id,'To buy');break;}case 'paste-gifts':openPasteGifts();break;case 'paste-back':pasteNavigate(-1);break;case 'paste-next':pasteNavigate(1);break;case 'paste-default-rest':pasteUseDefaults();break;case 'paste-duplicate':pasteDuplicateStockings();break;case 'paste-remove-copy':pasteRemoveCopy();break;case 'paste-review-back':pasteReviewBack();break;case 'paste-save':savePastedGifts();break;case 'sq-lock':nwSelectedId=null;void sqLock(id);break;case 'sq-unlock':void sqUnlock(id);break;case 'sq-move-menu':sqMoveMenu(id);break;case 'nw-select':nwSelect(id);break;case 'nw-ideas-toggle':{nwIdeasExpanded=!nwIdeasExpanded;const tray=document.querySelector('.nw-ideas');tray?.classList.toggle('is-expanded',nwIdeasExpanded);el.setAttribute('aria-expanded',String(nwIdeasExpanded));el.textContent=nwIdeasExpanded?'Show fewer ideas':`Show all ${el.dataset.ideasCount} ideas`;break;}case 'nw-drop':nwDropSelected(el.dataset.kid,el.dataset.place);break;case 'wb-options':wbOptionsMenu(id);break;case 'wb-unassigned':wbUnassignedMenu();break;case 'wb-assign':modalClose();void assignIdeaRecipient(id,el.dataset.kid);break;case 'wb-unlock':modalClose();void sqUnlock(id);break;case 'sq-move-to':modalClose();void sqMove(id,el.dataset.kid,el.dataset.place);break;case 'idea-quick':openRecipientQuickAdd(el.dataset.kid,el.dataset.category);break;case 'idea-assign':assignIdeaRecipient(id,el.dataset.kid);break;case 'add':openRecipientQuickAdd();break;case 'add-detailed':{const seed={name:document.getElementById('recipientQuickName')?.value.trim()||'',kid:document.querySelector('#recipientQuickForm input[name="quickKid"]:is(:checked,[type=hidden])')?.value||'unassigned',category:categoryFromPlacement(document.querySelector('#recipientQuickForm input[name="quickPlace"]:is(:checked,[type=hidden])')?.value||'undecided'),price:document.getElementById('recipientQuickPrice')?.value||'',notes:document.getElementById('recipientQuickNotes')?.value||'',link:safeLink(document.getElementById('recipientQuickLink')?.value)||'',image:quickImportImage,keepAsIdea:!!document.querySelector('#recipientQuickForm input[name="quickPlace"][type=hidden]')};openGift(null,seed);break}case 'duplicate':openDuplicateGift(id);break;case 'idea-compare':toggleIdeaCompare(id);break;case 'gift-lock-tree':lockGiftIn(id,'tree');break;case 'gift-lock-stocking':lockGiftIn(id,'stocking');break;case 'idea-confirm-tree':changeIdeaPlacement(id,'tree');break;case 'idea-placement':changeIdeaPlacement(id,el.dataset.category);break;case 'close':modalClose();break;case 'edit':openGift(appState.gifts.find(g=>g.id===id));break;case 'delete':deleteGift(id);break;case 'next':advanceGift(id,el.dataset.next);break;case 'open-link':{let g=appState.gifts.find(x=>x.id===id);if(safeLink(g?.link))window.open(g.link,'_blank','noopener,noreferrer');break}case 'export':exportJSON();break;case 'csv':exportCSV();break;case 'import':document.getElementById('importFile')?.click();break;case 'clear':if(appState.online){showToast('Disconnect family sync before clearing local gifts.');return}if(confirm('Delete all gift records saved on this device? Export a backup first if you want one.'))replaceGifts([]).then(()=>{appState.gifts=[];render();showToast('Device data cleared')});break;case 'generate-id':document.getElementById('familyId').value='northpole-'+makeId().slice(0,16);break;case 'signin':cloudSignIn();break;case 'signout':cloudSignOut();break;case 'invite':copyInvite();break}}
 async function boot(){try{db=await initDB();appState.gifts=await readGifts()}catch(e){alert('This browser could not open its local gift database. Please try Safari or Chrome, or host this app online.');return}try{settings={...DEFAULT,...JSON.parse(localStorage.getItem('santa_hq_settings_'+(window.SANTA_FAMILY_ID||'guest'))||'{}')}}catch{}appState.messages=await loadMail();processIncoming();render();document.addEventListener('click',actionHandler);document.addEventListener('pointerdown',planningPointerDown,{passive:false});document.addEventListener('pointerdown',sqPointerDown,{passive:false});document.addEventListener('keydown',e=>{let h=e.target.closest?.('[data-sq-grab]');if(h&&(e.key==='Enter'||e.key===' ')){e.preventDefault();sqMoveMenu(h.dataset.sqGrab)}});document.getElementById('mobileAdd').addEventListener('click',()=>openRecipientQuickAdd());document.getElementById('overlay').addEventListener('click',e=>{if(e.target.id==='overlay')modalClose()});document.addEventListener('keydown',e=>{if(e.key==='Escape')modalClose()});document.addEventListener('submit',e=>{if(e.target.id==='holidayTaskForm')saveHolidayTask(e);if(e.target.id==='holidaySupplyForm')saveHolidaySupply(e);if(e.target.getAttribute('id')==='traditionForm')saveTradition(e);if(e.target.id==='pasteGiftForm')beginPasteSort(e);if(e.target.id==='pasteCardForm'){e.preventDefault();pasteNavigate(1)}if(e.target.id==='recipientQuickForm')saveRecipientQuickIdea(e);if(e.target.id==='giftWatchForm')saveGiftWatch(e);if(e.target.id==='duplicateGiftForm')saveDuplicateGift(e);if(e.target.id==='ideaQuickForm')addQuickIdea(e);if(e.target.id==='familyForm')saveFamily(e);if(e.target.id==='firebaseForm')saveCloudConfig(e);if(e.target.id==='kidMessageForm'){void submitKidMessage(e);} if(e.target.id==='replyMailForm'){e.preventDefault();const id=document.getElementById('replyId')?.value,msg=appState.messages.find(m=>m.id===id);if(msg){putMail({...msg,reply:document.getElementById('santaReply').value.trim(),read:true}).then(()=>{modalClose();render();showToast('Santa’s reply is ready ')})}}});document.addEventListener('change',e=>{if(e.target.matches('[data-gift-stage]')){setGiftStatus(e.target.dataset.id,e.target.value);}if(e.target.matches('[data-paste-entry]')){pasteReviewChoices();updatePasteReviewTotals()}if(e.target.id==='huntStandaloneTheme')appState.huntStandaloneTheme=e.target.value;if(e.target.id==='huntPlayMode')appState.huntPlayMode=e.target.value;if(e.target.id==='filterKid'){appState.filterKid=e.target.value;render()}if(e.target.id==='filterStatus'){appState.filterStatus=e.target.value;render()}if(e.target.id==='filterCat'){appState.filterCat=e.target.value;render()}if(e.target.id==='kidMediaFile')kidMediaPick(e.target.files?.[0]);if(e.target.id==='importFile'&&e.target.files[0])importJSON(e.target.files[0])});document.addEventListener('input',e=>{if(e.target.id==='huntCollectionTitle')appState.huntCollectionDraft=e.target.value;if(e.target.id==='searchInput'){appState.search=e.target.value;const grid=document.getElementById('giftResults');if(grid)grid.innerHTML=filteredGifts().length?giftListRows(filteredGifts()):'<p class="gp-no-results">No matching gifts.</p>'}});if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});openPendingSharedGift();void loadUploadedHuntCharacters()}
 
