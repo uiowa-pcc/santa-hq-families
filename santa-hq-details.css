@@ -363,3 +363,23 @@
   .gift-morning-card .gift-drag{width:23px;flex-basis:23px}
   .gift-morning-pile .gift-simple-detail img{width:26px;height:26px}
 }
+
+/* Gift Board confirmation */
+.gift-confirm-hint{margin:0;color:#595463;font-size:.85rem}
+.gift-confirm-button,.gift-confirmed,.gift-confirm-needs-recipient{
+  display:inline-flex;align-items:center;gap:5px;flex:none;margin-left:auto;
+  font:inherit;font-size:.8rem;font-weight:750;white-space:nowrap
+}
+.gift-confirm-button{
+  min-height:44px;padding:4px 8px;border:1px solid #ddd2e5;border-radius:9px;
+  color:#51385d;background:#fcf9fd;cursor:pointer
+}
+.gift-confirm-button:hover{background:#eee4f6}
+.gift-confirm-button:disabled{opacity:.55}
+.gift-confirmed{padding:5px 8px;border-radius:8px;background:#e9f3ec;color:#23553b}
+.gift-confirm-needs-recipient{padding:5px;color:#65516d}
+.gift-confirm-box{
+  display:grid;place-items:center;flex:none;width:16px;height:16px;
+  border:1px solid currentColor;border-radius:4px;line-height:1
+}
+.gift-confirmed .gift-confirm-box{background:#2c6548;color:#fff;border-color:#2c6548}

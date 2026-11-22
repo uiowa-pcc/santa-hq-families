@@ -1,11 +1,15 @@
-# Santa HQ Gift Board update
+# Santa HQ Christmas Morning update
 
-Replace these files at the root of your existing Santa HQ repository and commit the changes to trigger your usual Cloudflare deployment.
+Replace these three files at the root of your existing Santa HQ repository, then commit to trigger the usual Cloudflare deployment.
 
 - index.html
 - santa-hq-details.css
 - sw.js
 
-This patch is based on the Santa Mail photo-to-gift release. It uses the existing gift storage and family sync. The update requires no Worker, database migration, or Cloudflare settings changes.
+This patch includes the simplified Gift Board and the confirmed-gifts view. It requires no Worker or database changes.
 
-After deploying, open Plan Gifts. Pick a child and use **Add idea**. Open a gift to move it to a pile or add it to Shopping. In **Christmas Morning**, choose **Under the Tree** or **Stockings** and use the drag handle or arrow buttons to rearrange gifts. Use **Move** to change the recipient or pile.
+On Gift Board, open an idea and choose **Confirm Under the Tree & Add to Shopping List**. For a stocking idea, use the stocking confirmation. The gift appears both in Shopping and on Christmas Morning. Gifts already purchased keep their purchase status.
+
+In Christmas Morning, select a pile and drag a gift by its handle or tap the gift to choose where it goes. Returning a gift to Ideas from Gift Board removes it from Christmas Morning and, if it was still to buy, from Shopping.
+
+Gift Board rows now have a **Confirm & shop** button for ideas and a green **Confirmed** checkmark for gifts already confirmed. The row button uses the selected pile, or Under the Tree for an unsorted idea. Tap the gift name to open its details.

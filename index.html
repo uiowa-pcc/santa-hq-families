@@ -2009,14 +2009,31 @@ function selectedBoardRecipient(){
  return available.includes(saved)?saved:available[0];
 }
 
+function boardConfirmation(g){
+ const place=giftPlacement(g)==='stocking'&&g.kid!=='both'?'stocking':'tree';
+ const eligible=childIds().includes(g.kid)||g.kid==='both';
+ const addsToShopping=!bought(g)&&g.status!=='To buy';
+ const destination=place==='stocking'?'for Stocking':'Under the Tree';
+ return {place,eligible,addsToShopping,label:`Confirm ${destination}${addsToShopping?' & Add to Shopping List':''}`};
+}
+
 function boardGiftRow(g){
  const id=escapeHTML(g.id),name=escapeHTML(g.name),image=safeImage(g.image);
  const status=bought(g)?'Bought':g.status==='To buy'?'On shopping list':'';
+ const confirmation=boardConfirmation(g);
+ const check='<span class="gift-confirm-box" aria-hidden="true">✓</span>';
+ let control='<span class="gift-confirm-needs-recipient">Assign first</span>';
+ if(morningConfirmed(g)){
+  control=`<span class="gift-confirmed">${check}Confirmed</span>`;
+ }else if(confirmation.eligible){
+  control=`<button type="button" class="gift-confirm-button" data-action="board-confirm-row" data-id="${id}" data-place="${confirmation.place}" aria-label="${confirmation.label} for ${name}"><span class="gift-confirm-box" aria-hidden="true"></span>${confirmation.addsToShopping?'Confirm & shop':'Confirm'}</button>`;
+ }
  return `<article class="gift-simple-row">
   <button class="gift-simple-detail" type="button" data-action="board-details" data-id="${id}">
    ${image?`<img src="${escapeHTML(image)}" alt="" loading="lazy">`:''}
    <span><strong>${name}</strong><small>${giftPriceLabel(g)}${status?' · '+status:''}</small></span>
   </button>
+  ${control}
  </article>`;
 }
 
@@ -2044,6 +2061,7 @@ function giftPlannerIdeas(){
    <div class="gift-board-tabs" role="group" aria-label="Gift recipient">${recipients.map(k=>`<button type="button" data-action="board-recipient" data-kid="${escapeHTML(k)}" aria-pressed="${k===kid}">${childIds().includes(k)?childChoiceIcon(k):''}${escapeHTML(k==='unassigned'?'Unassigned':k==='both'&&childIds().length===2?'Both':kidName(k))}</button>`).join('')}</div>
    <button type="button" class="primary" data-action="board-add">+ Add idea</button>
   </div>
+  <p class="gift-confirm-hint">Confirm &amp; shop adds the gift to Shopping and Christmas Morning.</p>
   ${Object.entries(giftPileLabels).map(([place,label])=>{
    const gifts=wbGifts(kid,place);
    if(place==='stocking'&&kid==='both'&&!gifts.length)return '';
@@ -2059,10 +2077,8 @@ function openBoardGift(id){
  const g=appState.gifts.find(gift=>gift.id===id);
  if(!g)return;
  const image=safeImage(g.image),link=safeLink(g.link);
- const place=giftPlacement(g)==='stocking'&&g.kid!=='both'?'stocking':'tree';
- const destination=place==='stocking'?'for Stocking':'Under the Tree';
- const canConfirm=(childIds().includes(g.kid)||g.kid==='both')&&!morningConfirmed(g);
- const confirmLabel=bought(g)||g.status==='To buy'?`Confirm ${destination}`:`Confirm ${destination} & Add to Shopping List`;
+ const {place,eligible,label:confirmLabel}=boardConfirmation(g);
+ const canConfirm=eligible&&!morningConfirmed(g);
  const moves=Object.entries(giftPileLabels).filter(([place])=>place!==giftPlacement(g)&&(place!=='stocking'||g.kid!=='both'));
  modalOpen(escapeHTML(g.name),`<div class="gift-detail-body">
   ${image?`<img class="gift-detail-photo" src="${escapeHTML(image)}" alt="">`:''}
@@ -2841,6 +2857,11 @@ case 'board-move':
  if(appState.giftView==='compare')morningPile=el.dataset.place;
  if(el.dataset.kid===selectedBoardRecipient())boardOpenPiles.add(el.dataset.place);
  void moveBoardGift(id,el.dataset.kid,el.dataset.place);
+ break;
+case 'board-confirm-row':
+ el.disabled=true;
+ boardOpenPiles.add(el.dataset.place);
+ void lockGiftIn(id,el.dataset.place).finally(()=>{el.disabled=false;});
  break;
 case 'board-shop':
  modalClose();
