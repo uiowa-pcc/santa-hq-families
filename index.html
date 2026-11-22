@@ -1361,13 +1361,159 @@ body:has(.nw-worktable) .content{max-width:1560px;padding:14px clamp(12px,2vw,29
 .cp-hunt-photo-mode label>input{width:22px;height:22px;accent-color:#6c58ca;flex:none;margin-top:2px}
 .cp-hunt-photo-mode span{display:grid;gap:4px}.cp-hunt-photo-mode strong{font-size:15px}.cp-hunt-photo-mode small{font-size:12px;line-height:1.5;color:#716f84}
 </style>
+<style>
+/* Santa HQ season design */
+:root{
+ --season-canvas:#f7f5ef;
+ --season-paper:#fffefa;
+ --season-ink:#243832;
+ --season-muted:#58665e;
+ --season-line:#e2e6dc;
+ --season-pine:#183c33;
+ --season-leaf:#dbe9df;
+ --season-gold:#f1d6a1;
+ --season-display:Fraunces, Georgia, serif;
+}
+body:has(.app) {background:var(--season-canvas)}
+.app .main{background:transparent;min-width:0}
+.app .sidebar{
+ background:#17372f;color:#edf3e9;border:0;box-shadow:none;
+ padding-top:28px;gap:26px;
+}
+.app .sidebar .logo strong{font-family:var(--season-display);color:#fff8e8;font-size:25px;letter-spacing:-.8px}
+.app .sidebar .logo-mark{background:#fff3dc;box-shadow:none;border-radius:13px}
+.app .sidebar .side-nav{gap:6px}
+.app .side-nav .nav-btn{color:#e5eee7;border:1px solid transparent;border-radius:10px;background:transparent;box-shadow:none}
+.app .side-nav .nav-btn:hover{background:#ffffff14}
+.app .side-nav .nav-btn.active{background:#ffffff20;color:#fff1d3;border-color:#ffffff22}
+.app .sidebar .side-kid-launch{background:#ffffff0e;color:#fff7e6;border:1px solid #ffffff26;box-shadow:none}
+.app .sidebar .side-kid-launch small,.app .sidebar .sync-indicator{color:#d4e3d8}
+.app .topbar{
+ background:#fffdf8;border-bottom:1px solid var(--season-line);box-shadow:none;color:var(--season-ink);
+}
+.app .topbar-title,.app .mobile-top-logo{color:var(--season-pine)}
+.app .topbar .countdown{color:var(--season-pine);background:var(--season-leaf);border:0}
+.app .topbar :is(.top-kid,.top-setting){color:var(--season-pine);background:#f0f3ea;border:1px solid var(--season-line);box-shadow:none}
+.app .content{max-width:1360px;margin-inline:auto;color:var(--season-ink)}
+.app .content .primary,.app .content .season-hero-button{
+ background:var(--season-pine);color:#fffaf0;border:1px solid transparent;box-shadow:none;
+}
+.app .content .primary:hover{background:#285547}
+.app .content :is(.heading,.sectiontitle){color:var(--season-ink)}
+.app .content :is(.headrow .heading,.sectiontitle){font-family:var(--season-display)}
+.app .content .headrow .eyebrow{color:#53685a}
+.app .content :is(.panel,.settings-card,.kid-card,.tp-calendar,.cp-shop-row){
+ border-color:var(--season-line);box-shadow:0 3px 12px #233a2f08;
+}
+.mobile-nav{background:#fffdf8;border-top:1px solid var(--season-line)}
+.mobile-nav .nav-btn{color:#56665d;background:transparent;box-shadow:none}
+.mobile-nav .nav-btn.active{color:var(--season-pine);background:var(--season-leaf)}
+.mobile-add{background:var(--season-pine);color:white}
+.season-home{display:grid;gap:25px}
+.season-hero{
+ position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:1.12fr 1fr;
+ min-height:350px;border-radius:26px;background:radial-gradient(ellipse at 79% 54%,#446353,#22483b 46%,#15352d 80%);
+ color:#fff8e8;
+}
+.season-hero-copy{position:relative;z-index:1;align-self:center;padding:clamp(23px,4.6vw,65px);padding-right:0}
+.season-countdown{display:inline-flex;align-items:center;gap:7px;margin:0 0 17px;padding:6px 10px;border:1px solid #ffffff3d;border-radius:99px;color:#f6e7c7;font-weight:700;font-size:12px}
+.season-countdown svg,.season-hero-button svg{width:16px;height:16px}
+.season-hero h1,.season-gift-header h1{
+ margin:0;font:650 clamp(43px,6.2vw,95px)/.94 var(--season-display);letter-spacing:-.045em;
+}
+.season-hero h1 em{color:#f3d795;font-weight:550}
+.season-hero-intro{max-width:33ch;margin:17px 0 20px;color:#f2f1e5;font-size:clamp(13px,1.4vw,17px);line-height:1.5}
+.app .content .season-hero-button{
+ display:inline-flex;align-items:center;gap:11px;min-height:45px;padding:9px 14px;border-radius:10px;
+ background:#f4dbaa;color:#213e34;font:inherit;font-weight:800;cursor:pointer;
+}
+.app .content .season-hero-button:hover{background:#ffe9bc}
+.season-hero-art{position:relative;display:grid;place-items:end center;min-width:0}
+.season-hero-art:before{
+ content:"";position:absolute;inset:8% 7% 0;border-radius:50% 50% 0 0;
+ background:radial-gradient(ellipse at 50% 52%,#f7dda84d 0,transparent 70%);
+}
+.season-hero-art img{z-index:1;width:100%;max-width:500px;height:100%;max-height:470px;object-fit:contain;object-position:center bottom;position:relative;filter:drop-shadow(0 14px 16px #102b2a55)}
+.season-collection h2{margin:0 0 11px;font:650 27px/1.1 var(--season-display);letter-spacing:-.025em}
+.season-destinations,.season-shortcuts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.season-destination,.season-shortcuts button{
+ min-width:0;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;
+ padding:14px;border:1px solid var(--season-line);border-radius:13px;background:var(--season-paper);
+ color:var(--season-ink);cursor:pointer;text-align:left;font:inherit;
+}
+.season-destination:hover,.season-shortcuts button:hover{border-color:#8eaa96;background:#f8fcf6}
+.season-destination strong,.season-shortcuts strong{display:block;font-weight:800;font-size:15px}
+.season-destination small,.season-shortcuts small{display:block;margin-top:3px;color:var(--season-muted);line-height:1.25}
+.season-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:11px;background:#e1ece3;color:#285142}
+[data-tone="rose"] .season-icon{background:#f3e2e1;color:#734342}
+[data-tone="lavender"] .season-icon{background:#ebe8f4;color:#574677}
+[data-tone="gold"] .season-icon{background:#f8eed7;color:#725423}
+.season-icon svg{width:19px;height:19px}
+.season-arrow svg,.season-shortcuts button>svg{width:17px;height:17px;color:#486357}
+.season-budget{padding:13px 16px;border:1px solid var(--season-line);border-radius:13px;background:var(--season-paper)}
+.season-budget summary{cursor:pointer;font-weight:800}
+.season-budget summary span{margin-left:8px;font-weight:500;color:var(--season-muted)}
+.season-budget .kid-grid{margin-block:12px}
+.season-gift-header{
+ display:flex;justify-content:space-between;align-items:center;gap:15px;padding:24px;
+ border:1px solid #dce5da;border-radius:19px;background:linear-gradient(112deg,#e4eee4,#f2f5e7);color:var(--season-pine);
+ margin-bottom:13px;
+}
+.season-gift-header h1{font-size:clamp(33px,5vw,58px)}
+.season-gift-header p{margin:9px 0 0;color:#405b4e;font-size:14px}
+.season-gift-mark{display:grid;place-items:center;width:60px;height:60px;flex:none;border-radius:18px;background:#ffffffa8}
+.season-gift-mark svg{width:29px;height:29px}
+.season-gifts[data-gift-view="compare"] .season-gift-header{background:linear-gradient(112deg,#f5e8cf,#faf5e8);border-color:#ebe0c9}
+.season-gifts .wb-view-switch{background:#e9eee5;border:1px solid var(--season-line);padding:4px}
+.season-gifts .wb-view-switch button {font-size:13px;min-height:38px;color:#506357}
+.season-gifts .wb-view-switch button.active{background:var(--season-paper);color:var(--season-pine)}
+.season-gifts .gift-idea-board .gift-board-tools{padding:6px;background:#edf1e9;border-color:var(--season-line)}
+.season-gifts .gift-board-tabs button{border-color:var(--season-line);color:#305447}
+.season-gifts .gift-board-tabs button[aria-pressed="true"]{background:var(--season-paper);border-color:#b4c8b7;color:#214a3b}
+.season-gifts :is(.gift-simple-pile,.gift-morning-pile){border-color:var(--season-line);background:var(--season-paper)}
+.season-gifts .gift-pile-heading,.season-gifts .gift-morning-pile>header{background:#eaf0e7;color:#254638;border-color:var(--season-line)}
+.season-gifts .gift-morning-grid .gift-morning-pile:nth-child(even)>header{background:#f3e9e4}
+.season-gifts .gift-pile-heading small{background:#dbe8dc;color:#37584a}
+.season-gifts .gift-simple-row{border-color:#edf0e8}
+.season-gifts .gift-simple-row[data-confirmed="true"]{background:#f2f8f0}
+.season-gifts .gift-board-grip{color:#62776b}
+.season-gifts .gift-board-grip:hover,.season-gifts .gift-board-grip:focus-visible{background:#e4ede2;color:#244839}
+.season-gifts .gift-confirm-toggle{color:#4c6255}
+.season-gifts .gift-confirm-hint,.season-gifts .gift-pile-empty{color:var(--season-muted)}
+.season-gifts .gift-morning-card{border-color:var(--season-line)}
+.season-gifts .gift-drop-dock{border-color:#b9cdbb}
+.season-gifts .gift-drop-dock [data-sq-zone]{border-color:#d6e3d6;background:#eef4eb;color:#244839}
+.season-gifts .gift-idea-board .sq-hover{outline-color:#4b795c!important;background:#e1efe0!important}
+:is(.season-home,.season-gifts) button:focus-visible{outline:2px solid #3c745c;outline-offset:2px}
+@media(max-width:760px){
+ .season-home{gap:19px}
+ .season-hero{min-height:280px;grid-template-columns:1.35fr 1fr;border-radius:18px}
+ .season-hero-copy{padding:21px 0 21px 17px}
+ .season-hero h1{font-size:clamp(34px,8.3vw,56px)}
+ .season-countdown{font-size:10px;margin-bottom:12px;padding:5px 7px}
+ .season-countdown svg{width:12px;height:12px}
+ .season-hero-intro{margin:12px 0;font-size:12px}
+ .season-hero-art img{width:150%;max-width:none;margin-right:20%;align-self:end;height:auto}
+ .season-hero-art{overflow:hidden}
+ .season-destination,.season-shortcuts button{gap:7px;padding:9px}
+ .season-icon{width:32px;height:32px;border-radius:8px}
+ .season-destination strong,.season-shortcuts strong{font-size:13px}
+ .season-destination small{font-size:11px}
+ .season-arrow svg{width:13px}
+ .season-gift-header{padding:16px;border-radius:14px}
+ .season-gift-mark{width:43px;height:43px;border-radius:12px}
+ .season-gift-mark svg{width:22px;height:22px}
+ .season-gift-header p{font-size:12px}
+}
+@media(max-width:360px){.season-destination .season-arrow{display:none}.season-destination{grid-template-columns:auto minmax(0,1fr)}}
+</style>
 </head>
 <body><section id="familyGate" role="region" aria-label="Family account sign in"></section>
 <div class="app"><aside class="sidebar">
- <div class="logo"><div class="logo-mark"><img src="./icon-192.png" alt=""></div><div><strong>Santa HQ</strong><small>CHRISTMAS PLANNER</small></div></div>
+ <div class="logo"><div class="logo-mark"><img src="./icon-192.png" alt=""></div><div><strong>Santa HQ</strong></div></div>
  <nav class="side-nav" id="desktopNav"></nav>
- <div class="sidebar-bottom"><button class="side-kid-launch" data-action="enter-kid"><span class="kid-launch-symbol"><img src="./art/mailbox.svg" alt=""></span><span><strong>North Pole Post</strong><small>Kid-friendly view ↗</small></span></button><div class="elf-card"><div class="snow"><img src="./art/ornament.svg" alt=""></div><strong>Make room<br>for magic.</strong><p>The tiny details make the best memories.</p></div><div class="sync-indicator" id="sideSync"><i></i><span>Saved on this device</span></div></div>
- </aside><main class="main"><header class="topbar"><div class="topbar-title"><span class="dotstar"></span><span>SANTA HQ <span class="topbar-year">· 2026</span></span></div><div class="mobile-top-logo"><span class="mobile-brand-art"><img src="./icon-192.png" alt=""></span> santa hq<span class="brand-period">.</span></div><div class="topbar-actions"><span class="sync-dot" id="topSyncDot" title="Local gift storage" aria-label="Gift sync status"></span><div class="countdown" id="countdown">Tree Christmas countdown</div><button class="top-kid" data-action="enter-kid" title="Open the kid-friendly Santa mailbox">Mail <span>Kid view</span></button><button class="top-setting" data-action="nav" data-page="settings" aria-label="Settings">⚙</button></div></header><div class="content" id="content"></div></main></div>
+ <div class="sidebar-bottom"><button class="side-kid-launch" data-action="enter-kid"><span class="kid-launch-symbol"><img src="./art/mailbox.svg" alt=""></span><span><strong>North Pole Post</strong><small>Kid-friendly view ↗</small></span></button><div class="sync-indicator" id="sideSync"><i></i><span>Saved on this device</span></div></div>
+ </aside><main class="main"><header class="topbar"><div class="topbar-title"><span class="dotstar"></span><span>SANTA HQ <span class="topbar-year">· 2026</span></span></div><div class="mobile-top-logo"><span class="mobile-brand-art"><img src="./icon-192.png" alt=""></span> santa hq<span class="brand-period">.</span></div><div class="topbar-actions"><span class="sync-dot" id="topSyncDot" title="Local gift storage" aria-label="Gift sync status"></span><div class="countdown" id="countdown"></div><button class="top-kid" data-action="enter-kid" title="Open the kid-friendly Santa mailbox"><span>Kid view</span></button><button class="top-setting" data-action="nav" data-page="settings" aria-label="Settings">⚙</button></div></header><div class="content" id="content"></div></main></div>
 <nav class="mobile-nav" id="mobileNav"></nav><button class="mobile-add" aria-label="Add gift" id="mobileAdd">+</button>
 <div class="overlay" id="overlay" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div id="modalHeader" class="modal-header"></div><div class="modal-inner" id="modalBody"></div><div class="modal-footer" id="modalFooter"></div></div></div>
 <div class="toast" id="toast" role="status"></div><div id="kidPortal" class="kid-portal" hidden></div>
@@ -1463,7 +1609,7 @@ function renderCountdown(){
     ? 'Merry Christmas!'
     : `${sleeps} ${sleeps===1?'sleep':'sleeps'} until Christmas`;
 }
-function renderNav(){for(const id of ['desktopNav','mobileNav']){document.getElementById(id).innerHTML=navItems.filter(n=>id!=='mobileNav'||n[0]!=='settings').map(([page,icon,title])=>`<button class="nav-btn ${appState.page===page?'active':''}" data-action="nav" data-page="${page}">${ico(icon)}<span>${title}</span></button>`).join('')}const sync=document.getElementById('sideSync');sync.classList.toggle('online',appState.online);sync.querySelector('span').textContent=appState.online?'Family sync is on':'Saved on this device';const topDot=document.getElementById('topSyncDot');topDot.classList.toggle('online',appState.online);topDot.title=appState.online?'Connected: live family syncing':'Local storage: not yet synced';document.querySelector('.topbar-year').textContent='· '+new Date().getFullYear();renderCountdown()}
+function renderNav(){for(const id of ['desktopNav','mobileNav']){document.getElementById(id).innerHTML=navItems.filter(n=>id!=='mobileNav'||n[0]!=='settings').map(([page,icon,title])=>`<button class="nav-btn ${appState.page===page?'active':''}" aria-current="${appState.page===page?'page':'false'}" data-action="nav" data-page="${page}">${ico(icon)}<span>${title}</span></button>`).join('')}const sync=document.getElementById('sideSync');sync.classList.toggle('online',appState.online);sync.querySelector('span').textContent=appState.online?'Family sync is on':'Saved on this device';const topDot=document.getElementById('topSyncDot');topDot.classList.toggle('online',appState.online);topDot.title=appState.online?'Connected: live family syncing':'Local storage: not yet synced';document.querySelector('.topbar-year').textContent='· '+new Date().getFullYear();renderCountdown()}
 function heading(kicker,title,subtitle,action=true){return `<div class="headrow"><div><div class="eyebrow">${kicker}</div><h1 class="heading">${title}</h1>${subtitle?`<p class="sub">${subtitle}</p>`:''}</div>${action?`<button class="primary" data-action="add">${ico('plus')} Add idea</button>`:''}</div>`}
 function stat(label,value,note,graphic){const art=({P:'present',L:'stocking',W:'tree',A:'mailbox'})[graphic]||'present';return `<div class="stat-card"><div class="stat-top"><div class="stat-label">${label}</div><span class="stat-icon"><img src="./art/${art}.svg" alt=""></span></div><div class="stat-val">${value}</div><div class="stat-note">${note}</div></div>`}
 function kidCard(k){const name=kidName(k),budget=childBudget(k);let gs=appState.gifts.filter(g=>g.kid===k||g.kid==='both'),spent=gs.filter(bought).reduce((s,g)=>s+childShare(g,k),0),plannedAmt=gs.filter(planned).reduce((s,g)=>s+childShare(g,k),0),remaining=budget-spent;let per=budget?Math.round(100*spent/budget):0;return `<div class="kid-card"><div class="kid-head"><div class="kid-avatar">${kidEmoji(k)}</div><div><div class="kid-name">${escapeHTML(name)}</div><div class="kid-count">${gs.length} gift${gs.length===1?'':'s'} planned or saved</div></div></div><div class="kid-price"><div><small>Purchased so far</small><br><strong>${money(spent)}</strong></div><div style="text-align:right"><small>Budget</small><br><strong>${money(budget)}</strong></div></div><div class="progress"><div class="bar" style="width:${Math.min(per,100)}%"></div></div><div class="kid-foot"><span>${per}% of budget spent</span><span>${remaining<0?`${money(-remaining)} over budget`:`${money(remaining)} left`}</span></div><div class="helper" style="margin-top:9px">${money(plannedAmt)} in planned + purchased gifts</div></div>`}
@@ -1482,36 +1628,42 @@ function progressView(){
 function giftCard(g){const img=safeImage(g.image);return `<article class="gift-card"><div class="gift-image">${img?`<img loading="lazy" src="${escapeHTML(img)}" alt="${escapeHTML(g.name)}" onerror="this.replaceWith(document.createTextNode(''))">`:`<div class="placeholder-gift">${catEmoji(g.category)}</div>`}<span class="badge">${escapeHTML(kidName(g.kid))}</span></div><div class="gift-body"><div class="gift-name">${escapeHTML(g.name)}</div><div class="gift-meta"><span>${catEmoji(g.category)} ${escapeHTML(g.category)}</span><span>${escapeHTML(g.store||'')}</span></div><div class="gift-bottom"><div><div class="gift-price">${giftPriceLabel(g)}</div><span class="status-pill ${g.status.toLowerCase()}">${statusEmoji(g.status)} ${escapeHTML(g.status)}</span></div><div class="gift-actions">${g.link&&safeLink(g.link)?`<button class="icon-btn" title="Open product page" aria-label="Open product page" data-action="open-link" data-id="${g.id}">${ico('link')}</button>`:''}<button class="icon-btn" aria-label="Edit ${escapeHTML(g.name)}" title="Edit gift" data-action="edit" data-id="${g.id}">${ico('edit')}</button></div></div></div></article>`}
 function emptyGifts(head='Your workshop is waiting!',body='Add your first gift idea, paste a shopping link, or upload a photo to get started.'){return `<div class="empty"><span class="empty-emoji"><img src="./art/tree.svg" alt=""></span><h3>${head}</h3><p>${body}</p><button class="primary" data-action="add">${ico('plus')} Add your first gift</button></div>`}
 function dashboard(){
- const t=totals(),unread=appState.messages.filter(m=>!m.read).length;
+ const unread=appState.messages.filter(message=>!message.read).length;
  const traditions=Array.isArray(settings.traditions)?settings.traditions:[];
- const planned=traditions.filter(x=>x.date&&!x.done).length;
- const upcoming=traditions.filter(x=>x.date&&!x.done&&x.date>=new Date().toISOString().slice(0,10)).sort((a,b)=>String(a.date).localeCompare(String(b.date)))[0];
- const shop=appState.gifts.filter(g=>g.status==='To buy').length;
- const hol=holidayPlan(),supplies=(hol.shoppingItems||[]).filter(x=>!x.done).length;
- const purchased=appState.gifts.filter(bought).length;
+ const today=traditionDateISO(new Date());
+ const upcoming=traditions.filter(item=>item.date>=today&&!item.done)
+  .sort((a,b)=>a.date.localeCompare(b.date))[0];
+ const supplies=(holidayPlan().shoppingItems||[]).filter(item=>!item.done).length;
+ const toBuy=appState.gifts.filter(gift=>gift.status==='To buy').length+supplies;
  const sleeps=daysToChristmas();
- const art=name=>`<img src="./art/${name}.svg" alt="" loading="lazy">`;
- const destination=(page,title,details,artName,tint,action='nav')=>`<button type="button" class="hq-destination ${tint}" data-action="${action}" ${action==='nav'?`data-page="${page}"`:''}>${art(artName)}<span class="hq-label"><strong>${title}</strong><small>${details}</small></span><span class="hq-chevron" aria-hidden="true">›</span></button>`;
- const status=(action,view,title,detail,artName)=>`<button type="button" class="hq-status" data-action="${action}" ${action==='home-open-plan'?`data-view="${view}"`:''}>${art(artName)}<span><strong>${title}</strong><small>${detail}</small></span></button>`;
- return `<div class="gp-home-clean hq-home">
-  <section class="hq-hero" aria-label="Welcome to Santa HQ"><div class="hero-copy"><span class="hq-hello">YOUR LITTLE NORTH POLE</span><h1 class="hq-home-title"><span>Christmas magic,</span><span>all in one place.</span></h1><span class="hq-sleeps">${ico('calendar')} ${sleeps===0?'Merry Christmas!':`${sleeps} ${sleeps===1?'sleep':'sleeps'} until Christmas`}</span></div><span class="hq-hero-spark" aria-hidden="true">✦</span><span class="hq-hero-spark two" aria-hidden="true">✧</span><img class="hq-santa-figure" src="./santa-home.webp" alt="" aria-hidden="true"></section>
-  <div class="hq-home-intro"><div><h2>What would you like to do?</h2><p>Everything for a little more Christmas magic.</p></div></div>
-  <div class="hq-quick-grid">
-   ${destination('gifts','Plan Gifts','Ideas, stockings and presents','present','pink')}
-   ${destination('traditions','Christmas Plans','To-dos, shopping and traditions','tree','mint')}
-   ${destination('mailbox','Santa Mail','The North Pole inbox','letter','lavender')}
-   ${destination('','Lights Hunt','Spot Christmas lights together','ornament','cream','go-lights-hunt')}
+ const destinations=[
+  ['gifts','Gift Board','A place for every idea','gift','rose','home-open-gifts'],
+  ['traditions','Christmas Plans','Make time for your traditions','calendar','sage','nav'],
+  ['mailbox','Santa Mail',unread?`${unread} new ${unread===1?'letter':'letters'}`:'Open the North Pole inbox','mail','lavender','nav'],
+  ['','Lights Hunt','Find the magic after dark','star','gold','go-lights-hunt']
+ ];
+ return `<div class="season-home">
+  <section class="season-hero">
+   <div class="season-hero-copy">
+    <p class="season-countdown">${ico('calendar')} ${sleeps?`${sleeps} ${sleeps===1?'sleep':'sleeps'} until Christmas`:'Merry Christmas!'}</p>
+    <h1>Make Christmas<br><em>yours.</em></h1>
+    <p class="season-hero-intro">Dream up gifts, make plans and share a little North Pole magic.</p>
+    <button type="button" class="season-hero-button" data-action="home-open-gifts">Open Gift Board ${ico('arrow')}</button>
+   </div>
+   <div class="season-hero-art" aria-hidden="true"><img src="./santa-home.webp" alt="" fetchpriority="high"></div>
+  </section>
+  <div class="season-collection">
+   <h2>Your Christmas</h2>
+   <div class="season-destinations">${destinations.map(([page,title,detail,icon,tint,action])=>`
+    <button type="button" class="season-destination" data-tone="${tint}" data-action="${action}" data-page="${page}">
+     <span class="season-icon">${ico(icon)}</span><span><strong>${title}</strong><small>${detail}</small></span><span class="season-arrow">${ico('arrow')}</span>
+    </button>`).join('')}</div>
   </div>
-  <div class="hq-status-grid" aria-label="Christmas progress and shortcuts">
-   ${status('home-open-plan','shopping','Shopping List',`${shop+supplies} to pick up`,'crayons')}
-   ${status('home-open-plan','traditions','Traditions',`${planned} planned`,'ornament')}
-   ${status('nav','','In Santa’s Bag',`${purchased} purchased`,'stocking') .replace('data-action="nav"','data-action="home-open-gifts"')}
+  <div class="season-shortcuts">
+   <button type="button" data-action="home-open-plan" data-view="shopping"><span class="season-icon">${ico('bag')}</span><span><strong>Shopping List</strong><small>${toBuy?`${toBuy} to pick up`:'All caught up'}</small></span>${ico('arrow')}</button>
+   ${upcoming?`<button type="button" data-action="home-open-plan" data-view="traditions"><span class="season-icon">${ico('calendar')}</span><span><strong>${escapeHTML(upcoming.name)}</strong><small>${escapeHTML(traditionDateLabel(upcoming.date))}</small></span>${ico('arrow')}</button>`:''}
   </div>
-  <div class="hq-home-bottom">
-   ${upcoming?`<div class="hq-home-next"><span aria-hidden="true">✦</span><span><strong>Up next:</strong> ${escapeHTML(upcoming.name)} · ${escapeHTML(traditionDateLabel(upcoming.date))}</span><button type="button" class="plain-btn" data-action="home-open-plan" data-view="traditions">See date</button></div>`:''}
-   ${unread?`<div class="hq-home-next"><span aria-hidden="true">✉</span><span>${unread} new Santa ${unread===1?'message':'messages'}</span><button type="button" class="plain-btn" data-action="nav" data-page="mailbox">Read</button></div>`:''}
-  </div>
-  <details class="hq-budget-details"><summary>Family gift budgets <span>${money(t.spent)} purchased</span></summary><div class="kid-grid">${childIds().map(kidCard).join('')}</div><button class="plain-btn" type="button" data-action="nav" data-page="settings" style="margin:0 0 14px">Edit budgets</button></details>
+  <details class="season-budget"><summary>Family gift budgets <span>${money(totals().spent)} purchased</span></summary><div class="kid-grid">${childIds().map(kidCard).join('')}</div><button class="plain-btn" type="button" data-action="nav" data-page="settings">Edit budgets</button></details>
  </div>`;
 }
 function filteredGifts(){return [...appState.gifts].filter(g=>(appState.filterKid==='all'||g.kid===appState.filterKid||(appState.filterKid!=='both'&&g.kid==='both'))&&(appState.filterStatus==='all'||g.status===appState.filterStatus)&&(appState.filterCat==='all'||g.category===appState.filterCat)&&(!appState.search||[g.name,g.store,g.notes,g.category,g.link].join(' ').toLowerCase().includes(appState.search.toLowerCase()))).sort((a,b)=>String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')))}
@@ -2091,7 +2243,7 @@ function nwIdeasTray(){
 }
 const giftPileLabels={undecided:'Ideas',tree:'Under the Tree',stocking:'Stocking'};
 let boardRecipient='',
-    boardOpenPiles=new Set(['undecided']),
+    boardOpenPiles=new Set(['undecided','tree','stocking']),
     morningPile='tree',
     boardMoveBusy=false,
     boardUndo=null;
@@ -2153,7 +2305,7 @@ function giftPlannerIdeas(){
    <div class="gift-board-tabs" role="group" aria-label="Gift recipient">${recipients.map(k=>`<button type="button" data-action="board-recipient" data-sq-zone="${escapeHTML(k)}" data-kid="${escapeHTML(k)}" aria-pressed="${k===kid}">${childIds().includes(k)?childChoiceIcon(k):''}${escapeHTML(k==='unassigned'?'Unassigned':k==='both'&&childIds().length===2?'Both':kidName(k))}</button>`).join('')}</div>
    <button type="button" class="primary" data-action="board-add">+ Add idea</button>
   </div>
-  <p class="gift-confirm-hint">Drag a gift between piles or onto a recipient. Confirm it to add it to Christmas Morning and, if needed, your Shopping List.</p>
+  <p class="gift-confirm-hint">Drag to arrange gifts. Confirm to add them to Christmas Morning.</p>
   ${Object.entries(giftPileLabels).map(([place,label])=>{
    const gifts=wbGifts(kid,place).sort((a,b)=>Number(morningConfirmed(b))-Number(morningConfirmed(a)));
    if(place==='stocking'&&kid==='both'&&!gifts.length)return '';
@@ -2287,7 +2439,7 @@ function nwDropSelected(k,place){
 
 function giftsPage(){
  const view=appState.giftView==='compare'?'compare':'ideas';
- return `<div class="wb-page"><header class="wb-top"><div class="wb-title"><h1>${view==='ideas'?'Gift Board':'Christmas Morning'}</h1></div></header>
+ return `<div class="wb-page season-gifts" data-gift-view="${view}"><header class="season-gift-header"><div><h1>${view==='ideas'?'Gift Board':'Christmas Morning'}</h1><p>${view==='ideas'?'Save ideas and decide what makes the list.':'See what everyone will find on Christmas morning.'}</p></div><span class="season-gift-mark" aria-hidden="true">${ico(view==='ideas'?'gift':'star')}</span></header>
  <div class="wb-view-switch" role="group" aria-label="Gift planning views">${[['ideas','Gift Board'],['compare','Christmas Morning']].map(([key,label])=>`<button type="button" aria-pressed="${view===key}" class="${view===key?'active':''}" data-action="gift-view" data-view="${key}">${label}</button>`).join('')}</div>
  ${view==='ideas'?giftPlannerIdeas():giftPlannerCompare()}</div>`;
 }
@@ -2598,7 +2750,7 @@ document.addEventListener('drop',e=>{
   e.preventDefault();zone.classList.remove('tp-hover');
   const id=e.dataTransfer?.getData('text/plain');if(id&&(settings.traditions||[]).some(t=>t.id===id))traditionSchedule(id,zone.dataset.traditionDrop||'');
 });
-function render(){renderNav();const views={dashboard,planning:planningPage,morning:morningPage,traditions:traditionsPage,gifts:giftsPage,shopping:shoppingPage,wrapping:wrappingPage,mailbox:mailPage,settings:settingsPage};document.getElementById('content').innerHTML=views[appState.page]();if(appState.page==='traditions'){const tabs=document.querySelector('#content .cp-switch'),head=document.querySelector('#content .headrow');if(tabs&&head)head.after(tabs);}if(appState.page==='gifts'){for(const [id,val] of [['filterKid',appState.filterKid],['filterStatus',appState.filterStatus],['filterCat',appState.filterCat]]){const control=document.getElementById(id);if(control)control.value=val;}}document.title=`Santa HQ • ${navItems.find(n=>n[0]===appState.page)?.[2]||'Holiday planner'}`}
+function render(){renderNav();const views={dashboard,planning:planningPage,morning:morningPage,traditions:traditionsPage,gifts:giftsPage,shopping:shoppingPage,wrapping:wrappingPage,mailbox:mailPage,settings:settingsPage};const content=document.getElementById('content');content.dataset.page=appState.page;content.innerHTML=views[appState.page]();if(appState.page==='traditions'){const tabs=document.querySelector('#content .cp-switch'),head=document.querySelector('#content .headrow');if(tabs&&head)head.after(tabs);}if(appState.page==='gifts'){for(const [id,val] of [['filterKid',appState.filterKid],['filterStatus',appState.filterStatus],['filterCat',appState.filterCat]]){const control=document.getElementById(id);if(control)control.value=val;}}document.title=`Santa HQ • ${navItems.find(n=>n[0]===appState.page)?.[2]||'Holiday planner'}`}
 function navigate(p){
  const legacy={planning:'ideas',morning:'compare',shopping:'list',wrapping:'list'};
  if(Object.hasOwn(legacy,p)){appState.giftView=legacy[p];p='gifts';}
@@ -2943,7 +3095,7 @@ function actionHandler(e){const el=e.target.closest('[data-action]');if(!el)retu
 case 'board-recipient':
  boardRecipient=el.dataset.kid;
  localStorage.setItem('santa-board-recipient',boardRecipient);
- boardOpenPiles=new Set(['undecided']);
+ boardOpenPiles=new Set(['undecided','tree','stocking']);
  render();
  break;
 case 'board-add':openRecipientQuickAdd(selectedBoardRecipient(),'undecided',true);break;

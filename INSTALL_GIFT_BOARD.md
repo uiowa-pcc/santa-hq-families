@@ -1,17 +1,8 @@
-# Santa HQ Christmas Morning update
+# Santa HQ season redesign
 
-Replace these three files at the root of your existing Santa HQ repository, then commit to trigger the usual Cloudflare deployment.
+Replace index.html, santa-hq-details.css, and sw.js at the root of your Santa HQ GitHub repository. Commit those files to trigger the usual Cloudflare deployment. This package includes the recent Gift Board, confirmation, and drag-and-drop updates. It uses the Santa illustration already in the app and requires no Worker or database changes.
 
-- index.html
-- santa-hq-details.css
-- sw.js
-
-This patch includes the simplified Gift Board and the confirmed-gifts view. It requires no Worker or database changes.
-
-On Gift Board, open an idea and choose **Confirm Under the Tree & Add to Shopping List**. For a stocking idea, use the stocking confirmation. The gift appears both in Shopping and on Christmas Morning. Gifts already purchased keep their purchase status.
-
-In Christmas Morning, select a pile and drag a gift by its handle or tap the gift to choose where it goes. Returning a gift to Ideas from Gift Board removes it from Christmas Morning and, if it was still to buy, from Shopping.
-
-Tap **Confirm gift** on a Gift Board row to check it off. Confirmation uses the selected pile, or Under the Tree for an unsorted idea. Tap **Confirmed** to clear the checkmark. The gift stays in its pile and its purchase history is preserved.
-
-Drag the dotted grip on any Gift Board row to a pile or recipient. Drop targets also appear at the bottom of the screen during a drag. Tap the grip or use the keyboard to open the destination picker. The board opens the destination after saving. Confirmed gifts appear first within each pile.
+- Home brings the countdown, Gift Board, Christmas Plans, Santa Mail, and Lights Hunt together.
+- Gift Board opens the piles so you can see where to drop gifts. Drag by the dotted grip. Tap the grip to open the destination picker.
+- Confirmed gifts rise to the top of their pile and appear in Christmas Morning. Confirmed gifts you still need to buy also appear in Shopping.
+- Christmas Morning shows confirmed gifts by recipient, with Under the Tree and Stockings views.
