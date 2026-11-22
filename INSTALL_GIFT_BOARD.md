@@ -1,5 +1,5 @@
-# Santa HQ interface update
+# Santa HQ editorial update
 
-Replace index.html, santa-hq-details.css, and sw.js in your Santa HQ GitHub repository and commit to trigger the existing Cloudflare deployment. This package includes the prior planning updates.
+Replace index.html, santa-hq-details.css, and sw.js at the root of the existing Santa HQ repository and commit to trigger Cloudflare. The artwork is embedded in index.html. No Worker or database changes are required.
 
-The grown-up screens share a quieter navigation and heading style. Home uses a small Santa illustration and direct links. Santa Mail opens to the inbox, and Shopping opens to the lists. Gift planning still supports inline entry, drag-and-drop, confirmation, and Christmas Morning.
+The photographic design updates Home and Plan Gifts. The existing gift, shopping, Christmas Morning, and Santa Mail actions remain available.
