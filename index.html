@@ -1506,6 +1506,82 @@ body:has(.app) {background:var(--season-canvas)}
  .season-gift-header p{font-size:12px}
 }
 @media(max-width:360px){.season-destination .season-arrow{display:none}.season-destination{grid-template-columns:auto minmax(0,1fr)}}
+/* Shared navigation and continuous planning surfaces */
+.season-flow{gap:0}
+.season-flow .season-hero{min-height:300px}
+.season-flow .season-hero-copy{display:grid;justify-items:start;gap:15px}
+.season-flow .season-countdown{margin:0;padding:0;border:0;border-radius:0}
+.season-home-paths{display:grid;margin:14px 0 3px}
+.season-home-paths .season-destination{
+ border:0;border-bottom:1px solid var(--season-line);border-radius:0;background:transparent;padding:12px 4px;
+}
+.season-home-paths .season-destination:hover{background:#e8efe6}
+.season-home-paths .season-icon{background:transparent;width:32px;height:32px}
+.season-flow .season-budget{border:0;border-radius:0;background:transparent;padding:13px 4px}
+.season-workspace-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.season-workspace-header h1{margin:0;font:650 clamp(30px,5vw,52px)/1.04 var(--season-display);letter-spacing:-.04em}
+.season-shopping-link{
+ display:inline-flex;align-items:center;gap:6px;color:var(--season-pine);background:none;border:0;
+ font:inherit;font-weight:750;min-height:44px;padding:3px;cursor:pointer;
+}
+.season-shopping-link svg{width:16px;height:16px}
+.season-workspace .wb-view-switch,.app #content .cp-switch{
+ display:flex;flex-wrap:wrap;width:100%;gap:12px;padding:0;border:0;border-bottom:1px solid var(--season-line);
+ border-radius:0;background:transparent;box-shadow:none;
+}
+.season-workspace .wb-view-switch button,.app #content .cp-switch button{
+ flex:none;width:auto;min-height:43px;border:0;border-bottom:2px solid transparent;
+ border-radius:0;background:none;box-shadow:none;color:var(--season-muted);padding:6px 3px;font-weight:700;
+}
+.season-workspace .wb-view-switch button.active,.app #content .cp-switch button[aria-pressed="true"]{
+ color:var(--season-pine);background:none;border-bottom-color:var(--season-pine);
+}
+.season-workspace .gift-simple-board{margin-top:9px;gap:0}
+.season-workspace .gift-idea-board .gift-board-tools{background:none;border:0;padding:0}
+.season-workspace .gift-board-tabs button{
+ border:0;background:none;color:var(--season-muted);min-height:44px;padding:5px 9px;
+}
+.season-workspace .gift-board-tabs button[aria-pressed="true"]{
+ background:#e3ede1;color:var(--season-pine);border:0;box-shadow:none;
+}
+.gift-inline-add{display:flex;align-items:center;gap:8px;margin:10px 0 4px}
+.gift-inline-add input{
+ flex:1;min-width:0;min-height:44px;border:1px solid #becfc0;border-radius:8px;background:var(--season-paper);
+ color:var(--season-ink);padding:8px 11px;font:inherit;
+}
+.gift-inline-add .primary{min-height:44px;padding:6px 13px;border-radius:8px}
+.gift-inline-more{min-height:44px;border:0;padding:3px 0;background:none;color:var(--season-pine);font:inherit;font-weight:750;cursor:pointer}
+.season-workspace .gift-confirm-hint{margin:2px 0 8px;padding:0;font-size:12px}
+.season-workspace :is(.gift-simple-pile,.gift-morning-pile){
+ min-height:0;border:0;border-top:1px solid var(--season-line);border-radius:0;
+ background:none;box-shadow:none;overflow:visible;
+}
+.season-workspace :is(.gift-pile-heading,.gift-morning-pile>header,.gift-morning-grid .gift-morning-pile:nth-child(even)>header){
+ border:0;background:none;padding:10px 4px;color:var(--season-ink);
+}
+.season-workspace .gift-pile-heading small,.season-workspace .gift-morning-count{background:none;color:var(--season-muted);padding-inline:3px}
+.season-workspace .gift-simple-row{border-radius:0;border-top:1px solid #e5ebe1;padding-block:1px}
+.season-workspace .gift-simple-row[data-confirmed="true"]{background:transparent}
+.season-workspace .gift-pile-empty{padding:1px 4px 10px}
+.season-workspace .gift-morning-grid{gap:14px;margin-top:9px}
+.season-workspace .gift-morning-board>.gift-morning-pile{margin-top:16px}
+.season-workspace .gift-morning-cards{padding:0;gap:0}
+.season-workspace .gift-morning-card{border:0;border-top:1px solid var(--season-line);border-radius:0;background:none;box-shadow:none}
+.app #content .cp-dashboard .cp-panel{
+ background:none;border:0;border-top:1px solid var(--season-line);
+ border-radius:0;box-shadow:none;padding:14px 0;
+}
+.app #content .cp-dashboard .cp-top h2{font-family:var(--season-display);color:var(--season-pine)}
+body:has(.season-workspace) .mobile-add{display:none}
+@media(max-width:760px){
+ .season-flow .season-hero{min-height:226px}
+ .season-flow .season-hero-copy{gap:11px}
+ .season-workspace .wb-view-switch,.app #content .cp-switch{gap:10px}
+ .app #content .cp-switch button{padding-inline:2px}
+ .gift-inline-add{gap:5px}
+ .gift-inline-add .primary{padding-inline:9px}
+ .gift-inline-more{font-size:12px}
+}
 </style>
 </head>
 <body><section id="familyGate" role="region" aria-label="Family account sign in"></section>
@@ -1610,7 +1686,7 @@ function renderCountdown(){
     : `${sleeps} ${sleeps===1?'sleep':'sleeps'} until Christmas`;
 }
 function renderNav(){for(const id of ['desktopNav','mobileNav']){document.getElementById(id).innerHTML=navItems.filter(n=>id!=='mobileNav'||n[0]!=='settings').map(([page,icon,title])=>`<button class="nav-btn ${appState.page===page?'active':''}" aria-current="${appState.page===page?'page':'false'}" data-action="nav" data-page="${page}">${ico(icon)}<span>${title}</span></button>`).join('')}const sync=document.getElementById('sideSync');sync.classList.toggle('online',appState.online);sync.querySelector('span').textContent=appState.online?'Family sync is on':'Saved on this device';const topDot=document.getElementById('topSyncDot');topDot.classList.toggle('online',appState.online);topDot.title=appState.online?'Connected: live family syncing':'Local storage: not yet synced';document.querySelector('.topbar-year').textContent='· '+new Date().getFullYear();renderCountdown()}
-function heading(kicker,title,subtitle,action=true){return `<div class="headrow"><div><div class="eyebrow">${kicker}</div><h1 class="heading">${title}</h1>${subtitle?`<p class="sub">${subtitle}</p>`:''}</div>${action?`<button class="primary" data-action="add">${ico('plus')} Add idea</button>`:''}</div>`}
+function heading(kicker,title,subtitle,action=true){return `<div class="headrow"><div>${kicker?`<div class="eyebrow">${kicker}</div>`:''}<h1 class="heading">${title}</h1>${subtitle?`<p class="sub">${subtitle}</p>`:''}</div>${action?`<button class="primary" data-action="add">${ico('plus')} Add idea</button>`:''}</div>`}
 function stat(label,value,note,graphic){const art=({P:'present',L:'stocking',W:'tree',A:'mailbox'})[graphic]||'present';return `<div class="stat-card"><div class="stat-top"><div class="stat-label">${label}</div><span class="stat-icon"><img src="./art/${art}.svg" alt=""></span></div><div class="stat-val">${value}</div><div class="stat-note">${note}</div></div>`}
 function kidCard(k){const name=kidName(k),budget=childBudget(k);let gs=appState.gifts.filter(g=>g.kid===k||g.kid==='both'),spent=gs.filter(bought).reduce((s,g)=>s+childShare(g,k),0),plannedAmt=gs.filter(planned).reduce((s,g)=>s+childShare(g,k),0),remaining=budget-spent;let per=budget?Math.round(100*spent/budget):0;return `<div class="kid-card"><div class="kid-head"><div class="kid-avatar">${kidEmoji(k)}</div><div><div class="kid-name">${escapeHTML(name)}</div><div class="kid-count">${gs.length} gift${gs.length===1?'':'s'} planned or saved</div></div></div><div class="kid-price"><div><small>Purchased so far</small><br><strong>${money(spent)}</strong></div><div style="text-align:right"><small>Budget</small><br><strong>${money(budget)}</strong></div></div><div class="progress"><div class="bar" style="width:${Math.min(per,100)}%"></div></div><div class="kid-foot"><span>${per}% of budget spent</span><span>${remaining<0?`${money(-remaining)} over budget`:`${money(remaining)} left`}</span></div><div class="helper" style="margin-top:9px">${money(plannedAmt)} in planned + purchased gifts</div></div>`}
 function progressView(){
@@ -1637,32 +1713,26 @@ function dashboard(){
  const toBuy=appState.gifts.filter(gift=>gift.status==='To buy').length+supplies;
  const sleeps=daysToChristmas();
  const destinations=[
-  ['gifts','Gift Board','A place for every idea','gift','rose','home-open-gifts'],
-  ['traditions','Christmas Plans','Make time for your traditions','calendar','sage','nav'],
-  ['mailbox','Santa Mail',unread?`${unread} new ${unread===1?'letter':'letters'}`:'Open the North Pole inbox','mail','lavender','nav'],
-  ['','Lights Hunt','Find the magic after dark','star','gold','go-lights-hunt']
+  {title:'Christmas Plans',detail:upcoming?`${upcoming.name} · ${traditionDateLabel(upcoming.date)}`:'Traditions, calendar and to-dos',icon:'calendar',action:upcoming?'home-open-plan':'nav',page:'traditions',view:'traditions'},
+  {title:'Shopping List',detail:toBuy?`${toBuy} to pick up`:'All caught up',icon:'bag',action:'home-open-plan',view:'shopping'},
+  {title:'Santa Mail',detail:unread?`${unread} new ${unread===1?'letter':'letters'}`:'Open the North Pole inbox',icon:'mail',action:'nav',page:'mailbox'},
+  {title:'Lights Hunt',detail:'Start a Christmas lights hunt',icon:'star',action:'go-lights-hunt'}
  ];
- return `<div class="season-home">
+ return `<div class="season-home season-flow">
   <section class="season-hero">
    <div class="season-hero-copy">
     <p class="season-countdown">${ico('calendar')} ${sleeps?`${sleeps} ${sleeps===1?'sleep':'sleeps'} until Christmas`:'Merry Christmas!'}</p>
     <h1>Make Christmas<br><em>yours.</em></h1>
-    <p class="season-hero-intro">Dream up gifts, make plans and share a little North Pole magic.</p>
     <button type="button" class="season-hero-button" data-action="home-open-gifts">Open Gift Board ${ico('arrow')}</button>
    </div>
    <div class="season-hero-art" aria-hidden="true"><img src="./santa-home.webp" alt="" fetchpriority="high"></div>
   </section>
-  <div class="season-collection">
-   <h2>Your Christmas</h2>
-   <div class="season-destinations">${destinations.map(([page,title,detail,icon,tint,action])=>`
-    <button type="button" class="season-destination" data-tone="${tint}" data-action="${action}" data-page="${page}">
-     <span class="season-icon">${ico(icon)}</span><span><strong>${title}</strong><small>${detail}</small></span><span class="season-arrow">${ico('arrow')}</span>
-    </button>`).join('')}</div>
-  </div>
-  <div class="season-shortcuts">
-   <button type="button" data-action="home-open-plan" data-view="shopping"><span class="season-icon">${ico('bag')}</span><span><strong>Shopping List</strong><small>${toBuy?`${toBuy} to pick up`:'All caught up'}</small></span>${ico('arrow')}</button>
-   ${upcoming?`<button type="button" data-action="home-open-plan" data-view="traditions"><span class="season-icon">${ico('calendar')}</span><span><strong>${escapeHTML(upcoming.name)}</strong><small>${escapeHTML(traditionDateLabel(upcoming.date))}</small></span>${ico('arrow')}</button>`:''}
-  </div>
+  <nav class="season-home-paths" aria-label="Christmas activities">
+   ${destinations.map(({title,detail,icon,action,page='',view=''})=>`
+    <button type="button" class="season-destination" data-action="${action}" data-page="${page}" data-view="${view}">
+     <span class="season-icon">${ico(icon)}</span><span><strong>${title}</strong><small>${escapeHTML(detail)}</small></span><span class="season-arrow">${ico('arrow')}</span>
+    </button>`).join('')}
+  </nav>
   <details class="season-budget"><summary>Family gift budgets <span>${money(totals().spent)} purchased</span></summary><div class="kid-grid">${childIds().map(kidCard).join('')}</div><button class="plain-btn" type="button" data-action="nav" data-page="settings">Edit budgets</button></details>
  </div>`;
 }
@@ -2303,15 +2373,19 @@ function giftPlannerIdeas(){
  return `<div class="gift-simple-board gift-idea-board">
   <div class="gift-board-tools">
    <div class="gift-board-tabs" role="group" aria-label="Gift recipient">${recipients.map(k=>`<button type="button" data-action="board-recipient" data-sq-zone="${escapeHTML(k)}" data-kid="${escapeHTML(k)}" aria-pressed="${k===kid}">${childIds().includes(k)?childChoiceIcon(k):''}${escapeHTML(k==='unassigned'?'Unassigned':k==='both'&&childIds().length===2?'Both':kidName(k))}</button>`).join('')}</div>
-   <button type="button" class="primary" data-action="board-add">+ Add idea</button>
   </div>
-  <p class="gift-confirm-hint">Drag to arrange gifts. Confirm to add them to Christmas Morning.</p>
+  <form class="gift-inline-add" id="boardInlineAdd" data-kid="${escapeHTML(kid)}">
+   <input name="giftName" type="text" maxlength="160" aria-label="New gift idea for ${escapeHTML(kidName(kid))}" placeholder="Add a gift idea…" required>
+   <button type="submit" class="primary">Add</button>
+   <button type="button" class="gift-inline-more" data-action="board-add">More options</button>
+  </form>
+  <p class="gift-confirm-hint">Drag to arrange. Confirm to add to Christmas Morning and, if needed, Shopping.</p>
   ${Object.entries(giftPileLabels).map(([place,label])=>{
    const gifts=wbGifts(kid,place).sort((a,b)=>Number(morningConfirmed(b))-Number(morningConfirmed(a)));
    if(place==='stocking'&&kid==='both'&&!gifts.length)return '';
    return `<section class="gift-simple-pile" data-sq-zone="${escapeHTML(kid)}" data-sq-place="${place}">
     <button type="button" class="gift-pile-heading" data-action="board-pile" data-place="${place}" aria-expanded="${boardOpenPiles.has(place)}"><span>${label} <small>${gifts.length}</small></span><span aria-hidden="true">${boardOpenPiles.has(place)?'−':'+'}</span></button>
-    ${boardOpenPiles.has(place)?(gifts.map(g=>boardGiftRow(g)).join('')||'<p class="gift-pile-empty">No gifts here yet.</p>'):''}
+    ${boardOpenPiles.has(place)?(gifts.map(g=>boardGiftRow(g)).join('')||(place==='undecided'?'<p class="gift-pile-empty">New ideas start here.</p>':'<p class="gift-pile-empty">Drag gifts here.</p>')):''}
    </section>`;
   }).join('')}
   <div class="gift-drop-dock" aria-hidden="true">
@@ -2321,6 +2395,28 @@ function giftPlannerIdeas(){
    <div>${recipients.filter(k=>k!==kid).map(k=>`<span data-sq-zone="${escapeHTML(k)}">${escapeHTML(k==='unassigned'?'Unassigned':kidName(k))}</span>`).join('')}</div>
   </div>
  </div>`;
+}
+
+async function saveInlineBoardGift(event){
+ event.preventDefault();
+ const form=event.target;
+ const name=form.elements.giftName.value.trim(),kid=form.dataset.kid;
+ if(!name||!validRecipient(kid))return;
+ const submit=form.querySelector('[type=submit]');
+ if(submit.disabled)return;
+ submit.disabled=true;
+ boardOpenPiles.add('undecided');
+ try{
+  await persistNewIdea(newIdeaGift({name,kid,placement:'undecided'}));
+  if(document.activeElement===document.body){
+   document.querySelector('#boardInlineAdd input')?.focus({preventScroll:true});
+  }
+ }catch(error){
+  console.error(error);
+  showToast('Could not save this gift idea.');
+ }finally{
+  submit.disabled=false;
+ }
 }
 
 function openBoardGift(id){
@@ -2439,9 +2535,14 @@ function nwDropSelected(k,place){
 
 function giftsPage(){
  const view=appState.giftView==='compare'?'compare':'ideas';
- return `<div class="wb-page season-gifts" data-gift-view="${view}"><header class="season-gift-header"><div><h1>${view==='ideas'?'Gift Board':'Christmas Morning'}</h1><p>${view==='ideas'?'Save ideas and decide what makes the list.':'See what everyone will find on Christmas morning.'}</p></div><span class="season-gift-mark" aria-hidden="true">${ico(view==='ideas'?'gift':'star')}</span></header>
- <div class="wb-view-switch" role="group" aria-label="Gift planning views">${[['ideas','Gift Board'],['compare','Christmas Morning']].map(([key,label])=>`<button type="button" aria-pressed="${view===key}" class="${view===key?'active':''}" data-action="gift-view" data-view="${key}">${label}</button>`).join('')}</div>
- ${view==='ideas'?giftPlannerIdeas():giftPlannerCompare()}</div>`;
+ return `<div class="wb-page season-gifts season-workspace" data-gift-view="${view}">
+  <header class="season-workspace-header">
+   <h1>Plan Gifts</h1>
+   <button type="button" class="season-shopping-link" data-action="home-open-plan" data-view="shopping">${ico('bag')} Shopping List</button>
+  </header>
+  <div class="wb-view-switch" role="group" aria-label="Gift planning views">${[['ideas','Gift Board'],['compare','Christmas Morning']].map(([key,label])=>`<button type="button" aria-pressed="${view===key}" class="${view===key?'active':''}" data-action="gift-view" data-view="${key}">${label}</button>`).join('')}</div>
+  ${view==='ideas'?giftPlannerIdeas():giftPlannerCompare()}
+ </div>`;
 }
 
 function morningTile(g,i){
@@ -2466,7 +2567,7 @@ function giftPlannerCompare(){
  const hasShared=wbGifts('both',morningPile).some(morningConfirmed);
  return `<div class="gift-simple-board gift-morning-board">
   <div class="gift-board-tools"><div class="gift-board-tabs" role="group" aria-label="Piles to compare">${[['tree','Under the Tree'],['stocking','Stockings']].map(([place,label])=>`<button type="button" data-action="board-morning-pile" data-place="${place}" aria-pressed="${place===morningPile}">${label}</button>`).join('')}</div>
-  <p>Drag or tap a gift to move it.</p></div>
+  </div>
   <div class="gift-morning-grid">${childIds().map(pile).join('')}</div>
   ${morningPile==='tree'||hasShared?pile('both'):''}
  </div>`;
@@ -3136,7 +3237,7 @@ case 'board-shop':
 case 'board-morning-pile':morningPile=el.dataset.place;render();break;
 case 'board-reorder':modalClose();reorderMorningGift(id,Number(el.dataset.direction));break;
 case 'morning-size':appState.morningCompact=!appState.morningCompact;render();break;case 'morning-prices':appState.morningPrices=!appState.morningPrices;render();break;case 'plan-menu':planMoveMenu(id);break;case 'plan-move':{const lane=el.dataset.lane;modalClose();moveToPlan(id,lane);break}case 'plan-up':shiftPlanCard(id,-1);break;case 'plan-down':shiftPlanCard(id,1);break;case 'nav':navigate(el.dataset.page);break;case 'home-open-plan':appState.holidayView=el.dataset.view||'overview';navigate('traditions');if(appState.holidayView==='hunt'){void loadHuntHQRounds();void loadUploadedHuntCharacters()}break;case 'home-open-gifts':appState.giftView='ideas';navigate('gifts');break;case 'enter-kid':enterKid();break;case 'change-pin':{if(settings.grownupPin&&prompt('Current PIN:')!==settings.grownupPin){showToast('Incorrect PIN.');break}const pin=prompt('Set a new 4–6 digit PIN:');if(pin===null)break;if(!/^\d{4,6}$/.test(pin)){showToast('Choose 4–6 digits.');break}settings.grownupPin=pin;saveSettingsLocal();showToast('Kid View PIN updated');break}case 'exit-kid':exitKid();break;case 'child-add':addChildSettings();break;case 'child-remove':removeChildSettings(el.dataset.kid);break;case 'kid-select':resetKidDraft();appState.kidSelected=el.dataset.kid;renderKidPortal();break;case 'kid-choice':appState.kidChoice=el.dataset.choice;document.querySelectorAll('.kid-topic').forEach(b=>b.classList.toggle('active',b.dataset.choice===appState.kidChoice));break;case 'kid-mode':resetKidDraft();appState.kidMode=el.dataset.mode;renderKidPortal();break;case 'kid-record':if(kidRecorder?.state==='recording')finishKidRecording();else startKidRecording();break;case 'kid-redo-record':resetKidDraft();renderKidPortal();break;case 'kid-dictate':kidDictate();break;case 'kid-color':kidDrawColor=el.dataset.color;document.querySelectorAll('.kid-color').forEach(b=>b.classList.toggle('active',b.dataset.color===kidDrawColor));break;case 'kid-undo':case 'kid-clear':kidCanvasAction(action);break;case 'kid-insert':{const input=document.getElementById('kidMessage');if(input)input.value+=(input.value?' ':'')+el.dataset.text.replace(/^[^ ]+ /,'');break}case 'kid-again':renderKidPortal();break;case 'delete-mail':deleteKidLetter(id);break;case 'mail-to-gift':openLetterGiftIdea(id);break;case 'reply-mail':replyMail(id);break;case 'read-mail':{const m=appState.messages.find(x=>x.id===id);if(m){putMail({...m,read:true}).then(render)}break}case 'gift-view':appState.giftView=el.dataset.view;render();break;case 'gift-ready':setGiftStatus(id,'To buy');break;case 'gift-watch':openGiftWatch(id);break;case 'gift-refresh-price':if(el.hasAttribute('data-close-options'))modalClose();void refreshDealPrices(id);break;case 'add-link':openLinkedGift();break;case 'gift-refresh-all':refreshDealPrices();break;case 'gift-unwatch':stopGiftWatch(id);break;case 'quick-lookup':quickLookupLink();break;case 'gift-go-shopping':appState.page='traditions';appState.holidayView='shopping';render();break;case 'go-lights-hunt':appState.page='traditions';appState.holidayView='hunt';render();void loadHuntHQRounds();void loadUploadedHuntCharacters();window.scrollTo({top:0,behavior:'smooth'});break;case 'shop-check':{const gift=appState.gifts.find(g=>g.id===id);if(gift&&gift.status==='To buy')setGiftStatus(id,'Bought');break;}case 'shop-undo':{const gift=appState.gifts.find(g=>g.id===id);if(gift&&bought(gift))setGiftStatus(id,'To buy');break;}case 'paste-gifts':openPasteGifts();break;case 'paste-back':pasteNavigate(-1);break;case 'paste-next':pasteNavigate(1);break;case 'paste-default-rest':pasteUseDefaults();break;case 'paste-duplicate':pasteDuplicateStockings();break;case 'paste-remove-copy':pasteRemoveCopy();break;case 'paste-review-back':pasteReviewBack();break;case 'paste-save':savePastedGifts();break;case 'sq-lock':nwSelectedId=null;void sqLock(id);break;case 'sq-unlock':void sqUnlock(id);break;case 'sq-move-menu':sqMoveMenu(id);break;case 'nw-select':nwSelect(id);break;case 'nw-ideas-toggle':{nwIdeasExpanded=!nwIdeasExpanded;const tray=document.querySelector('.nw-ideas');tray?.classList.toggle('is-expanded',nwIdeasExpanded);el.setAttribute('aria-expanded',String(nwIdeasExpanded));el.textContent=nwIdeasExpanded?'Show fewer ideas':`Show all ${el.dataset.ideasCount} ideas`;break;}case 'nw-drop':nwDropSelected(el.dataset.kid,el.dataset.place);break;case 'wb-options':wbOptionsMenu(id);break;case 'wb-unassigned':wbUnassignedMenu();break;case 'wb-assign':modalClose();void assignIdeaRecipient(id,el.dataset.kid);break;case 'wb-unlock':modalClose();void sqUnlock(id);break;case 'sq-move-to':modalClose();void sqMove(id,el.dataset.kid,el.dataset.place);break;case 'idea-quick':openRecipientQuickAdd(el.dataset.kid,el.dataset.category);break;case 'idea-assign':assignIdeaRecipient(id,el.dataset.kid);break;case 'add':openRecipientQuickAdd();break;case 'add-detailed':{const seed={name:document.getElementById('recipientQuickName')?.value.trim()||'',kid:document.querySelector('#recipientQuickForm input[name="quickKid"]:is(:checked,[type=hidden])')?.value||'unassigned',category:categoryFromPlacement(document.querySelector('#recipientQuickForm input[name="quickPlace"]:is(:checked,[type=hidden])')?.value||'undecided'),price:document.getElementById('recipientQuickPrice')?.value||'',notes:document.getElementById('recipientQuickNotes')?.value||'',link:safeLink(document.getElementById('recipientQuickLink')?.value)||'',image:quickImportImage,keepAsIdea:!!document.querySelector('#recipientQuickForm input[name="quickPlace"][type=hidden]')};openGift(null,seed);break}case 'duplicate':openDuplicateGift(id);break;case 'idea-compare':toggleIdeaCompare(id);break;case 'gift-lock-tree':lockGiftIn(id,'tree');break;case 'gift-lock-stocking':lockGiftIn(id,'stocking');break;case 'idea-confirm-tree':changeIdeaPlacement(id,'tree');break;case 'idea-placement':changeIdeaPlacement(id,el.dataset.category);break;case 'close':modalClose();break;case 'edit':openGift(appState.gifts.find(g=>g.id===id));break;case 'delete':deleteGift(id);break;case 'next':advanceGift(id,el.dataset.next);break;case 'open-link':{let g=appState.gifts.find(x=>x.id===id);if(safeLink(g?.link))window.open(g.link,'_blank','noopener,noreferrer');break}case 'export':exportJSON();break;case 'csv':exportCSV();break;case 'import':document.getElementById('importFile')?.click();break;case 'clear':if(appState.online){showToast('Disconnect family sync before clearing local gifts.');return}if(confirm('Delete all gift records saved on this device? Export a backup first if you want one.'))replaceGifts([]).then(()=>{appState.gifts=[];render();showToast('Device data cleared')});break;case 'generate-id':document.getElementById('familyId').value='northpole-'+makeId().slice(0,16);break;case 'signin':cloudSignIn();break;case 'signout':cloudSignOut();break;case 'invite':copyInvite();break}}
-async function boot(){try{db=await initDB();appState.gifts=await readGifts()}catch(e){alert('This browser could not open its local gift database. Please try Safari or Chrome, or host this app online.');return}try{settings={...DEFAULT,...JSON.parse(localStorage.getItem('santa_hq_settings_'+(window.SANTA_FAMILY_ID||'guest'))||'{}')}}catch{}appState.messages=await loadMail();processIncoming();render();document.addEventListener('click',actionHandler);document.addEventListener('pointerdown',planningPointerDown,{passive:false});document.addEventListener('pointerdown',sqPointerDown,{passive:false});document.addEventListener('keydown',e=>{let h=e.target.closest?.('[data-sq-grab]');if(h&&h.tagName!=='BUTTON'&&(e.key==='Enter'||e.key===' ')){e.preventDefault();sqMoveMenu(h.dataset.sqGrab)}});document.getElementById('mobileAdd').addEventListener('click',()=>openRecipientQuickAdd());document.getElementById('overlay').addEventListener('click',e=>{if(e.target.id==='overlay')modalClose()});document.addEventListener('keydown',e=>{if(e.key==='Escape')modalClose()});document.addEventListener('submit',e=>{if(e.target.id==='holidayTaskForm')saveHolidayTask(e);if(e.target.id==='holidaySupplyForm')saveHolidaySupply(e);if(e.target.getAttribute('id')==='traditionForm')saveTradition(e);if(e.target.id==='pasteGiftForm')beginPasteSort(e);if(e.target.id==='pasteCardForm'){e.preventDefault();pasteNavigate(1)}if(e.target.id==='recipientQuickForm')saveRecipientQuickIdea(e);if(e.target.id==='giftWatchForm')saveGiftWatch(e);if(e.target.id==='duplicateGiftForm')saveDuplicateGift(e);if(e.target.id==='ideaQuickForm')addQuickIdea(e);if(e.target.id==='familyForm')saveFamily(e);if(e.target.id==='firebaseForm')saveCloudConfig(e);if(e.target.id==='kidMessageForm'){void submitKidMessage(e);} if(e.target.id==='replyMailForm'){e.preventDefault();const id=document.getElementById('replyId')?.value,msg=appState.messages.find(m=>m.id===id);if(msg){putMail({...msg,reply:document.getElementById('santaReply').value.trim(),read:true}).then(()=>{modalClose();render();showToast('Santa’s reply is ready ')})}}});document.addEventListener('change',e=>{if(e.target.matches('[data-gift-stage]')){setGiftStatus(e.target.dataset.id,e.target.value);}if(e.target.matches('[data-paste-entry]')){pasteReviewChoices();updatePasteReviewTotals()}if(e.target.id==='huntStandaloneTheme')appState.huntStandaloneTheme=e.target.value;if(e.target.id==='huntPlayMode')appState.huntPlayMode=e.target.value;if(e.target.id==='filterKid'){appState.filterKid=e.target.value;render()}if(e.target.id==='filterStatus'){appState.filterStatus=e.target.value;render()}if(e.target.id==='filterCat'){appState.filterCat=e.target.value;render()}if(e.target.id==='kidMediaFile')kidMediaPick(e.target.files?.[0]);if(e.target.id==='importFile'&&e.target.files[0])importJSON(e.target.files[0])});document.addEventListener('input',e=>{if(e.target.id==='huntCollectionTitle')appState.huntCollectionDraft=e.target.value;if(e.target.id==='searchInput'){appState.search=e.target.value;const grid=document.getElementById('giftResults');if(grid)grid.innerHTML=filteredGifts().length?giftListRows(filteredGifts()):'<p class="gp-no-results">No matching gifts.</p>'}});if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});openPendingSharedGift();void loadUploadedHuntCharacters()}
+async function boot(){try{db=await initDB();appState.gifts=await readGifts()}catch(e){alert('This browser could not open its local gift database. Please try Safari or Chrome, or host this app online.');return}try{settings={...DEFAULT,...JSON.parse(localStorage.getItem('santa_hq_settings_'+(window.SANTA_FAMILY_ID||'guest'))||'{}')}}catch{}appState.messages=await loadMail();processIncoming();render();document.addEventListener('click',actionHandler);document.addEventListener('pointerdown',planningPointerDown,{passive:false});document.addEventListener('pointerdown',sqPointerDown,{passive:false});document.addEventListener('keydown',e=>{let h=e.target.closest?.('[data-sq-grab]');if(h&&h.tagName!=='BUTTON'&&(e.key==='Enter'||e.key===' ')){e.preventDefault();sqMoveMenu(h.dataset.sqGrab)}});document.getElementById('mobileAdd').addEventListener('click',()=>openRecipientQuickAdd());document.getElementById('overlay').addEventListener('click',e=>{if(e.target.id==='overlay')modalClose()});document.addEventListener('keydown',e=>{if(e.key==='Escape')modalClose()});document.addEventListener('submit',e=>{if(e.target.id==='holidayTaskForm')saveHolidayTask(e);if(e.target.id==='holidaySupplyForm')saveHolidaySupply(e);if(e.target.getAttribute('id')==='traditionForm')saveTradition(e);if(e.target.id==='pasteGiftForm')beginPasteSort(e);if(e.target.id==='pasteCardForm'){e.preventDefault();pasteNavigate(1)}if(e.target.id==='recipientQuickForm')saveRecipientQuickIdea(e);if(e.target.id==='boardInlineAdd')void saveInlineBoardGift(e);if(e.target.id==='giftWatchForm')saveGiftWatch(e);if(e.target.id==='duplicateGiftForm')saveDuplicateGift(e);if(e.target.id==='ideaQuickForm')addQuickIdea(e);if(e.target.id==='familyForm')saveFamily(e);if(e.target.id==='firebaseForm')saveCloudConfig(e);if(e.target.id==='kidMessageForm'){void submitKidMessage(e);} if(e.target.id==='replyMailForm'){e.preventDefault();const id=document.getElementById('replyId')?.value,msg=appState.messages.find(m=>m.id===id);if(msg){putMail({...msg,reply:document.getElementById('santaReply').value.trim(),read:true}).then(()=>{modalClose();render();showToast('Santa’s reply is ready ')})}}});document.addEventListener('change',e=>{if(e.target.matches('[data-gift-stage]')){setGiftStatus(e.target.dataset.id,e.target.value);}if(e.target.matches('[data-paste-entry]')){pasteReviewChoices();updatePasteReviewTotals()}if(e.target.id==='huntStandaloneTheme')appState.huntStandaloneTheme=e.target.value;if(e.target.id==='huntPlayMode')appState.huntPlayMode=e.target.value;if(e.target.id==='filterKid'){appState.filterKid=e.target.value;render()}if(e.target.id==='filterStatus'){appState.filterStatus=e.target.value;render()}if(e.target.id==='filterCat'){appState.filterCat=e.target.value;render()}if(e.target.id==='kidMediaFile')kidMediaPick(e.target.files?.[0]);if(e.target.id==='importFile'&&e.target.files[0])importJSON(e.target.files[0])});document.addEventListener('input',e=>{if(e.target.id==='huntCollectionTitle')appState.huntCollectionDraft=e.target.value;if(e.target.id==='searchInput'){appState.search=e.target.value;const grid=document.getElementById('giftResults');if(grid)grid.innerHTML=filteredGifts().length?giftListRows(filteredGifts()):'<p class="gp-no-results">No matching gifts.</p>'}});if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});openPendingSharedGift();void loadUploadedHuntCharacters()}
 
 /* Christmas Plans: all household tasks live in the existing synced profile record. */
 const CHRISTMAS_EVE_DEFAULTS=[
@@ -3268,14 +3369,10 @@ function holidayShoppingPage(){
  <section class="cp-panel cp-purchased"><div class="cp-top"><div><h2>Purchased <span class="cp-count">${purchased.length+pickedUp.length}</span></h2><p>Everything checked off stays here, including gifts and supplies. Uncheck to return it to shopping. Gift spending: ${money(spent)}.</p></div></div>${pickedUp.length?`<h3 class="cp-purchased-subtitle">Holiday items</h3><div class="cp-shop-items">${pickedUp.map(i=>holidaySupplyRow(i,plan)).join('')}</div>`:''}${purchased.length?`<h3 class="cp-purchased-subtitle">Gifts</h3><div class="cp-shop-items">${purchased.map(g=>row(g,true)).join('')}</div>`:''}${!pickedUp.length&&!purchased.length?'<p class="cp-empty">Purchased gifts and picked-up supplies will appear here.</p>':''}</section></div>`;
 }
 function holidayOverviewPage(){
- const plan=holidayPlan(),todoDone=plan.todos.filter(t=>t.done).length,eveDone=plan.eve.filter(t=>t.done).length;
- const waiting=appState.gifts.filter(g=>g.status==='To buy').length,purchased=appState.gifts.filter(bought).length,suppliesWaiting=(plan.shoppingItems||[]).filter(i=>!i.done).length;
- return `<div class="cp-page cp-dashboard">${heading('YOUR NORTH POLE COMMAND CENTER','Christmas Plans','The important things in one calm place—checklists, shopping, and the Christmas countdown.',false)}
- <div class="cp-dash-stats"><button type="button" data-action="holiday-view" data-view="shopping"><span>Shopping</span><strong>${waiting+suppliesWaiting} to buy</strong><small>${waiting} gifts · ${suppliesWaiting} holiday items →</small></button><div><span>Holiday to-dos</span><strong>${todoDone}/${plan.todos.length}</strong><small>checked off</small></div><div><span>Christmas prep</span><strong>${eveDone}/${plan.eve.length}</strong><small>completed</small></div></div>
- <div class="cp-dash-toolbar"><button type="button" class="secondary" data-action="holiday-view" data-view="shopping">Shopping list →</button><button type="button" class="secondary" data-action="holiday-view" data-view="traditions">Traditions calendar →</button></div>
- <section class="cp-game-highlight" aria-label="Christmas Lights Scavenger Hunt"><div class="cp-game-icon" aria-hidden="true">✦</div><div class="cp-game-copy"><span class="eyebrow">PLAY TOGETHER</span><h2>Christmas Lights Scavenger Hunt</h2><p>Photo clues, holiday characters and a family scoreboard. Share a link—no guest accounts.</p></div><button type="button" class="secondary" data-action="holiday-view" data-view="hunt">Open lights hunt →</button></section>
- <section class="cp-panel"><div class="cp-top"><div><span class="eyebrow">EVERYDAY HOLIDAY DETAILS</span><h2>Holiday to-dos</h2><p>Cards, school parties, errands—everything beyond gifts.</p></div><button type="button" class="primary" data-action="holiday-add" data-kind="todos">+ Add task</button></div>${holidayListHTML(plan.todos,'todos')}</section>
- <section class="cp-panel"><div class="cp-top"><div><span class="eyebrow">SANTA'S FINAL CHECKLIST</span><h2>Christmas Eve & morning</h2><p>${plan.eve.length-eveDone} things left · Both caregivers can check these off.</p></div><button type="button" class="secondary" data-action="holiday-add" data-kind="eve">+ Add step</button></div><div class="cp-progress-head"><span>Christmas prep</span><strong>${eveDone}/${plan.eve.length} done</strong></div><div class="cp-track"><span style="width:${plan.eve.length?eveDone/plan.eve.length*100:0}%"></span></div><div class="cp-grid"><div><h3>Christmas Eve</h3>${holidayListHTML(plan.eve.filter(t=>t.phase!=='morning'),'eve')}</div><div><h3>Christmas morning</h3>${holidayListHTML(plan.eve.filter(t=>t.phase==='morning'),'eve')}</div></div><button type="button" class="plain-btn" data-action="holiday-reset">Reset checklist for next Christmas</button></section></div>`;
+ const plan=holidayPlan(),eveDone=plan.eve.filter(t=>t.done).length;
+ return `<div class="cp-page cp-dashboard">${heading('','Christmas Plans','',false)}
+ <section class="cp-panel"><div class="cp-top"><div><h2>Holiday to-dos</h2><p>Cards, school parties, errands—everything beyond gifts.</p></div><button type="button" class="primary" data-action="holiday-add" data-kind="todos">+ Add task</button></div>${holidayListHTML(plan.todos,'todos')}</section>
+ <section class="cp-panel"><div class="cp-top"><div><h2>Christmas Eve & morning</h2><p>${plan.eve.length-eveDone} things left · Both caregivers can check these off.</p></div><button type="button" class="secondary" data-action="holiday-add" data-kind="eve">+ Add step</button></div><div class="cp-progress-head"><span>Christmas prep</span><strong>${eveDone}/${plan.eve.length} done</strong></div><div class="cp-track"><span style="width:${plan.eve.length?eveDone/plan.eve.length*100:0}%"></span></div><div class="cp-grid"><div><h3>Christmas Eve</h3>${holidayListHTML(plan.eve.filter(t=>t.phase!=='morning'),'eve')}</div><div><h3>Christmas morning</h3>${holidayListHTML(plan.eve.filter(t=>t.phase==='morning'),'eve')}</div></div><button type="button" class="plain-btn" data-action="holiday-reset">Reset checklist for next Christmas</button></section></div>`;
 }
 // Photo Hunt v2: 25 fixed Mega clues plus five family-selected characters.
 // These are examples of characters that appear in illuminated holiday displays;
