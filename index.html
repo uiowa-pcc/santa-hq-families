@@ -1537,6 +1537,79 @@ body:has(.christmas-gifts) .mobile-add{display:none}
  .christmas-home-shopping,.christmas-budget{margin-inline:16px}
 }
 @media(prefers-reduced-motion:reduce){.christmas-home-stage .christmas-activities button{transition:none}}
+/* Shared Santa HQ surfaces */
+:root{
+ --hq-action:#a10e3c;
+ --hq-action-hover:#840b31;
+ --hq-blush:#faecee;
+ --hq-warm:#fff9f3;
+ --hq-outline:#e7d3d9;
+ --hq-focus:#8f2344;
+}
+.app .content .primary,#overlay .primary{
+ min-height:44px;background:var(--hq-action);color:#fff;border:1px solid transparent;
+ border-radius:999px;box-shadow:none;
+}
+.app .content .primary:hover,#overlay .primary:hover{background:var(--hq-action-hover)}
+.app .content .secondary,#overlay .secondary,.app .topbar :is(.top-kid,.top-setting){
+ min-height:44px;color:#781731;background:#fff9f386;border:1px solid var(--hq-outline);
+ border-radius:13px;box-shadow:none;
+}
+.app .content .secondary:hover,#overlay .secondary:hover{background:var(--hq-warm);border-color:#cfaab7}
+.app .content :is(.primary,.secondary) svg,#overlay :is(.primary,.secondary) svg{
+ width:16px;height:16px;flex:none;
+}
+.app .content :is(button,a,input,textarea,select):focus-visible,#overlay :is(button,a,input,textarea,select):focus-visible{
+ outline:2px solid var(--hq-focus);outline-offset:2px;
+}
+.app .content :is(.headrow,.christmas-workspace-title){margin-bottom:13px}
+.app .content :is(.cp-top h2,.sectiontitle,.tp-section-top h2,.settings-card h3){
+ font-family:var(--hq-display);font-weight:650;letter-spacing:-.025em;color:#62243d;
+}
+.app .content .headrow .sub{color:var(--hq-muted);margin-top:5px}
+.app .content .headrow .eyebrow{color:#78485c}
+.app #content .cp-switch,.app #content .wb-view-switch{
+ gap:clamp(8px,1.6vw,16px);margin-bottom:13px;
+}
+.app #content .cp-switch button,.app #content .wb-view-switch button{color:#704b5d}
+.app #content .cp-switch button[aria-pressed="true"],.app #content .wb-view-switch button[aria-pressed="true"]{
+ color:var(--hq-action);border-bottom-color:var(--hq-action);
+}
+.christmas-gifts .gift-board-tabs button[aria-pressed="true"]{
+ color:#85183c;background:#f8e7ed;box-shadow:none;
+}
+.christmas-gifts .gift-pile-heading small,.christmas-gifts .gift-morning-count,.app #content .cp-count{
+ border:0;background:transparent;color:#75485c;box-shadow:none;
+}
+.christmas-gifts .gift-confirm-toggle[aria-pressed="true"]{color:#8e2447}
+.christmas-gifts .gift-confirm-toggle[aria-pressed="true"] .gift-confirm-box{background:var(--hq-action);border-color:var(--hq-action);color:#fff}
+.christmas-gifts .gift-simple-row[data-confirmed="true"]{background:#faedf0}
+.christmas-gifts .gift-drop-dock{background:#fff8f6;border-color:var(--hq-outline)}
+.app #content :is(.tp-calendar-panel,.cp-hq-card,.dw-item){
+ border:1px solid var(--hq-edge);background:#fffafa;box-shadow:none;border-radius:13px;
+}
+.app #content :is(.cp-hq-creation,.cp-hunt-builder,.santa-reply){
+ background:#faedf1;border:1px solid var(--hq-edge);border-radius:13px;box-shadow:none;
+}
+.app #content :is(.cp-shop-row input,.cp-check,.tp-checkbox){accent-color:var(--hq-action)}
+.christmas-mail-title .secondary{display:inline-flex;align-items:center;gap:7px}
+.app #content .mail-card .mail-meta strong{color:#662a43}
+.app #content :is(.mail-new,.mail-gift-count){color:#8a2949;background:#f8e9ee;border-color:var(--hq-edge)}
+#overlay .modal{
+ background:#fffaf8;color:var(--hq-ink);border:1px solid var(--hq-outline);box-shadow:0 18px 64px #4922383d;
+}
+#overlay .modal-header,#overlay .modal-footer{background:#fffaf8;border-color:var(--hq-edge)}
+#modalTitle{font-family:var(--hq-display);color:#62243d}
+#overlay input:not([type=radio],[type=checkbox]),#overlay select,#overlay textarea{
+ border-color:var(--hq-outline);background:#fffdfb;color:var(--hq-ink);
+}
+#kidPortal .kid-sky{background:radial-gradient(ellipse at 85% 15%,#fbd4dd,transparent 54%),#fff2ef}
+#kidPortal :is(.kid-brand strong,.kid-intro h1,.kid-intro h2){font-family:var(--hq-display);color:#781731}
+#kidPortal .kid-send{background:var(--hq-action);color:#fff}
+@media(max-width:390px){
+ .app #content .cp-switch{gap:8px}
+ .app #content .cp-switch button{font-size:12px}
+}
 </style>
 </head>
 <body><section id="familyGate" role="region" aria-label="Family account sign in"></section>
@@ -1641,7 +1714,7 @@ function renderCountdown(){
     : `${sleeps} ${sleeps===1?'sleep':'sleeps'} until Christmas`;
 }
 function renderNav(){for(const id of ['desktopNav','mobileNav']){document.getElementById(id).innerHTML=navItems.filter(n=>id!=='mobileNav'||n[0]!=='settings').map(([page,icon,title])=>`<button class="nav-btn ${appState.page===page?'active':''}" data-action="nav" data-page="${page}">${ico(icon)}<span>${title}</span></button>`).join('')}const sync=document.getElementById('sideSync');sync.classList.toggle('online',appState.online);sync.querySelector('span').textContent=appState.online?'Family sync is on':'Saved on this device';const topDot=document.getElementById('topSyncDot');topDot.classList.toggle('online',appState.online);topDot.title=appState.online?'Connected: live family syncing':'Local storage: not yet synced';document.querySelector('.topbar-year').textContent='· '+new Date().getFullYear();renderCountdown()}
-function heading(kicker,title,subtitle,action=true){return `<div class="headrow"><div><div class="eyebrow">${kicker}</div><h1 class="heading">${title}</h1>${subtitle?`<p class="sub">${subtitle}</p>`:''}</div>${action?`<button class="primary" data-action="add">${ico('plus')} Add idea</button>`:''}</div>`}
+function heading(kicker,title,subtitle,action=true){return `<div class="headrow"><div>${kicker?`<div class="eyebrow">${kicker}</div>`:''}<h1 class="heading">${title}</h1>${subtitle?`<p class="sub">${subtitle}</p>`:''}</div>${action?`<button class="primary" data-action="add">${ico('plus')} Add idea</button>`:''}</div>`}
 function stat(label,value,note,graphic){const art=({P:'present',L:'stocking',W:'tree',A:'mailbox'})[graphic]||'present';return `<div class="stat-card"><div class="stat-top"><div class="stat-label">${label}</div><span class="stat-icon"><img src="./art/${art}.svg" alt=""></span></div><div class="stat-val">${value}</div><div class="stat-note">${note}</div></div>`}
 function kidCard(k){const name=kidName(k),budget=childBudget(k);let gs=appState.gifts.filter(g=>g.kid===k||g.kid==='both'),spent=gs.filter(bought).reduce((s,g)=>s+childShare(g,k),0),plannedAmt=gs.filter(planned).reduce((s,g)=>s+childShare(g,k),0),remaining=budget-spent;let per=budget?Math.round(100*spent/budget):0;return `<div class="kid-card"><div class="kid-head"><div class="kid-avatar">${kidEmoji(k)}</div><div><div class="kid-name">${escapeHTML(name)}</div><div class="kid-count">${gs.length} gift${gs.length===1?'':'s'} planned or saved</div></div></div><div class="kid-price"><div><small>Purchased so far</small><br><strong>${money(spent)}</strong></div><div style="text-align:right"><small>Budget</small><br><strong>${money(budget)}</strong></div></div><div class="progress"><div class="bar" style="width:${Math.min(per,100)}%"></div></div><div class="kid-foot"><span>${per}% of budget spent</span><span>${remaining<0?`${money(-remaining)} over budget`:`${money(remaining)} left`}</span></div><div class="helper" style="margin-top:9px">${money(plannedAmt)} in planned + purchased gifts</div></div>`}
 function progressView(){
@@ -2527,7 +2600,7 @@ function giftPlannerCompare(){
 function listRow(g,mode){const img=safeImage(g.image),isWrap=mode==='wrapping';let next=isWrap?'Wrapped':'Bought';return `<div class="shopping-row"><div class="shopping-thumb">${img?`<img style="width:100%;height:100%;border-radius:inherit;object-fit:cover" src="${escapeHTML(img)}" alt="">`:catEmoji(g.category)}</div><div class="shopping-detail"><strong>${escapeHTML(g.name)}</strong><small>${escapeHTML(kidName(g.kid))} · ${escapeHTML(g.category)} ${g.store?'· '+escapeHTML(g.store):''}</small>${g.storage&&isWrap?`<div class="quiet">Hiding spot: ${escapeHTML(g.storage)}</div>`:''}</div><div class="shop-pricing">${giftPriceLabel(g)}</div><div class="shopping-actions">${g.link&&safeLink(g.link)?`<button class="icon-btn" title="View product" data-action="open-link" data-id="${g.id}">${ico('external')}</button>`:''}<button class="small-action" data-action="next" data-next="${next}" data-id="${g.id}">${ico('check')} ${isWrap?'Wrapped!':'Bought!'}</button><button class="icon-btn" title="Edit" data-action="edit" data-id="${g.id}">${ico('edit')}</button></div></div>`}
 function shoppingPage(){const gs=appState.gifts.filter(g=>g.status==='To buy'),total=gs.reduce((s,g)=>s+giftTotal(g),0);return heading('Time to shop','The shopping list','Chosen gifts you still need to buy—not every brainstorm idea.')+`<div class="shopping-tally"><span>Shop ${gs.length} to shop</span><span>Budget ${money(total)} estimated to purchase</span></div><div class="panel">${gs.length?gs.sort((a,b)=>a.status==='To buy'?-1:1).map(g=>listRow(g,'shopping')).join(''):emptyGifts('Shopping is all caught up!','Ideas you choose on the planning board move here when they are marked To buy.')}</div>`}
 function wrappingPage(){const gs=appState.gifts.filter(g=>['Bought','Arrived','Ordered'].includes(g.status)),ready=gs.filter(g=>g.status==='Arrived'||g.status==='Bought'),wrapped=appState.gifts.filter(g=>g.status==='Wrapped');return heading('The finishing touch','Wrap station','Keep track of what has arrived and what’s ready for the tree.')+`<div class="shopping-tally"><span>Ready ${ready.length} ready to wrap</span><span>Ordered ${gs.length-ready.length} still shipping</span><span>Bow ${wrapped.length} wrapped</span></div><div class="panel"><div class="sectionhead"><h2 class="sectiontitle">Ready for ribbons</h2></div>${ready.length?ready.map(g=>listRow(g,'wrapping')).join(''):emptyGifts('No packages ready yet','Mark an order Arrived when it gets here, then it will appear in this wrapping queue.')}</div><div class="panel" style="margin-top:15px"><h2 class="sectiontitle" style="margin-bottom:12px">Still on the way Ordered</h2>${gs.filter(g=>g.status==='Ordered').length?gs.filter(g=>g.status==='Ordered').map(g=>`<div class="shopping-row"><div class="shopping-detail"><strong>${escapeHTML(g.name)}</strong><small>${escapeHTML(kidName(g.kid))}</small></div><button class="small-action" data-action="next" data-next="Arrived" data-id="${g.id}">Arrived Mark arrived</button></div>`).join(''):'<div class="quiet">Nothing in transit right now.</div>'}</div>`}
-function settingsPage(){const cf=settings.firebase||{};return heading('Make it yours','Workshop settings','Set up your children, budgets, backups, and family sharing.',false)+`<div class="settings-grid"><section class="settings-card"><h3>Your family</h3><p>Use nicknames if you want to keep names private.</p><form id="familyForm"><div class="field"><label for="familyName">Family / workshop name</label><input id="familyName" maxlength="70" value="${escapeHTML(settings.familyName)}" required></div>
+function settingsPage(){const cf=settings.firebase||{};return heading('','Settings','Set up your children, budgets, backups, and family sharing.',false)+`<div class="settings-grid"><section class="settings-card"><h3>Your family</h3><p>Use nicknames if you want to keep names private.</p><form id="familyForm"><div class="field"><label for="familyName">Family / workshop name</label><input id="familyName" maxlength="70" value="${escapeHTML(settings.familyName)}" required></div>
    <p class="helper">Add up to six children. You can change their names, icons, and budgets at any time.</p>
    <div class="fa-child-settings" id="familyChildCards">${configuredChildren().map((c,i)=>`<div class="fa-settings-child" data-family-child="${c.id}"><div class="fa-child-title"><strong>Child ${i+1}</strong>${configuredChildren().length>1?`<button type="button" class="plain-btn" data-action="child-remove" data-kid="${c.id}">Remove</button>`:''}</div><div class="field"><label>Name</label><input name="kidName-${c.id}" maxlength="50" required value="${escapeHTML(c.name)}"></div><div class="field"><label>Gift budget ($)</label><input name="kidBudget-${c.id}" min="0" type="number" step=".01" value="${c.budget}"></div><div class="fa-icon-row fa-elf-options" role="radiogroup" aria-label="Elf avatar for ${escapeHTML(c.name)}">${Object.entries(ELF_ICONS).map(([id,label])=>`<label class="fa-icon-option" title="${label}"><input type="radio" name="kidIcon-${c.id}" aria-label="${label}" value="${id}" ${c.icon===id?'checked':''}><span class="elf-avatar" data-elf="${id}" aria-hidden="true"></span></label>`).join('')}</div><details class="fa-legacy-picker" ${ELF_ICONS[c.icon]?'':'open'}><summary>Prefer a classic symbol?</summary><div class="fa-icon-row" role="radiogroup" aria-label="Classic icons for ${escapeHTML(c.name)}">${Object.entries(CHILD_ICONS).map(([id,ic])=>`<label class="fa-icon-option" title="${ic.label}"><input type="radio" name="kidIcon-${c.id}" aria-label="${ic.label}" value="${id}" ${c.icon===id?'checked':''}><span title="${ic.label}" style="--child-accent:${ic.color};--child-tint:${ic.tint}">${ic.symbol}</span></label>`).join('')}</div></details></div>`).join('')}</div>
    ${childIds().length<6?'<button type="button" class="secondary" data-action="child-add">+ Add another child</button>':''}
@@ -2565,7 +2638,10 @@ function openLetterGiftIdea(letterId){
  });
 }
 
-function mailPage(){const mail=[...appState.messages].sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))),unread=mail.filter(m=>!m.read).length;return heading('NORTH POLE POST','Letters to Santa','Kids’ updates land here. Reply with a Santa note when you like.',false)+`<section class="mail-hero"><div><div class="eyebrow">SPECIAL DELIVERY </div><h2>You've got <span>${unread} new</span> little letter${unread===1?'':'s'}.</h2><p>Nothing about gifts, budgets or hiding spots appears in Kid View.</p><button class="primary" data-action="enter-kid">Open Kid View <span>↗</span></button></div><img class="mail-envelope mail-illustration" src="./art/mailbox.svg" alt=""></section><div class="sectionhead" style="margin-top:26px"><h2 class="sectiontitle">The Santa inbox</h2><span class="quiet">${mail.length} total</span></div>${mail.length?`<div class="mail-list">${mail.map(m=>`<article class="mail-card ${m.read?'':'new'}"><div class="mail-avatar">${kidEmoji(m.kid)}</div><div class="mail-content"><div class="mail-meta"><strong>${escapeHTML(kidName(m.kid))}</strong><span>${new Date(m.createdAt).toLocaleDateString(undefined,{month:'short',day:'numeric'})}</span>${!m.read?'<span class="mail-new">NEW</span>':''}</div><div class="mail-kind">${escapeHTML(m.type)}</div><p>${escapeHTML(m.text||(m.format==='audio'?'A little voice message':m.format==='drawing'?'A drawing made just for Santa':'A little wave from the North Pole'))}</p>${mailMediaHTML(m)}${m.reply?`<div class="santa-reply"><strong>Your Santa reply</strong><p>${escapeHTML(m.reply)}</p></div>`:''}${letterGiftCount(m.id)?`<div class="mail-gift-count">${ico('check')} ${letterGiftCount(m.id)} gift idea${letterGiftCount(m.id)===1?'':'s'} saved to the Gift Board</div>`:''}<div class="mail-actions"><button type="button" class="primary mail-gift-action" data-action="mail-to-gift" data-id="${escapeHTML(m.id)}">${ico('plus')} ${letterGiftCount(m.id)?'Add another gift idea':'Add as gift idea'}</button><button class="secondary" data-action="reply-mail" data-id="${escapeHTML(m.id)}">${m.reply?'Edit reply':' Reply as Santa'}</button>${!m.read?`<button class="plain-btn" data-action="read-mail" data-id="${escapeHTML(m.id)}">Mark read ✓</button>`:''}<button type="button" class="plain-btn danger" data-action="delete-mail" data-id="${escapeHTML(m.id)}">Delete letter</button></div></div></article>`).join('')}</div>`:`<div class="empty mail-empty"><span class="empty-emoji"><img src="./art/mailbox.svg" alt=""></span><h3>The mailbox is waiting</h3><p>Open Kid View and have one of your elves send a quick note. It’ll appear right here.</p><button class="primary" data-action="enter-kid">Try the kid view ↗</button></div>`}<div class="note" style="margin-top:20px">Voice notes and drawings are saved in this device’s private app storage and can sync to your approved family account when sharing is configured. Keep backups of precious messages.</div>`}
+function mailPage(){const mail=[...appState.messages].sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))),unread=mail.filter(m=>!m.read).length;return `<header class="headrow christmas-mail-title">
+ <div><h1 class="heading">Santa Mail</h1><p class="sub">${unread?`${unread} unread ${unread===1?'letter':'letters'}`:`${mail.length} ${mail.length===1?'letter':'letters'}`}</p></div>
+ <button type="button" class="secondary" data-action="enter-kid">${ico('mail')} Open Kid View</button>
+ </header>${mail.length?`<div class="mail-list">${mail.map(m=>`<article class="mail-card ${m.read?'':'new'}"><div class="mail-avatar">${kidEmoji(m.kid)}</div><div class="mail-content"><div class="mail-meta"><strong>${escapeHTML(kidName(m.kid))}</strong><span>${new Date(m.createdAt).toLocaleDateString(undefined,{month:'short',day:'numeric'})}</span>${!m.read?'<span class="mail-new">NEW</span>':''}</div><div class="mail-kind">${escapeHTML(m.type)}</div><p>${escapeHTML(m.text||(m.format==='audio'?'A little voice message':m.format==='drawing'?'A drawing made just for Santa':'A little wave from the North Pole'))}</p>${mailMediaHTML(m)}${m.reply?`<div class="santa-reply"><strong>Your Santa reply</strong><p>${escapeHTML(m.reply)}</p></div>`:''}${letterGiftCount(m.id)?`<div class="mail-gift-count">${ico('check')} ${letterGiftCount(m.id)} gift idea${letterGiftCount(m.id)===1?'':'s'} saved to the Gift Board</div>`:''}<div class="mail-actions"><button type="button" class="primary mail-gift-action" data-action="mail-to-gift" data-id="${escapeHTML(m.id)}">${ico('plus')} ${letterGiftCount(m.id)?'Add another gift idea':'Add as gift idea'}</button><button class="secondary" data-action="reply-mail" data-id="${escapeHTML(m.id)}">${m.reply?'Edit reply':' Reply as Santa'}</button>${!m.read?`<button class="plain-btn" data-action="read-mail" data-id="${escapeHTML(m.id)}">Mark read</button>`:''}<button type="button" class="plain-btn danger" data-action="delete-mail" data-id="${escapeHTML(m.id)}">Delete letter</button></div></div></article>`).join('')}</div>`:`<div class="empty mail-empty"><span class="empty-emoji"><img src="./art/mailbox.svg" alt=""></span><h3>The mailbox is waiting</h3><p>Open Kid View and have one of your elves send a quick note. It’ll appear right here.</p><button class="primary" data-action="enter-kid">Open Kid View</button></div>`}<div class="note" style="margin-top:20px">Voice notes and drawings are saved in this device’s private app storage and can sync to your approved family account when sharing is configured. Keep backups of precious messages.</div>`}
 // Tiny post office: media helpers, touch drawing and kid-friendly voice notes.
 let kidRecorder=null,kidStream=null,kidRecordParts=[],kidRecordTimer=null,kidSeconds=0,kidAudio='',kidDrawing='',kidDrawTouched=false,kidSpeech=null,kidDrawColor='#8268d7',kidCanvasUndo=[],kidIsDrawing=false,kidMediaFile=null,kidMediaPreviewURL='';
 function safeKidMedia(v,format){const u=String(v||'');if(format==='drawing')return /^data:image\/(png|webp|jpeg);base64,[a-zA-Z0-9+/=]+$/.test(u)?u:'';if(format==='audio')return /^data:audio\/(mp4|x-m4a|webm|ogg|mpeg|wav|aac)(;codecs=[^;,]+)?;base64,[a-zA-Z0-9+/=]+$/i.test(u)?u:'';return ''}
@@ -3201,7 +3277,7 @@ const CHRISTMAS_EVE_DEFAULTS=[
  {id:'m-breakfast',name:'Prepare Christmas breakfast',phase:'morning',done:false},
  {id:'m-cameras',name:'Charge phones or cameras',phase:'morning',done:false}
 ];
-const HOLIDAY_VIEWS=[['overview','Dashboard'],['traditions','Traditions'],['shopping','Shopping list'],['hunt','Lights Hunt']];
+const HOLIDAY_VIEWS=[['overview','To-dos'],['traditions','Traditions'],['shopping','Shopping'],['hunt','Lights Hunt']];
 appState.holidayView='overview';appState.huntMode=null;
 function holidayPlan(){
  const raw=settings.holidayPlans && typeof settings.holidayPlans==='object' && !Array.isArray(settings.holidayPlans)?settings.holidayPlans:{};
@@ -3312,22 +3388,17 @@ function holidayShoppingPage(){
  const purchased=appState.gifts.filter(bought).sort((a,b)=>kidName(a.kid).localeCompare(kidName(b.kid))||a.name.localeCompare(b.name));
  const total=toBuy.reduce((n,g)=>n+giftTotal(g),0),spent=purchased.reduce((n,g)=>n+giftTotal(g),0);
  const row=(g,checked)=>`<div class="cp-shop-row"><input type="checkbox" ${checked?'checked':''}  data-action="${checked?'shop-undo':'shop-check'}" data-id="${escapeHTML(g.id)}" aria-label="${checked?'Return to shopping list':'Mark purchased'}: ${escapeHTML(g.name)}"><div class="cp-shop-details"><strong>${escapeHTML(g.name)}</strong><small>${escapeHTML(kidName(g.kid))} · ${escapeHTML(giftPlacement(g)==='stocking'?'Stocking':giftPlacement(g)==='undecided'?'Undecided':'Under the tree')}</small></div><span class="cp-shop-price">${giftPriceLabel(g)}${g.link?`<a href="${escapeHTML(safeLink(g.link))}" target="_blank" rel="noopener noreferrer" style="display:block;font-size:10px;color:#6055ac">View store</a>`:''}</span><button type="button" class="cp-edit" data-action="edit" data-id="${escapeHTML(g.id)}" aria-label="Edit ${escapeHTML(g.name)}">Edit</button></div>`;
- return `<div class="cp-page">${heading('ONE PLACE TO PICK UP WHAT YOU NEED','Shopping list','Gifts you added to shopping, plus supplies connected to your holiday to-dos.',false)}
- <div class="cp-shopping-stats"><div><span>Still to buy</span><strong>${toBuy.length+toPickUp.length}</strong><small>${toBuy.length} gifts · ${toPickUp.length} holiday items</small></div><div><span>Picked up / purchased</span><strong>${purchased.length+pickedUp.length}</strong><small>${purchased.length} gifts · ${pickedUp.length} holiday items</small></div></div>
+ return `<div class="cp-page">${heading('','Shopping List',`${toBuy.length+toPickUp.length} to pick up · ${money(total)} estimated for gifts`,false)}
  <section class="cp-panel"><div class="cp-top"><div><h2>For your holiday plans <span class="cp-count">${toPickUp.length}</span></h2><p>Need a gingerbread kit, batteries, or cocoa? Add it directly from the related to-do. Buying the item never checks off the activity.</p></div><button type="button" class="secondary" data-action="holiday-view" data-view="overview">To-dos</button></div>${toPickUp.length?`<div class="cp-shop-items">${toPickUp.map(item=>holidaySupplyRow(item,plan)).join('')}</div>`:'<p class="cp-empty">No holiday supplies to pick up. Use “+ Add shopping item” under any to-do.</p>'}</section>
  <section class="cp-panel"><div class="cp-top"><div><h2>Gifts to buy <span class="cp-count">${toBuy.length}</span></h2><p>Confirm a gift on the Gift Board, then check it off here when purchased. Estimated gift cost: ${money(total)}.</p></div><button type="button" class="secondary" data-action="nav" data-page="gifts">Gift Board</button></div>${toBuy.length?`<div class="cp-shop-items">${toBuy.map(g=>row(g,false)).join('')}</div>`:'<p class="cp-empty">No gifts waiting to buy.</p>'}</section>
  ${dealWatchSection()}
  <section class="cp-panel cp-purchased"><div class="cp-top"><div><h2>Purchased <span class="cp-count">${purchased.length+pickedUp.length}</span></h2><p>Everything checked off stays here, including gifts and supplies. Uncheck to return it to shopping. Gift spending: ${money(spent)}.</p></div></div>${pickedUp.length?`<h3 class="cp-purchased-subtitle">Holiday items</h3><div class="cp-shop-items">${pickedUp.map(i=>holidaySupplyRow(i,plan)).join('')}</div>`:''}${purchased.length?`<h3 class="cp-purchased-subtitle">Gifts</h3><div class="cp-shop-items">${purchased.map(g=>row(g,true)).join('')}</div>`:''}${!pickedUp.length&&!purchased.length?'<p class="cp-empty">Purchased gifts and picked-up supplies will appear here.</p>':''}</section></div>`;
 }
 function holidayOverviewPage(){
- const plan=holidayPlan(),todoDone=plan.todos.filter(t=>t.done).length,eveDone=plan.eve.filter(t=>t.done).length;
- const waiting=appState.gifts.filter(g=>g.status==='To buy').length,purchased=appState.gifts.filter(bought).length,suppliesWaiting=(plan.shoppingItems||[]).filter(i=>!i.done).length;
- return `<div class="cp-page cp-dashboard">${heading('YOUR NORTH POLE COMMAND CENTER','Christmas Plans','The important things in one calm place—checklists, shopping, and the Christmas countdown.',false)}
- <div class="cp-dash-stats"><button type="button" data-action="holiday-view" data-view="shopping"><span>Shopping</span><strong>${waiting+suppliesWaiting} to buy</strong><small>${waiting} gifts · ${suppliesWaiting} holiday items →</small></button><div><span>Holiday to-dos</span><strong>${todoDone}/${plan.todos.length}</strong><small>checked off</small></div><div><span>Christmas prep</span><strong>${eveDone}/${plan.eve.length}</strong><small>completed</small></div></div>
- <div class="cp-dash-toolbar"><button type="button" class="secondary" data-action="holiday-view" data-view="shopping">Shopping list →</button><button type="button" class="secondary" data-action="holiday-view" data-view="traditions">Traditions calendar →</button></div>
- <section class="cp-game-highlight" aria-label="Christmas Lights Scavenger Hunt"><div class="cp-game-icon" aria-hidden="true">✦</div><div class="cp-game-copy"><span class="eyebrow">PLAY TOGETHER</span><h2>Christmas Lights Scavenger Hunt</h2><p>Photo clues, holiday characters and a family scoreboard. Share a link—no guest accounts.</p></div><button type="button" class="secondary" data-action="holiday-view" data-view="hunt">Open lights hunt →</button></section>
- <section class="cp-panel"><div class="cp-top"><div><span class="eyebrow">EVERYDAY HOLIDAY DETAILS</span><h2>Holiday to-dos</h2><p>Cards, school parties, errands—everything beyond gifts.</p></div><button type="button" class="primary" data-action="holiday-add" data-kind="todos">+ Add task</button></div>${holidayListHTML(plan.todos,'todos')}</section>
- <section class="cp-panel"><div class="cp-top"><div><span class="eyebrow">SANTA'S FINAL CHECKLIST</span><h2>Christmas Eve & morning</h2><p>${plan.eve.length-eveDone} things left · Both caregivers can check these off.</p></div><button type="button" class="secondary" data-action="holiday-add" data-kind="eve">+ Add step</button></div><div class="cp-progress-head"><span>Christmas prep</span><strong>${eveDone}/${plan.eve.length} done</strong></div><div class="cp-track"><span style="width:${plan.eve.length?eveDone/plan.eve.length*100:0}%"></span></div><div class="cp-grid"><div><h3>Christmas Eve</h3>${holidayListHTML(plan.eve.filter(t=>t.phase!=='morning'),'eve')}</div><div><h3>Christmas morning</h3>${holidayListHTML(plan.eve.filter(t=>t.phase==='morning'),'eve')}</div></div><button type="button" class="plain-btn" data-action="holiday-reset">Reset checklist for next Christmas</button></section></div>`;
+ const plan=holidayPlan(),eveDone=plan.eve.filter(t=>t.done).length;
+ return `<div class="cp-page cp-dashboard">${heading('','Christmas Plans','',false)}
+ <section class="cp-panel"><div class="cp-top"><div><h2>Holiday to-dos</h2><p>Cards, school parties, errands—everything beyond gifts.</p></div><button type="button" class="primary" data-action="holiday-add" data-kind="todos">+ Add task</button></div>${holidayListHTML(plan.todos,'todos')}</section>
+ <section class="cp-panel"><div class="cp-top"><div><h2>Christmas Eve & morning</h2><p>${plan.eve.length-eveDone} things left · Both caregivers can check these off.</p></div><button type="button" class="secondary" data-action="holiday-add" data-kind="eve">+ Add step</button></div><div class="cp-progress-head"><span>Christmas prep</span><strong>${eveDone}/${plan.eve.length} done</strong></div><div class="cp-track"><span style="width:${plan.eve.length?eveDone/plan.eve.length*100:0}%"></span></div><div class="cp-grid"><div><h3>Christmas Eve</h3>${holidayListHTML(plan.eve.filter(t=>t.phase!=='morning'),'eve')}</div><div><h3>Christmas morning</h3>${holidayListHTML(plan.eve.filter(t=>t.phase==='morning'),'eve')}</div></div><button type="button" class="plain-btn" data-action="holiday-reset">Reset checklist for next Christmas</button></section></div>`;
 }
 // Photo Hunt v2: 25 fixed Mega clues plus five family-selected characters.
 // These are examples of characters that appear in illuminated holiday displays;
@@ -3448,8 +3519,7 @@ function huntHQCards(plan){
 }
 function holidayHuntPage(){
  const plan=holidayPlan(),mode=appState.huntMode==='mega'?'mega':'standalone',selected=huntSelectedCharacters(),photoMode=huntPhotoSelected(),theme=appState.huntStandaloneTheme||'colors',playMode=appState.huntPlayMode||'competition';
- return `<div class="cp-page">${heading('PLAY TOGETHER','Hunt HQ','Start one themed or randomized standalone, or build a longer Mega Hunt with linked mini hunts.',false)}
- <div class="cp-hunt-hero"><span class="eyebrow">LIGHTS HUNT HQ</span><h2>Choose your kind of adventure.</h2><p>Keep different friend groups and family hunts running independently. Each gets its own name, link, progress, and optional photo gallery.</p></div>
+ return `<div class="cp-page">${heading('','Lights Hunt','Start a hunt or pick up where you left off.',false)}
  ${huntHQCards(plan)}
  <section class="cp-panel"><div class="cp-top"><div><h2>Create a hunt</h2><p>Standalone is always 8 clues. Mega is 30 clues plus as many themed mini hunts as you want.</p></div></div>
  <div class="cp-choice" aria-label="Choose a hunt type"><button type="button" data-action="holiday-hunt-mode" data-mode="standalone" aria-pressed="${mode==='standalone'}"><span class="cp-hunt-card-title">Standalone Hunt</span><small>8 clues · themed or randomized · play once</small></button><button type="button" data-action="holiday-hunt-mode" data-mode="mega" aria-pressed="${mode==='mega'}"><span class="cp-hunt-card-title"><span class="cp-mega-label">MEGA</span> Mega Hunt</span><small>30 clues · ongoing group · linked themed nights</small></button></div>
