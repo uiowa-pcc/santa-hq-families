@@ -1908,19 +1908,113 @@ function sqMoveMenu(id){
 }
 
 let sqDragging=null;
-function sqPointerDown(e){let h=e.target.closest?.('[data-sq-grab]'),card=h?.closest('[data-sq-card]');if(!h&&e.pointerType==='mouse'&&!e.target.closest('button,summary,details,a,input')){card=e.target.closest?.('.wb-gift');h=card?.querySelector('[data-sq-grab]')}if(!h||appState.page!=='gifts'||e.button>0)return;if(!card)card=h.closest('[data-sq-card]');if(!card)return;e.preventDefault();sqDragging={id:h.dataset.sqGrab,card,startX:e.clientX,startY:e.clientY,active:false,ghost:null,zone:null,before:null,rect:card.getBoundingClientRect()};document.addEventListener('pointermove',sqPointerMove,{passive:false});document.addEventListener('pointerup',sqPointerUp,{once:true});document.addEventListener('pointercancel',sqPointerCancel,{once:true})}
-function sqPointerMove(e){let d=sqDragging;if(!d)return;d.lastX=e.clientX;d.lastY=e.clientY;e.preventDefault();if(!d.active){if(Math.hypot(e.clientX-d.startX,e.clientY-d.startY)<7)return;d.active=true;d.ghost=d.card.cloneNode(true);d.ghost.classList.add('sq-ghost');d.ghost.style.width=d.rect.width+'px';document.body.appendChild(d.ghost);d.card.classList.add('sq-source')}
-d.ghost.style.left=Math.max(2,Math.min(innerWidth-d.rect.width-2,e.clientX-d.rect.width/2))+'px';d.ghost.style.top=Math.max(2,e.clientY-35)+'px';document.querySelectorAll('.sq-hover,.sq-before').forEach(x=>x.classList.remove('sq-hover','sq-before'));let hit=document.elementFromPoint(e.clientX,e.clientY),zone=hit?.closest?.('[data-sq-zone]');d.zone=zone;d.before=null;if(zone){zone.classList.add('sq-hover');let card=hit?.closest?.('[data-sq-card]');if(card&&card.dataset.sqCard!==d.id){d.before=card.dataset.sqCard;card.classList.add('sq-before')}}if(zone){const scroller=zone.closest('.wb-drop');if(scroller){const zr=scroller.getBoundingClientRect();if(e.clientY>zr.bottom-33)scroller.scrollTop+=14;else if(e.clientY<zr.top+33)scroller.scrollTop-=14}}if(!zone?.closest('.wb-drop')&&d.active){if(e.clientY>innerHeight-65)window.scrollBy(0,12);else if(e.clientY<55)window.scrollBy(0,-12)}}
-function sqPointerEnd(cancel){document.removeEventListener('pointermove',sqPointerMove);document.removeEventListener('pointerup',sqPointerUp);document.removeEventListener('pointercancel',sqPointerCancel);let d=sqDragging;sqDragging=null;if(!d)return;d.ghost?.remove();d.card.classList.remove('sq-source');document.querySelectorAll('.sq-hover,.sq-before').forEach(x=>x.classList.remove('sq-hover','sq-before'));if(!cancel&&d.active&&d.zone){nwSelectedId=null;if(appState.giftView==='compare'){
- const gift=appState.gifts.find(g=>g.id===d.id);
- const target=document.elementFromPoint(d.lastX,d.lastY)?.closest('[data-sq-card]');
- if(!gift||target===d.card)return;
- const cards=[...d.zone.querySelectorAll('[data-sq-card]')].filter(card=>card!==d.card);
- const next=cards.find(card=>{const rect=card.getBoundingClientRect();return d.lastY<rect.top+rect.height/2;});
- void moveBoardGift(d.id,d.zone.dataset.sqZone,d.zone.dataset.sqPlace,next?.dataset.sqCard);
-}else void sqMove(d.id,d.zone.dataset.sqZone,d.zone.dataset.sqPlace,d.before)}}
-function sqPointerUp(){sqPointerEnd(false)}function sqPointerCancel(){sqPointerEnd(true)}
+function sqPointerDown(event){
+ const handle=event.target.closest?.('[data-sq-grab]');
+ const card=handle?.closest('[data-sq-card]');
+ if(!card||sqDragging||appState.page!=='gifts'||event.button!==0||!event.isPrimary)return;
+ if(handle.tagName!=='BUTTON')event.preventDefault();
+ sqDragging={id:handle.dataset.sqGrab,pointer:event.pointerId,card,handle,x:event.clientX,y:event.clientY,startX:event.clientX,startY:event.clientY};
+ document.addEventListener('pointermove',sqPointerMove,{passive:false});
+ document.addEventListener('pointerup',sqPointerUp);
+ document.addEventListener('pointercancel',sqPointerCancel);
+ document.addEventListener('keydown',sqDragEscape);
+}
 
+function sqDragEscape(event){
+ if(event.key==='Escape')sqPointerEnd(true);
+}
+
+function sqDropTarget(drag){
+ const zone=document.elementFromPoint(drag.x,drag.y)?.closest('[data-sq-zone]');
+ const gift=appState.gifts.find(g=>g.id===drag.id);
+ if(!zone||!gift)return null;
+ const kid=zone.dataset.sqZone;
+ const place=zone.dataset.sqPlace||(
+  kid==='unassigned'?'undecided':kid==='both'&&giftPlacement(gift)==='stocking'?'tree':giftPlacement(gift)
+ );
+ if(kid==='both'&&place==='stocking')return null;
+ const samePile=gift.kid===kid&&giftPlacement(gift)===place;
+ if(samePile&&!zone.classList.contains('gift-simple-pile')&&!zone.classList.contains('gift-morning-pile'))return null;
+ const cards=[...zone.querySelectorAll('[data-sq-card]')].filter(card=>
+  card!==drag.card&&(!samePile||card.dataset.confirmed===drag.card.dataset.confirmed)
+ );
+ const before=cards.find(card=>{
+  const rect=card.getBoundingClientRect();
+  return drag.y<rect.top+rect.height/2;
+ });
+ return {zone,kid,place,before};
+}
+
+function sqDrawDrag(){
+ const drag=sqDragging;
+ if(!drag?.ghost)return;
+ const edge=85;
+ if(drag.y<edge)window.scrollBy(0,-12);
+ else if(drag.y>innerHeight-edge&&!document.elementFromPoint(drag.x,drag.y)?.closest('.gift-drop-dock'))window.scrollBy(0,12);
+ const target=sqDropTarget(drag);
+ if(target?.zone!==drag.target?.zone){
+  drag.target?.zone.classList.remove('sq-hover');
+  target?.zone.classList.add('sq-hover');
+ }
+ if(target?.before!==drag.target?.before){
+  drag.target?.before?.classList.remove('sq-before');
+  target?.before?.classList.add('sq-before');
+ }
+ drag.target=target;
+ drag.frame=requestAnimationFrame(sqDrawDrag);
+}
+
+function sqPointerMove(event){
+ const drag=sqDragging;
+ if(!drag||drag.pointer!==event.pointerId)return;
+ drag.x=event.clientX;
+ drag.y=event.clientY;
+ if(!drag.ghost){
+  if(Math.hypot(drag.x-drag.startX,drag.y-drag.startY)<7)return;
+  drag.ghost=document.createElement('div');
+  drag.ghost.className='sq-ghost gift-drag-preview';
+  drag.ghost.textContent=drag.card.querySelector('strong')?.textContent||'Gift';
+  drag.ghost.setAttribute('aria-hidden','true');
+  document.body.append(drag.ghost);
+  document.body.classList.add('gift-dragging');
+  drag.card.classList.add('sq-source');
+  drag.frame=requestAnimationFrame(sqDrawDrag);
+ }
+ event.preventDefault();
+ drag.ghost.style.left=Math.max(8,Math.min(innerWidth-drag.ghost.offsetWidth-8,drag.x+12))+'px';
+ drag.ghost.style.top=Math.max(8,drag.y-48)+'px';
+}
+
+function sqPointerEnd(cancel){
+ const drag=sqDragging;
+ if(!drag)return;
+ const target=!cancel&&drag.ghost?sqDropTarget(drag):null;
+ const droppedOnSource=target&&document.elementFromPoint(drag.x,drag.y)?.closest('[data-sq-card]')===drag.card;
+ sqDragging=null;
+ cancelAnimationFrame(drag.frame);
+ document.removeEventListener('pointermove',sqPointerMove);
+ document.removeEventListener('pointerup',sqPointerUp);
+ document.removeEventListener('pointercancel',sqPointerCancel);
+ document.removeEventListener('keydown',sqDragEscape);
+ drag.ghost?.remove();
+ drag.card.classList.remove('sq-source');
+ drag.target?.zone.classList.remove('sq-hover');
+ drag.target?.before?.classList.remove('sq-before');
+ document.body.classList.remove('gift-dragging');
+ if(!drag.ghost)return;
+ window.addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();},{capture:true,once:true,signal:AbortSignal.timeout(350)});
+ if(!target||droppedOnSource)return;
+ void moveBoardGift(drag.id,target.kid,target.place,target.before?.dataset.sqCard,appState.giftView!=='compare');
+}
+function sqPointerUp(event){
+ if(event.pointerId!==sqDragging?.pointer)return;
+ sqDragging.x=event.clientX;
+ sqDragging.y=event.clientY;
+ sqPointerEnd(false);
+}
+function sqPointerCancel(event){
+ if(event.pointerId===sqDragging?.pointer)sqPointerEnd(true);
+}
 
 // Unified Gift Workbench. Placements and saved records are unchanged.
 function wbRecipients(){return [...childIds(),'both']}
@@ -2025,15 +2119,13 @@ function boardGiftRow(g){
  const control=confirmation.eligible?`<button type="button" class="gift-confirm-toggle" data-action="board-confirm-row" data-id="${id}" data-place="${confirmation.place}" aria-pressed="${confirmed}" aria-label="Confirm ${name} for Christmas Morning">
   <span class="gift-confirm-box" aria-hidden="true">${confirmed?'✓':''}</span><span>${confirmed?'Confirmed':'Confirm gift'}</span>
  </button>`:'<span class="gift-confirm-needs-recipient">Assign first</span>';
- return `<article class="gift-simple-row" data-confirmed="${confirmed}">
+ return `<article class="gift-simple-row" data-sq-card="${id}" data-confirmed="${confirmed}">
+  <button type="button" class="gift-board-grip" data-sq-grab="${id}" data-action="board-move-menu" data-id="${id}" aria-label="Move ${name}" title="Drag to move"><span aria-hidden="true"></span></button>
   <button class="gift-simple-detail" type="button" data-action="board-details" data-id="${id}">
    ${image?`<img src="${escapeHTML(image)}" alt="" loading="lazy">`:''}
    <span><strong>${name}</strong><small>${giftPriceLabel(g)}${status?' · '+status:''}</small></span>
   </button>
-  <div class="gift-row-actions">
-   <button type="button" class="gift-row-move" data-action="board-move-menu" data-id="${id}" aria-label="Move ${name}">${ico('arrow')}<span>Move</span></button>
-   ${control}
-  </div>
+  ${control}
  </article>`;
 }
 
@@ -2056,20 +2148,26 @@ function giftPlannerIdeas(){
  const kid=selectedBoardRecipient();
  const recipients=[...childIds(),'both'];
  if(appState.gifts.some(g=>g.kid==='unassigned'))recipients.push('unassigned');
- return `<div class="gift-simple-board">
+ return `<div class="gift-simple-board gift-idea-board">
   <div class="gift-board-tools">
-   <div class="gift-board-tabs" role="group" aria-label="Gift recipient">${recipients.map(k=>`<button type="button" data-action="board-recipient" data-kid="${escapeHTML(k)}" aria-pressed="${k===kid}">${childIds().includes(k)?childChoiceIcon(k):''}${escapeHTML(k==='unassigned'?'Unassigned':k==='both'&&childIds().length===2?'Both':kidName(k))}</button>`).join('')}</div>
+   <div class="gift-board-tabs" role="group" aria-label="Gift recipient">${recipients.map(k=>`<button type="button" data-action="board-recipient" data-sq-zone="${escapeHTML(k)}" data-kid="${escapeHTML(k)}" aria-pressed="${k===kid}">${childIds().includes(k)?childChoiceIcon(k):''}${escapeHTML(k==='unassigned'?'Unassigned':k==='both'&&childIds().length===2?'Both':kidName(k))}</button>`).join('')}</div>
    <button type="button" class="primary" data-action="board-add">+ Add idea</button>
   </div>
-  <p class="gift-confirm-hint">Confirmed gifts appear on Christmas Morning. Gifts you still need to buy also go to the Shopping List.</p>
+  <p class="gift-confirm-hint">Drag a gift between piles or onto a recipient. Confirm it to add it to Christmas Morning and, if needed, your Shopping List.</p>
   ${Object.entries(giftPileLabels).map(([place,label])=>{
    const gifts=wbGifts(kid,place).sort((a,b)=>Number(morningConfirmed(b))-Number(morningConfirmed(a)));
    if(place==='stocking'&&kid==='both'&&!gifts.length)return '';
-   return `<section class="gift-simple-pile">
+   return `<section class="gift-simple-pile" data-sq-zone="${escapeHTML(kid)}" data-sq-place="${place}">
     <button type="button" class="gift-pile-heading" data-action="board-pile" data-place="${place}" aria-expanded="${boardOpenPiles.has(place)}"><span>${label} <small>${gifts.length}</small></span><span aria-hidden="true">${boardOpenPiles.has(place)?'−':'+'}</span></button>
     ${boardOpenPiles.has(place)?(gifts.map(g=>boardGiftRow(g)).join('')||'<p class="gift-pile-empty">No gifts here yet.</p>'):''}
    </section>`;
   }).join('')}
+  <div class="gift-drop-dock" aria-hidden="true">
+   <span>Drop into a pile</span>
+   <div>${Object.entries(giftPileLabels).filter(([place])=>place!=='stocking'||kid!=='both').map(([place,label])=>`<span data-sq-zone="${escapeHTML(kid)}" data-sq-place="${place}">${label}</span>`).join('')}</div>
+   <span>Or move to a recipient</span>
+   <div>${recipients.filter(k=>k!==kid).map(k=>`<span data-sq-zone="${escapeHTML(k)}">${escapeHTML(k==='unassigned'?'Unassigned':kidName(k))}</span>`).join('')}</div>
+  </div>
  </div>`;
 }
 
@@ -2886,7 +2984,7 @@ case 'board-shop':
 case 'board-morning-pile':morningPile=el.dataset.place;render();break;
 case 'board-reorder':modalClose();reorderMorningGift(id,Number(el.dataset.direction));break;
 case 'morning-size':appState.morningCompact=!appState.morningCompact;render();break;case 'morning-prices':appState.morningPrices=!appState.morningPrices;render();break;case 'plan-menu':planMoveMenu(id);break;case 'plan-move':{const lane=el.dataset.lane;modalClose();moveToPlan(id,lane);break}case 'plan-up':shiftPlanCard(id,-1);break;case 'plan-down':shiftPlanCard(id,1);break;case 'nav':navigate(el.dataset.page);break;case 'home-open-plan':appState.holidayView=el.dataset.view||'overview';navigate('traditions');if(appState.holidayView==='hunt'){void loadHuntHQRounds();void loadUploadedHuntCharacters()}break;case 'home-open-gifts':appState.giftView='ideas';navigate('gifts');break;case 'enter-kid':enterKid();break;case 'change-pin':{if(settings.grownupPin&&prompt('Current PIN:')!==settings.grownupPin){showToast('Incorrect PIN.');break}const pin=prompt('Set a new 4–6 digit PIN:');if(pin===null)break;if(!/^\d{4,6}$/.test(pin)){showToast('Choose 4–6 digits.');break}settings.grownupPin=pin;saveSettingsLocal();showToast('Kid View PIN updated');break}case 'exit-kid':exitKid();break;case 'child-add':addChildSettings();break;case 'child-remove':removeChildSettings(el.dataset.kid);break;case 'kid-select':resetKidDraft();appState.kidSelected=el.dataset.kid;renderKidPortal();break;case 'kid-choice':appState.kidChoice=el.dataset.choice;document.querySelectorAll('.kid-topic').forEach(b=>b.classList.toggle('active',b.dataset.choice===appState.kidChoice));break;case 'kid-mode':resetKidDraft();appState.kidMode=el.dataset.mode;renderKidPortal();break;case 'kid-record':if(kidRecorder?.state==='recording')finishKidRecording();else startKidRecording();break;case 'kid-redo-record':resetKidDraft();renderKidPortal();break;case 'kid-dictate':kidDictate();break;case 'kid-color':kidDrawColor=el.dataset.color;document.querySelectorAll('.kid-color').forEach(b=>b.classList.toggle('active',b.dataset.color===kidDrawColor));break;case 'kid-undo':case 'kid-clear':kidCanvasAction(action);break;case 'kid-insert':{const input=document.getElementById('kidMessage');if(input)input.value+=(input.value?' ':'')+el.dataset.text.replace(/^[^ ]+ /,'');break}case 'kid-again':renderKidPortal();break;case 'delete-mail':deleteKidLetter(id);break;case 'mail-to-gift':openLetterGiftIdea(id);break;case 'reply-mail':replyMail(id);break;case 'read-mail':{const m=appState.messages.find(x=>x.id===id);if(m){putMail({...m,read:true}).then(render)}break}case 'gift-view':appState.giftView=el.dataset.view;render();break;case 'gift-ready':setGiftStatus(id,'To buy');break;case 'gift-watch':openGiftWatch(id);break;case 'gift-refresh-price':if(el.hasAttribute('data-close-options'))modalClose();void refreshDealPrices(id);break;case 'add-link':openLinkedGift();break;case 'gift-refresh-all':refreshDealPrices();break;case 'gift-unwatch':stopGiftWatch(id);break;case 'quick-lookup':quickLookupLink();break;case 'gift-go-shopping':appState.page='traditions';appState.holidayView='shopping';render();break;case 'go-lights-hunt':appState.page='traditions';appState.holidayView='hunt';render();void loadHuntHQRounds();void loadUploadedHuntCharacters();window.scrollTo({top:0,behavior:'smooth'});break;case 'shop-check':{const gift=appState.gifts.find(g=>g.id===id);if(gift&&gift.status==='To buy')setGiftStatus(id,'Bought');break;}case 'shop-undo':{const gift=appState.gifts.find(g=>g.id===id);if(gift&&bought(gift))setGiftStatus(id,'To buy');break;}case 'paste-gifts':openPasteGifts();break;case 'paste-back':pasteNavigate(-1);break;case 'paste-next':pasteNavigate(1);break;case 'paste-default-rest':pasteUseDefaults();break;case 'paste-duplicate':pasteDuplicateStockings();break;case 'paste-remove-copy':pasteRemoveCopy();break;case 'paste-review-back':pasteReviewBack();break;case 'paste-save':savePastedGifts();break;case 'sq-lock':nwSelectedId=null;void sqLock(id);break;case 'sq-unlock':void sqUnlock(id);break;case 'sq-move-menu':sqMoveMenu(id);break;case 'nw-select':nwSelect(id);break;case 'nw-ideas-toggle':{nwIdeasExpanded=!nwIdeasExpanded;const tray=document.querySelector('.nw-ideas');tray?.classList.toggle('is-expanded',nwIdeasExpanded);el.setAttribute('aria-expanded',String(nwIdeasExpanded));el.textContent=nwIdeasExpanded?'Show fewer ideas':`Show all ${el.dataset.ideasCount} ideas`;break;}case 'nw-drop':nwDropSelected(el.dataset.kid,el.dataset.place);break;case 'wb-options':wbOptionsMenu(id);break;case 'wb-unassigned':wbUnassignedMenu();break;case 'wb-assign':modalClose();void assignIdeaRecipient(id,el.dataset.kid);break;case 'wb-unlock':modalClose();void sqUnlock(id);break;case 'sq-move-to':modalClose();void sqMove(id,el.dataset.kid,el.dataset.place);break;case 'idea-quick':openRecipientQuickAdd(el.dataset.kid,el.dataset.category);break;case 'idea-assign':assignIdeaRecipient(id,el.dataset.kid);break;case 'add':openRecipientQuickAdd();break;case 'add-detailed':{const seed={name:document.getElementById('recipientQuickName')?.value.trim()||'',kid:document.querySelector('#recipientQuickForm input[name="quickKid"]:is(:checked,[type=hidden])')?.value||'unassigned',category:categoryFromPlacement(document.querySelector('#recipientQuickForm input[name="quickPlace"]:is(:checked,[type=hidden])')?.value||'undecided'),price:document.getElementById('recipientQuickPrice')?.value||'',notes:document.getElementById('recipientQuickNotes')?.value||'',link:safeLink(document.getElementById('recipientQuickLink')?.value)||'',image:quickImportImage,keepAsIdea:!!document.querySelector('#recipientQuickForm input[name="quickPlace"][type=hidden]')};openGift(null,seed);break}case 'duplicate':openDuplicateGift(id);break;case 'idea-compare':toggleIdeaCompare(id);break;case 'gift-lock-tree':lockGiftIn(id,'tree');break;case 'gift-lock-stocking':lockGiftIn(id,'stocking');break;case 'idea-confirm-tree':changeIdeaPlacement(id,'tree');break;case 'idea-placement':changeIdeaPlacement(id,el.dataset.category);break;case 'close':modalClose();break;case 'edit':openGift(appState.gifts.find(g=>g.id===id));break;case 'delete':deleteGift(id);break;case 'next':advanceGift(id,el.dataset.next);break;case 'open-link':{let g=appState.gifts.find(x=>x.id===id);if(safeLink(g?.link))window.open(g.link,'_blank','noopener,noreferrer');break}case 'export':exportJSON();break;case 'csv':exportCSV();break;case 'import':document.getElementById('importFile')?.click();break;case 'clear':if(appState.online){showToast('Disconnect family sync before clearing local gifts.');return}if(confirm('Delete all gift records saved on this device? Export a backup first if you want one.'))replaceGifts([]).then(()=>{appState.gifts=[];render();showToast('Device data cleared')});break;case 'generate-id':document.getElementById('familyId').value='northpole-'+makeId().slice(0,16);break;case 'signin':cloudSignIn();break;case 'signout':cloudSignOut();break;case 'invite':copyInvite();break}}
-async function boot(){try{db=await initDB();appState.gifts=await readGifts()}catch(e){alert('This browser could not open its local gift database. Please try Safari or Chrome, or host this app online.');return}try{settings={...DEFAULT,...JSON.parse(localStorage.getItem('santa_hq_settings_'+(window.SANTA_FAMILY_ID||'guest'))||'{}')}}catch{}appState.messages=await loadMail();processIncoming();render();document.addEventListener('click',actionHandler);document.addEventListener('pointerdown',planningPointerDown,{passive:false});document.addEventListener('pointerdown',sqPointerDown,{passive:false});document.addEventListener('keydown',e=>{let h=e.target.closest?.('[data-sq-grab]');if(h&&(e.key==='Enter'||e.key===' ')){e.preventDefault();sqMoveMenu(h.dataset.sqGrab)}});document.getElementById('mobileAdd').addEventListener('click',()=>openRecipientQuickAdd());document.getElementById('overlay').addEventListener('click',e=>{if(e.target.id==='overlay')modalClose()});document.addEventListener('keydown',e=>{if(e.key==='Escape')modalClose()});document.addEventListener('submit',e=>{if(e.target.id==='holidayTaskForm')saveHolidayTask(e);if(e.target.id==='holidaySupplyForm')saveHolidaySupply(e);if(e.target.getAttribute('id')==='traditionForm')saveTradition(e);if(e.target.id==='pasteGiftForm')beginPasteSort(e);if(e.target.id==='pasteCardForm'){e.preventDefault();pasteNavigate(1)}if(e.target.id==='recipientQuickForm')saveRecipientQuickIdea(e);if(e.target.id==='giftWatchForm')saveGiftWatch(e);if(e.target.id==='duplicateGiftForm')saveDuplicateGift(e);if(e.target.id==='ideaQuickForm')addQuickIdea(e);if(e.target.id==='familyForm')saveFamily(e);if(e.target.id==='firebaseForm')saveCloudConfig(e);if(e.target.id==='kidMessageForm'){void submitKidMessage(e);} if(e.target.id==='replyMailForm'){e.preventDefault();const id=document.getElementById('replyId')?.value,msg=appState.messages.find(m=>m.id===id);if(msg){putMail({...msg,reply:document.getElementById('santaReply').value.trim(),read:true}).then(()=>{modalClose();render();showToast('Santa’s reply is ready ')})}}});document.addEventListener('change',e=>{if(e.target.matches('[data-gift-stage]')){setGiftStatus(e.target.dataset.id,e.target.value);}if(e.target.matches('[data-paste-entry]')){pasteReviewChoices();updatePasteReviewTotals()}if(e.target.id==='huntStandaloneTheme')appState.huntStandaloneTheme=e.target.value;if(e.target.id==='huntPlayMode')appState.huntPlayMode=e.target.value;if(e.target.id==='filterKid'){appState.filterKid=e.target.value;render()}if(e.target.id==='filterStatus'){appState.filterStatus=e.target.value;render()}if(e.target.id==='filterCat'){appState.filterCat=e.target.value;render()}if(e.target.id==='kidMediaFile')kidMediaPick(e.target.files?.[0]);if(e.target.id==='importFile'&&e.target.files[0])importJSON(e.target.files[0])});document.addEventListener('input',e=>{if(e.target.id==='huntCollectionTitle')appState.huntCollectionDraft=e.target.value;if(e.target.id==='searchInput'){appState.search=e.target.value;const grid=document.getElementById('giftResults');if(grid)grid.innerHTML=filteredGifts().length?giftListRows(filteredGifts()):'<p class="gp-no-results">No matching gifts.</p>'}});if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});openPendingSharedGift();void loadUploadedHuntCharacters()}
+async function boot(){try{db=await initDB();appState.gifts=await readGifts()}catch(e){alert('This browser could not open its local gift database. Please try Safari or Chrome, or host this app online.');return}try{settings={...DEFAULT,...JSON.parse(localStorage.getItem('santa_hq_settings_'+(window.SANTA_FAMILY_ID||'guest'))||'{}')}}catch{}appState.messages=await loadMail();processIncoming();render();document.addEventListener('click',actionHandler);document.addEventListener('pointerdown',planningPointerDown,{passive:false});document.addEventListener('pointerdown',sqPointerDown,{passive:false});document.addEventListener('keydown',e=>{let h=e.target.closest?.('[data-sq-grab]');if(h&&h.tagName!=='BUTTON'&&(e.key==='Enter'||e.key===' ')){e.preventDefault();sqMoveMenu(h.dataset.sqGrab)}});document.getElementById('mobileAdd').addEventListener('click',()=>openRecipientQuickAdd());document.getElementById('overlay').addEventListener('click',e=>{if(e.target.id==='overlay')modalClose()});document.addEventListener('keydown',e=>{if(e.key==='Escape')modalClose()});document.addEventListener('submit',e=>{if(e.target.id==='holidayTaskForm')saveHolidayTask(e);if(e.target.id==='holidaySupplyForm')saveHolidaySupply(e);if(e.target.getAttribute('id')==='traditionForm')saveTradition(e);if(e.target.id==='pasteGiftForm')beginPasteSort(e);if(e.target.id==='pasteCardForm'){e.preventDefault();pasteNavigate(1)}if(e.target.id==='recipientQuickForm')saveRecipientQuickIdea(e);if(e.target.id==='giftWatchForm')saveGiftWatch(e);if(e.target.id==='duplicateGiftForm')saveDuplicateGift(e);if(e.target.id==='ideaQuickForm')addQuickIdea(e);if(e.target.id==='familyForm')saveFamily(e);if(e.target.id==='firebaseForm')saveCloudConfig(e);if(e.target.id==='kidMessageForm'){void submitKidMessage(e);} if(e.target.id==='replyMailForm'){e.preventDefault();const id=document.getElementById('replyId')?.value,msg=appState.messages.find(m=>m.id===id);if(msg){putMail({...msg,reply:document.getElementById('santaReply').value.trim(),read:true}).then(()=>{modalClose();render();showToast('Santa’s reply is ready ')})}}});document.addEventListener('change',e=>{if(e.target.matches('[data-gift-stage]')){setGiftStatus(e.target.dataset.id,e.target.value);}if(e.target.matches('[data-paste-entry]')){pasteReviewChoices();updatePasteReviewTotals()}if(e.target.id==='huntStandaloneTheme')appState.huntStandaloneTheme=e.target.value;if(e.target.id==='huntPlayMode')appState.huntPlayMode=e.target.value;if(e.target.id==='filterKid'){appState.filterKid=e.target.value;render()}if(e.target.id==='filterStatus'){appState.filterStatus=e.target.value;render()}if(e.target.id==='filterCat'){appState.filterCat=e.target.value;render()}if(e.target.id==='kidMediaFile')kidMediaPick(e.target.files?.[0]);if(e.target.id==='importFile'&&e.target.files[0])importJSON(e.target.files[0])});document.addEventListener('input',e=>{if(e.target.id==='huntCollectionTitle')appState.huntCollectionDraft=e.target.value;if(e.target.id==='searchInput'){appState.search=e.target.value;const grid=document.getElementById('giftResults');if(grid)grid.innerHTML=filteredGifts().length?giftListRows(filteredGifts()):'<p class="gp-no-results">No matching gifts.</p>'}});if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});openPendingSharedGift();void loadUploadedHuntCharacters()}
 
 /* Christmas Plans: all household tasks live in the existing synced profile record. */
 const CHRISTMAS_EVE_DEFAULTS=[

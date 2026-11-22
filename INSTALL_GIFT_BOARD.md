@@ -14,4 +14,4 @@ In Christmas Morning, select a pile and drag a gift by its handle or tap the gif
 
 Tap **Confirm gift** on a Gift Board row to check it off. Confirmation uses the selected pile, or Under the Tree for an unsorted idea. Tap **Confirmed** to clear the checkmark. The gift stays in its pile and its purchase history is preserved.
 
-Tap **Move** on any Gift Board row to choose a recipient and pile. The board opens the destination after saving. Confirmed gifts appear first within each pile.
+Drag the dotted grip on any Gift Board row to a pile or recipient. Drop targets also appear at the bottom of the screen during a drag. Tap the grip or use the keyboard to open the destination picker. The board opens the destination after saving. Confirmed gifts appear first within each pile.
