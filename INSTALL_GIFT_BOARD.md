@@ -12,4 +12,4 @@ On Gift Board, open an idea and choose **Confirm Under the Tree & Add to Shoppin
 
 In Christmas Morning, select a pile and drag a gift by its handle or tap the gift to choose where it goes. Returning a gift to Ideas from Gift Board removes it from Christmas Morning and, if it was still to buy, from Shopping.
 
-Gift Board rows now have a **Confirm & shop** button for ideas and a green **Confirmed** checkmark for gifts already confirmed. The row button uses the selected pile, or Under the Tree for an unsorted idea. Tap the gift name to open its details.
+Tap **Confirm gift** on a Gift Board row to check it off. Confirmation uses the selected pile, or Under the Tree for an unsorted idea. Tap **Confirmed** to clear the checkmark. The gift stays in its pile and its purchase history is preserved.

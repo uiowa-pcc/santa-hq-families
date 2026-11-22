@@ -1901,7 +1901,7 @@ let siblings=appState.gifts.filter(x=>x.id!==id&&x.kid===k&&giftPlacement(x)===p
 let changed=siblings.map((x,i)=>({...x,planOrder:(i+1)*100,updatedAt:new Date().toISOString()})).filter(x=>x.id===id||x.planOrder!==appState.gifts.find(g=>g.id===x.id)?.planOrder);
 if(!changed.length)return;try{await Promise.all(changed.map(putGift));let versions=new Map(changed.map(x=>[x.id,x]));appState.gifts=appState.gifts.map(x=>versions.get(x.id)||x);render();await Promise.all(changed.map(cloudPutGift));showToast(place==='undecided'?'Back in Ideas':'Gift moved')}catch(e){console.error(e);showToast('Could not move gift')}}
 async function sqLock(id){let g=appState.gifts.find(x=>x.id===id);if(!g)return;if(giftPlacement(g)==='undecided'){sqMoveMenu(id);return}let x={...g,lockedIn:true,status:bought(g)?g.status:'To buy',updatedAt:new Date().toISOString()};try{await putGift(x);appState.gifts=appState.gifts.map(t=>t.id===id?x:t);render();await cloudPutGift(x);showToast('Locked in! Added to Shopping and Christmas Morning.')}catch(e){console.error(e);showToast('Could not lock in gift')}}
-async function sqUnlock(id){let g=appState.gifts.find(x=>x.id===id);if(!g)return;let x={...g,lockedIn:false,status:g.status==='To buy'?'Idea':g.status,updatedAt:new Date().toISOString()};try{await putGift(x);appState.gifts=appState.gifts.map(t=>t.id===id?x:t);render();await cloudPutGift(x);showToast('Unlocked; removed from Christmas Morning')}catch(e){console.error(e);showToast('Could not unlock gift')}}
+async function sqUnlock(id){let g=appState.gifts.find(x=>x.id===id);if(!g)return;let x={...g,lockedIn:false,status:g.status==='To buy'?'Idea':g.status,updatedAt:new Date().toISOString()};try{await putGift(x);appState.gifts=appState.gifts.map(t=>t.id===id?x:t);render();await cloudPutGift(x);showToast(g.status==='To buy'?'Confirmation removed from Christmas Morning and the Shopping List':'Confirmation removed from Christmas Morning')}catch(e){console.error(e);showToast('Could not unlock gift')}}
 function sqMoveMenu(id){
  const g=appState.gifts.find(x=>x.id===id);if(!g)return;
  modalOpen('Move gift',`<p class="sq-move-hint">Move <b>${escapeHTML(g.name)}</b> to another column. Only Lock it in sends a gift to Shopping.</p><div class="sq-move-grid">${[...childIds(),'both'].map(k=>`<section><strong>${k==='both'?'Both':escapeHTML(kidName(k))}</strong><div>${[['undecided','Ideas'],['tree','Under tree'],...(k==='both'?[]:[['stocking','Stocking']])].map(([place,label])=>`<button type="button" data-action="sq-move-to" data-id="${escapeHTML(id)}" data-kid="${escapeHTML(k)}" data-place="${place}">${label}</button>`).join('')}</div></section>`).join('')}</div>`,`<button type="button" class="secondary" data-action="close">Cancel</button>`);
@@ -2021,14 +2021,11 @@ function boardGiftRow(g){
  const id=escapeHTML(g.id),name=escapeHTML(g.name),image=safeImage(g.image);
  const status=bought(g)?'Bought':g.status==='To buy'?'On shopping list':'';
  const confirmation=boardConfirmation(g);
- const check='<span class="gift-confirm-box" aria-hidden="true">✓</span>';
- let control='<span class="gift-confirm-needs-recipient">Assign first</span>';
- if(morningConfirmed(g)){
-  control=`<span class="gift-confirmed">${check}Confirmed</span>`;
- }else if(confirmation.eligible){
-  control=`<button type="button" class="gift-confirm-button" data-action="board-confirm-row" data-id="${id}" data-place="${confirmation.place}" aria-label="${confirmation.label} for ${name}"><span class="gift-confirm-box" aria-hidden="true"></span>${confirmation.addsToShopping?'Confirm & shop':'Confirm'}</button>`;
- }
- return `<article class="gift-simple-row">
+ const confirmed=morningConfirmed(g);
+ const control=confirmation.eligible?`<button type="button" class="gift-confirm-toggle" data-action="board-confirm-row" data-id="${id}" data-place="${confirmation.place}" aria-pressed="${confirmed}" aria-label="Confirm ${name} for Christmas Morning">
+  <span class="gift-confirm-box" aria-hidden="true">${confirmed?'✓':''}</span><span>${confirmed?'Confirmed':'Confirm gift'}</span>
+ </button>`:'<span class="gift-confirm-needs-recipient">Assign first</span>';
+ return `<article class="gift-simple-row" data-confirmed="${confirmed}">
   <button class="gift-simple-detail" type="button" data-action="board-details" data-id="${id}">
    ${image?`<img src="${escapeHTML(image)}" alt="" loading="lazy">`:''}
    <span><strong>${name}</strong><small>${giftPriceLabel(g)}${status?' · '+status:''}</small></span>
@@ -2061,7 +2058,7 @@ function giftPlannerIdeas(){
    <div class="gift-board-tabs" role="group" aria-label="Gift recipient">${recipients.map(k=>`<button type="button" data-action="board-recipient" data-kid="${escapeHTML(k)}" aria-pressed="${k===kid}">${childIds().includes(k)?childChoiceIcon(k):''}${escapeHTML(k==='unassigned'?'Unassigned':k==='both'&&childIds().length===2?'Both':kidName(k))}</button>`).join('')}</div>
    <button type="button" class="primary" data-action="board-add">+ Add idea</button>
   </div>
-  <p class="gift-confirm-hint">Confirm &amp; shop adds the gift to Shopping and Christmas Morning.</p>
+  <p class="gift-confirm-hint">Confirmed gifts appear on Christmas Morning. Gifts you still need to buy also go to the Shopping List.</p>
   ${Object.entries(giftPileLabels).map(([place,label])=>{
    const gifts=wbGifts(kid,place);
    if(place==='stocking'&&kid==='both'&&!gifts.length)return '';
@@ -2858,11 +2855,19 @@ case 'board-move':
  if(el.dataset.kid===selectedBoardRecipient())boardOpenPiles.add(el.dataset.place);
  void moveBoardGift(id,el.dataset.kid,el.dataset.place);
  break;
-case 'board-confirm-row':
+case 'board-confirm-row': {
  el.disabled=true;
- boardOpenPiles.add(el.dataset.place);
- void lockGiftIn(id,el.dataset.place).finally(()=>{el.disabled=false;});
+ const confirmed=el.getAttribute('aria-pressed')==='true';
+ if(!confirmed)boardOpenPiles.add(el.dataset.place);
+ const update=confirmed?sqUnlock(id):lockGiftIn(id,el.dataset.place);
+ void update.finally(()=>{
+  el.disabled=false;
+  if(document.activeElement!==document.body)return;
+  const toggle=[...document.querySelectorAll('[data-action="board-confirm-row"]')].find(button=>button.dataset.id===id);
+  toggle?.focus({preventScroll:true});
+ });
  break;
+}
 case 'board-shop':
  modalClose();
  boardOpenPiles.add(el.dataset.place);

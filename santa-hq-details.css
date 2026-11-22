@@ -365,21 +365,27 @@
 }
 
 /* Gift Board confirmation */
-.gift-confirm-hint{margin:0;color:#595463;font-size:.85rem}
-.gift-confirm-button,.gift-confirmed,.gift-confirm-needs-recipient{
-  display:inline-flex;align-items:center;gap:5px;flex:none;margin-left:auto;
-  font:inherit;font-size:.8rem;font-weight:750;white-space:nowrap
+.gift-confirm-hint{margin:0;padding:0 2px;color:#595463;font-size:.85rem;line-height:1.45}
+.gift-simple-row[data-confirmed="true"]{background:#f7fbf8}
+.gift-simple-row:last-child{border-radius:0 0 13px 13px}
+.gift-confirm-toggle,.gift-confirm-needs-recipient{
+  display:inline-flex;align-items:center;gap:8px;flex:none;margin-left:auto;
+  font:inherit;font-size:.8rem;font-weight:700;white-space:nowrap
 }
-.gift-confirm-button{
-  min-height:44px;padding:4px 8px;border:1px solid #ddd2e5;border-radius:9px;
-  color:#51385d;background:#fcf9fd;cursor:pointer
+.gift-confirm-toggle{
+  justify-content:flex-start;min-width:116px;min-height:44px;padding:5px 9px;
+  border:1px solid transparent;border-radius:8px;color:#554b5d;background:transparent;cursor:pointer
 }
-.gift-confirm-button:hover{background:#eee4f6}
-.gift-confirm-button:disabled{opacity:.55}
-.gift-confirmed{padding:5px 8px;border-radius:8px;background:#e9f3ec;color:#23553b}
+.gift-confirm-toggle:hover{background:#f2edf5;border-color:#e7deec}
+.gift-confirm-toggle[aria-pressed="true"]{color:#24543d}
+.gift-confirm-toggle[aria-pressed="true"]:hover{background:#e7f2eb;border-color:#d3e6da}
+.gift-confirm-toggle:focus-visible{outline:2px solid #74518b;outline-offset:1px}
+.gift-confirm-toggle:disabled{opacity:.55}
 .gift-confirm-needs-recipient{padding:5px;color:#65516d}
 .gift-confirm-box{
-  display:grid;place-items:center;flex:none;width:16px;height:16px;
-  border:1px solid currentColor;border-radius:4px;line-height:1
+  display:grid;place-items:center;flex:none;width:18px;height:18px;
+  border:1px solid #8c8193;border-radius:5px;background:#fff;line-height:1
 }
-.gift-confirmed .gift-confirm-box{background:#2c6548;color:#fff;border-color:#2c6548}
+.gift-confirm-toggle[aria-pressed="true"] .gift-confirm-box{
+  background:#2c6548;color:#fff;border-color:#2c6548
+}
