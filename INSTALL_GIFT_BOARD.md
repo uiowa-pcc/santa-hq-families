@@ -1,5 +1,5 @@
-# Santa HQ editorial update
+# Santa HQ Christmas design update
 
-Replace index.html, santa-hq-details.css, and sw.js at the root of the existing Santa HQ repository and commit to trigger Cloudflare. The artwork is embedded in index.html. No Worker or database changes are required.
+Replace index.html, santa-hq-details.css, and sw.js at the root of the existing Santa HQ GitHub repository. Commit to trigger the existing Cloudflare deployment.
 
-The photographic design updates Home and Plan Gifts. The existing gift, shopping, Christmas Morning, and Santa Mail actions remain available.
+This update returns to the original Santa art and rose palette. Home leads into Gift Board, Shopping, Christmas Plans, Santa Mail and Lights Hunt. Gift Board keeps quick entry, drag and drop, confirmation, and Christmas Morning. The existing art and backend remain in the repository.
