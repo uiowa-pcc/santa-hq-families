@@ -1489,6 +1489,54 @@ body:has(.christmas-gifts) .mobile-add{display:none}
 .app #content .mail-card.new{border-top:0}
 .app #content .mail-actions{gap:12px}
 .app #content .mail-actions .plain-btn{min-height:40px}
+/* Approved Home composition */
+.christmas-home-stage{
+ position:relative;isolation:isolate;overflow:hidden;display:grid;
+ min-height:520px;padding:clamp(20px,4.4vw,58px);border-radius:21px;
+ background:radial-gradient(ellipse at 70% 65%,#f9c6ce 0%,transparent 62%),linear-gradient(145deg,#fbe5e5,#f8d5d9);
+}
+.christmas-home-stage .christmas-welcome{
+ position:relative;z-index:1;display:block;min-height:0;overflow:visible;background:none;border-radius:0;
+}
+.christmas-home-stage .christmas-welcome-copy{padding:0}
+.christmas-home-stage h1{
+ color:#7e1230;font-size:clamp(36px,5.8vw,71px);line-height:.98;margin:18px 0 20px;
+}
+.christmas-home-stage .christmas-welcome p{color:#7d3b50}
+.app .christmas-home-stage .christmas-welcome .primary{
+ background:#a10e3c;border-radius:999px;padding-inline:23px;min-height:46px;
+}
+.app .christmas-home-stage .christmas-welcome .primary:hover{background:#840b31}
+.christmas-home-santa{
+ position:absolute;z-index:0;width:64%;height:auto;right:-7%;bottom:0;pointer-events:none;
+ mask-image:linear-gradient(#000 91%,transparent);
+}
+.christmas-home-stage .christmas-activities{
+ position:relative;z-index:1;align-self:end;display:grid;grid-template-columns:1fr;
+ width:min(100%,250px);gap:8px;margin-top:26px;
+}
+.christmas-home-stage .christmas-activities button{
+ min-height:58px;background:#fff9f36b;border:1px solid #fff9f3c7;border-radius:13px;
+ padding:7px 10px;color:#781731;transition:background .16s ease,border-color .16s ease;
+}
+.christmas-home-stage .christmas-activities button:hover{background:#fff9f3db;border-color:#fffaf3}
+.christmas-home-stage .christmas-activities button:active{background:#fff9f3}
+.christmas-home-stage button:focus-visible{outline:2px solid #8f2344;outline-offset:3px}
+.christmas-home-stage .christmas-activities strong{font-family:var(--hq-display);font-size:17px}
+.christmas-home-stage .christmas-activities small{color:#763d50}
+.christmas-home-shopping{justify-self:start;min-height:44px;padding-inline:4px;color:var(--hq-rose)}
+@media(max-width:760px){
+ .app .content[data-page="dashboard"]{padding-inline:0;padding-top:0}
+ .christmas-home-stage{padding:22px 16px 24px;border-radius:0;min-height:clamp(480px,141vw,590px)}
+ .christmas-home-stage h1{font-size:clamp(32px,9.1vw,48px);margin:19px 0 15px}
+ .christmas-home-santa{width:96%;right:-44%;bottom:0}
+ .christmas-home-stage .christmas-activities{width:55%;min-width:165px;gap:7px}
+ .christmas-home-stage .christmas-activities button{min-height:53px;padding:6px 7px;gap:5px}
+ .christmas-home-stage .christmas-activities strong{font-size:clamp(13px,3.9vw,17px)}
+ .christmas-home-stage .christmas-activities small{font-size:11px;overflow-wrap:anywhere}
+ .christmas-home-shopping,.christmas-budget{margin-inline:16px}
+}
+@media(prefers-reduced-motion:reduce){.christmas-home-stage .christmas-activities button{transition:none}}
 </style>
 </head>
 <body><section id="familyGate" role="region" aria-label="Family account sign in"></section>
@@ -1621,24 +1669,26 @@ function dashboard(){
   .sort((a,b)=>a.date.localeCompare(b.date))[0];
  const activities=[
   ['calendar','Christmas Plans',upcoming?`${upcoming.name} · ${traditionDateLabel(upcoming.date)}`:'Traditions and to-dos','nav','traditions',''],
-  ['bag','Shopping List',toBuy?`${toBuy} to pick up`:'All caught up','home-open-plan','','shopping'],
   ['mail','Santa Mail',unread?`${unread} unread`:'Letters to Santa','nav','mailbox',''],
   ['star','Lights Hunt','Play together','go-lights-hunt','','']
  ];
  return `<div class="christmas-home">
+  <div class="christmas-home-stage">
   <section class="christmas-welcome">
    <div class="christmas-welcome-copy">
     <p>${sleeps?`${sleeps} ${sleeps===1?'sleep':'sleeps'} until Christmas`:'Merry Christmas!'}</p>
-    <h1>Christmas magic<br>starts here.</h1>
+    <h1>Christmas<br>starts here</h1>
     <button type="button" class="primary" data-action="home-open-gifts">Plan gifts</button>
    </div>
-   <img src="./santa-home.webp" alt="" fetchpriority="high">
   </section>
+  <img class="christmas-home-santa" src="./santa-home.webp" alt="" fetchpriority="high">
   <nav class="christmas-activities" aria-label="Christmas activities">
    ${activities.map(([icon,title,detail,action,page,view])=>`<button type="button" data-action="${action}" data-page="${page}" data-view="${view}">
     <span class="christmas-activity-icon">${ico(icon)}</span><span><strong>${title}</strong><small>${escapeHTML(detail)}</small></span>
    </button>`).join('')}
   </nav>
+  </div>
+  <button type="button" class="plain-btn christmas-home-shopping" data-action="home-open-plan" data-view="shopping">Shopping List · ${toBuy?`${toBuy} to pick up`:'All caught up'}</button>
   <details class="christmas-budget"><summary>Family gift budgets <span>${money(totals().spent)} purchased</span></summary><div class="kid-grid">${childIds().map(kidCard).join('')}</div><button class="plain-btn" type="button" data-action="nav" data-page="settings">Edit budgets</button></details>
  </div>`;
 }
