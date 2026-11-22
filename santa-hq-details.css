@@ -307,3 +307,45 @@
 #content .tp-calendar-legend>span{display:inline-flex;align-items:center;gap:5px}
 #content .tp-legend-dot{display:inline-block;background:#ffdbe9;width:10px;height:10px;border-radius:4px;border:1px solid #e5abc5}
 #content .tp-legend-dot.done{background:#e8f5ea;border-color:#c5dfc8}
+
+/* Gift Board and Christmas Morning */
+.gift-simple-board{display:grid;gap:12px;margin-top:14px}
+.gift-board-tools,.gift-board-tabs{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.gift-board-tools{justify-content:space-between}
+.gift-board-tabs button,.gift-pile-heading,.gift-compare-actions button{
+  font:inherit;color:#342a3c;background:#fff;border:1px solid #ded4e5;border-radius:10px;cursor:pointer
+}
+.gift-board-tabs button{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;min-height:42px;font-weight:700}
+.gift-board-tabs button[aria-pressed="true"],.gift-board-tools button[aria-pressed="true"]{background:#eee4f6;border-color:#ac91c3;color:#452956}
+.gift-simple-pile,.gift-morning-pile{min-width:0;border:1px solid #e4dbe8;border-radius:14px;background:#fff}
+.gift-pile-heading{display:flex;align-items:center;justify-content:space-between;width:100%;border:0;padding:12px 14px;text-align:left;font-weight:800}
+.gift-pile-heading small{margin-left:5px;color:#65516d}
+.gift-simple-row{position:relative;display:flex;align-items:center;gap:6px;border-top:1px solid #eee8ef;padding:4px 9px}
+.gift-simple-detail{display:flex;align-items:center;gap:9px;flex:1;min-width:0;min-height:46px;padding:5px 3px;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.gift-simple-detail span{min-width:0;overflow-wrap:anywhere}
+.gift-simple-detail small{display:block;margin-top:2px;color:#65516d}
+.gift-simple-detail img{width:34px;height:34px;object-fit:cover;border-radius:7px;flex:none}
+.gift-pile-empty{margin:0;padding:10px 14px;color:#65516d}
+.gift-morning-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:start}
+.gift-morning-pile{overflow:hidden}
+.gift-morning-pile>header{padding:10px;display:flex;align-items:center;flex-wrap:wrap;gap:4px 7px;background:#faf5fc}
+.gift-morning-pile h2{font:inherit;font-weight:800;overflow-wrap:anywhere;margin:0}
+.gift-morning-pile header small{flex-basis:100%;color:#65516d}
+.gift-morning-pile .gift-simple-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 4px}
+.gift-morning-pile .gift-simple-detail{grid-column:1;grid-row:1}
+.gift-drag{grid-column:2;grid-row:1;justify-self:end}
+.gift-compare-actions{grid-column:1/-1;display:flex;gap:4px;padding-bottom:4px}
+.gift-compare-actions button{min-height:36px;padding:3px 7px}
+.gift-compare-actions button:disabled{opacity:.4;cursor:default}
+.gift-detail-photo{display:block;width:min(100%,220px);max-height:200px;object-fit:contain;border-radius:10px}
+.gift-detail-body .gift-board-tabs{margin-top:12px}
+.toast.show button{pointer-events:auto;font:inherit;padding:4px 8px;border:1px solid #fff;border-radius:6px;background:transparent;color:#fff;cursor:pointer}
+@media(max-width:520px){
+  .gift-simple-board{gap:9px}
+  .gift-board-tools{gap:6px}
+  .gift-board-tabs{gap:4px}
+  .gift-board-tabs button{padding:5px 8px}
+  .gift-morning-grid{gap:6px}
+  .gift-morning-pile .gift-simple-row{padding:3px 5px}
+  .gift-morning-pile .gift-simple-detail img{width:26px;height:26px}
+}
