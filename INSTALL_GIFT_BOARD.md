@@ -1,5 +1,7 @@
-# Santa HQ coordinated design update
+# Santa HQ yearly Lights Hunt goal
 
-Replace index.html, santa-hq-details.css, and sw.js at the root of the existing Santa HQ GitHub repository. Commit to trigger the existing Cloudflare deployment.
+Replace index.html, hunt.html, hunt.js, and sw.js at the root of the existing Santa HQ repository and commit to deploy through Cloudflare.
 
-The approved Home styling carries into the gift planner, Shopping, Christmas Plans, Santa Mail, Lights Hunt setup, Settings, and the in-app Kid View. The update uses the existing Santa art and requires no Worker or database changes.
+Open Christmas Plans → Lights Hunt → Yearly theme goal to see the seven themes and switch years. Complete a standalone themed hunt or a Mega mini hunt to earn its theme once for that year. For an older completed hunt with no recorded completion year, the tracker uses the year the hunt was created. You can check or uncheck any theme manually. The tracker reads the hunt progress and manual check-offs on the current device. Randomized hunts do not count as a theme.
+
+This package includes the earlier challenge progress, Back to Santa HQ link, and mobile Home fix. No database changes are required.

@@ -107,9 +107,21 @@
 .other-hunts input{width:19px;height:19px;flex:none;accent-color:#6856c9}
 .other-hunts label span small{display:block;color:#817997;font-size:10px}
 #huntEndedNote{margin:14px 0;background:#fff7e5;border:1px solid #efdfb7;padding:12px;border-radius:12px;font-size:12px;color:#795e34}
+ .hunt-back{display:inline-flex;align-items:center;min-height:44px;padding:5px 10px;font-weight:750;color:#6a2346;text-decoration:underline;text-underline-offset:4px;white-space:nowrap}
+.challenge-progress{margin:12px 0 16px;border:1px solid #eadde8;border-radius:12px;background:#fffafa;padding:0 12px}
+.challenge-progress summary{padding:12px 0;min-height:44px;font-weight:750;cursor:pointer}
+.challenge-progress ul{list-style:none;margin:0;padding:0 0 7px}
+.challenge-progress li{display:flex;justify-content:space-between;align-items:start;gap:10px;border-top:1px solid #eedfe8;padding:8px 0;font-size:13px}
+.challenge-progress li strong{font-size:11px;color:#695269;text-align:right;flex:none}
+@media(max-width:520px){
+ .santa-hunt .layout{grid-template-columns:minmax(0,1fr)}
+ .santa-hunt .top{flex-wrap:wrap;gap:3px}
+ .challenge-progress{margin-inline:0}
+}
+@media print{.hunt-back,.challenge-progress{display:none!important}}
 </style>
 </head><body class="santa-hunt">
-<div class="shell"><header class="top"><div class="brand"><span>✦</span>Santa HQ</div><span class="tag">LIGHTS HUNT · GUEST PLAY</span></header>
+<div class="shell"><header class="top"><div class="brand"><span>✦</span>Santa HQ</div><a class="hunt-back" href="./?view=lights-hunt">Back to Santa HQ</a></header>
 <section class="hero"><div><div class="eyebrow">THE GREAT CHRISTMAS LIGHT SEARCH</div><h1>Find the lights.<br>Win the night.</h1><p>Follow picture clues, spot special characters and dazzling effects, and see who finds the most. No signup necessary.</p></div><img class="hunt-new-santa" src="./kid-santa-new.webp" alt="" aria-hidden="true" decoding="async"></section>
 <div class="layout"><main class="panel"><div class="panelhead"><div><h2 id="boardTitle">Our lights scavenger hunt</h2><p class="muted" id="boardSubtitle">Loading holiday clues…</p></div><span class="pill" id="progressCount">0 / 9</span></div>
 <p id="huntEndedNote" hidden>This hunt is archived. You can view its existing scores and shared pictures, but new finds are closed.</p><section id="nightNav" class="hunt-hq-nav" hidden aria-label="Switch between Mega Hunt and themed nights"></section>
@@ -118,7 +130,7 @@
 <div class="photo-capture-actions"><button class="btn primary" type="button" id="photoTakeBtn" hidden>📷 Take or choose photo</button><input id="photoCapture" type="file" accept="image/*" hidden></div>
 <section id="photoComposer" class="photo-composer" hidden><h3>Add your Christmas lights find</h3><img id="photoPreview" alt="Preview of your photo"><label>Which clue did you find?<select id="photoClueSelect"></select></label><label class="photo-share"><input id="photoShare" type="checkbox"> Share this photo in the family feed</label><div class="other-hunts" id="otherHuntChoices" hidden></div><p class="muted">Only people with the hunt link can see shared photos. Avoid faces, house numbers and license plates.</p><div class="actions"><button class="btn primary" type="button" id="photoSave">Save this find</button><button class="btn white" type="button" id="photoCancel">Cancel</button></div></section>
 <section id="photoFeedPanel" class="photo-feed-section" hidden><div class="photo-feed-head"><div><h3>Family photo feed <span id="photoFeedCount"></span></h3><small>See what everyone finds as the hunt unfolds.</small></div><button type="button" class="btn secondary" id="photoFeedExpand" hidden>See all</button></div><div id="familyPhotoFeed" class="photo-feed"></div></section>
-<div id="huntBoard" class="board"></div><div class="complete" id="winBanner" hidden>🎄 Every clue found! Well done!</div><div class="actions"><button type="button" class="btn secondary" id="shareBtn">Share hunt</button><button type="button" class="btn white" id="printBtn">Print clues</button><button type="button" class="btn white" id="resetBtn">Clear my finds</button></div></div><p class="status" id="errorBox" hidden></p></main>
+<details class="challenge-progress"><summary id="challengeSummary">Challenge progress</summary><ul id="challengeClues"></ul></details><div id="huntBoard" class="board"></div><div class="complete" id="winBanner" hidden>🎄 Every clue found! Well done!</div><div class="actions"><button type="button" class="btn secondary" id="shareBtn">Share hunt</button><button type="button" class="btn white" id="printBtn">Print clues</button><button type="button" class="btn white" id="resetBtn">Clear my finds</button></div></div><p class="status" id="errorBox" hidden></p></main>
 <aside class="panel leaderpanel" id="leaderPanel"><div class="panelhead"><h2>Family leaderboard</h2><span class="pill" id="liveStatus">Live scores</span></div><p class="leaderhelp">Updates automatically. Each team uses their own device.</p><div class="winner" id="leaderText">Start playing to see who's ahead!</div><div class="leader" id="leaderboard"></div><div id="megaNightStandings" class="mega-night-standings" hidden><strong>Overall Mega Hunt leaders</strong><div id="megaNightList"></div><small>Points here count unique Mega clues from every night.</small></div><div class="hint">Only nicknames and scores appear here. Family gifts, budgets and profiles aren't shared. Finds are on the honor system.</div></aside></div><footer class="mutedfooter">Designed for outdoor decoration spotting. Stay on sidewalks, watch traffic, and don't enter private property.</footer></div>
 <div id="photoViewer" class="photo-viewer" hidden><div class="photo-viewer-card"><button class="btn white" type="button" id="photoViewerClose">Close photo</button><img id="photoViewerImg" alt="Shared Christmas lights photo"><strong id="photoViewerTitle"></strong></div></div>
 <script src="./hunt.js" defer></script></body></html>

@@ -74,10 +74,10 @@ function legacyCards(huntId){
 const $=id=>document.getElementById(id);
 const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const frag=location.hash;
-const room=(frag.match(/^#room=([a-f0-9]{32})$/)||[])[1]||'';
+const room=(frag.match(/^#room=([a-f0-9]{32})(?:&|$)/)||[])[1]||'';
 const legacy=(frag.match(/^#h=([ef]_[a-f0-9]{24})$/)||[])[1]||'';
 const requestedNight=(frag.match(/(?:^|&)night=([a-f0-9]{32})/)||[])[1]||'';
-const state={crossCandidates:[],room,legacy,hunt:null,picks:[],photoOverrides:{},playerId:'',token:'',nickname:'',found:new Set(),leaders:[],saving:false,error:'',offline:false,photos:[],photoUrls:{},feedExpanded:false,pendingFile:null,pendingIndex:null,photoMode:false,photoBusy:false,photoSignature:'',megaPicks:[],megaFound:new Set(),directFound:new Set(),nights:[],nightLeaders:{},nightFound:{},activeNightId:'',nightRequest:false,resend:false};
+const state={crossCandidates:[],room,legacy,hunt:null,picks:[],photoOverrides:{},playerId:'',token:'',nickname:'',found:new Set(),leaders:[],saving:false,error:'',offline:false,photos:[],photoUrls:{},feedExpanded:false,pendingFile:null,pendingIndex:null,photoMode:false,photoBusy:false,photoSignature:'',megaPicks:[],megaFound:new Set(),directFound:new Set(),nights:[],nightLeaders:{},nightFound:{},completionYears:{},activeNightId:'',nightRequest:false,resend:false};
 const key='santa_hq_hunt_player_v2_'+(room||legacy);
 const slugFor=name=>String(name||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 // The Cloudflare build automatically generates this manifest from the actual
@@ -117,13 +117,14 @@ function errors(message){state.error=message||'';const el=$('errorBox');el.textC
 function loadLocal(){try{
  const saved=JSON.parse(localStorage.getItem(key)||'{}');state.playerId=saved.playerId||'';state.token=saved.token||'';state.nickname=saved.nickname||'';
  if(legacy&&!state.nickname){state.nickname=localStorage.getItem('santa_hq_guest_lights_v1_'+legacy+':name')||'';if(state.nickname)state.playerId='local'}
+ state.completionYears=saved.completionYears&&typeof saved.completionYears==='object'&&!Array.isArray(saved.completionYears)?saved.completionYears:{};
  let found=saved.found||[];
  if(legacy&&state.nickname&&!saved.found){found=JSON.parse(localStorage.getItem('santa_hq_guest_lights_v1_'+legacy+':checks:'+state.nickname.toLowerCase())||'[]')}
  state.found=new Set(found.filter(n=>Number.isInteger(n)&&n>=0&&n<state.picks.length));
  state.megaFound=new Set(state.found);state.directFound=new Set((saved.directFound||found).filter(n=>Number.isInteger(n)&&n>=0&&n<30));
  if(saved.nightFound&&typeof saved.nightFound==='object')state.nightFound=Object.fromEntries(Object.entries(saved.nightFound).map(([id,n])=>[id,Array.isArray(n)?n.filter(Number.isInteger):[]]));
  }catch{}}
-function store(){try{localStorage.setItem(key,JSON.stringify({playerId:state.playerId,token:state.token,nickname:state.nickname,found:[...(state.megaPicks.length?state.megaFound:state.found)],directFound:[...state.directFound],nightFound:state.nightFound}));if(legacy){const b='santa_hq_guest_lights_v1_'+legacy;localStorage.setItem(b+':name',state.nickname);localStorage.setItem(b+':checks:'+state.nickname.toLowerCase(),JSON.stringify([...state.found]))}}catch{}}
+function store(){try{localStorage.setItem(key,JSON.stringify({playerId:state.playerId,token:state.token,nickname:state.nickname,found:[...(state.megaPicks.length?state.megaFound:state.found)],directFound:[...state.directFound],nightFound:state.nightFound,completionYears:state.completionYears}));if(legacy){const b='santa_hq_guest_lights_v1_'+legacy;localStorage.setItem(b+':name',state.nickname);localStorage.setItem(b+':checks:'+state.nickname.toLowerCase(),JSON.stringify([...state.found]))}}catch{}}
 function activeNight(){return state.nights.find(n=>n.id===state.activeNightId)||null}
 function nightClueIndex(card,index){return Number.isInteger(card.megaIndex)?card.megaIndex:index}
 function photoForClue(card,index){
@@ -193,7 +194,8 @@ function renderHuntNav(){
  const el=$('nightNav');if(!el)return;
  if(!state.hunt||state.hunt.mode!=='mega'){el.hidden=true;return}
  el.hidden=false;
- const options=[{id:'',title:'Mega Hunt',sub:'Overall 30 clues'},...state.nights.map(n=>({id:n.id,title:n.title,sub:`8 finds · ${new Date(n.createdAt).toLocaleDateString(undefined,{month:'short',day:'numeric'})}`}))];
+ const label=(found,total)=>`${Math.min(new Set(found).size,total)}/${total} found`;
+ const options=[{id:'',title:'Mega Hunt',sub:label(state.megaFound,state.megaPicks.length)},...state.nights.map(n=>({id:n.id,title:n.title,sub:label(state.nightFound[n.id]||[],n.clues.length)}))];
  el.innerHTML=`<div class="hunt-hq-title"><strong>Hunt HQ</strong><small>One competition, as many themed nights as you want</small></div><div class="hunt-hq-tabs">${options.map(n=>`<button type="button" data-night-id="${safe(n.id)}" aria-pressed="${n.id===state.activeNightId}"><strong>${safe(n.title)}</strong><small>${safe(n.sub)}</small></button>`).join('')}</div><p class="hunt-hq-note">A find shared with Mega Hunt counts only once there. Bonus clues can win a themed night without adding extra Mega points.</p>`;
 }
 function switchNight(id,updateURL=true){
@@ -205,7 +207,7 @@ function switchNight(id,updateURL=true){
   state.found=new Set(state.nightFound[night.id]||[]);
  }else{state.picks=state.megaPicks;state.found=new Set(state.megaFound)}
  if(updateURL&&room)history.replaceState(null,'',location.pathname+location.search+'#room='+room+(id?'&night='+id:''));
- renderHuntNav();renderBoard();renderLeaders();if(state.photoMode)renderFeed();
+ renderBoard();renderLeaders();if(state.photoMode)renderFeed();
 }
 function applyRoomData(data){
  if(!data||!state.hunt)return;
@@ -241,7 +243,15 @@ function card(c,i){
  return `<div class="find photo-find ${state.found.has(i)?'found':''}">${image}${content}<div class="photo-find-actions"><button type="button" class="btn primary" data-photo-for="${i}">${myPhoto?'Replace photo':'Take / add photo'}</button>${myPhoto?`<button type="button" class="photo-small-action" data-photo-share="${safe(myPhoto.id)}">${myPhoto.shared?'Unshare':'Share'}</button><button type="button" class="photo-small-action" data-photo-remove="${safe(myPhoto.id)}">Remove</button>`:''}</div></div>`;
 }
 function renderBoard(){
- const count=state.picks.length,done=state.found.size;
+ const count=state.picks.length,done=state.picks.filter((_,index)=>state.found.has(index)).length;
+ const percentage=count?Math.round(100*done/count):0;
+ const night=activeNight();
+ const theme=night?.theme||(state.hunt?.mode==='standalone'?state.hunt.theme:'');
+ const boardId=night?.id||'standalone';
+ if(state.playerId&&theme&&theme!=='random'&&count&&done===count&&!state.completionYears[boardId]){
+  state.completionYears[boardId]=new Date().getFullYear();
+  store();
+ }
  $('joinPanel').hidden=!!state.playerId;
  $('gamePanel').hidden=!state.playerId;
  $('classicHuntIntro').hidden=state.photoMode; $('photoModeIntro').hidden=!state.photoMode; $('photoFeedPanel').hidden=!state.photoMode; $('photoTakeBtn').hidden=!state.photoMode;
@@ -253,8 +263,11 @@ function renderBoard(){
  if(state.hunt?.archived){$('photoTakeBtn').disabled=true;$('resetBtn').disabled=true;}
  $('progressCount').textContent=done+' / '+count;
  $('progressLabel').textContent=done===count?'Every clue spotted!':`${count-done} more to find`;
- $('progressPct').textContent=Math.round(100*done/count)+'%';
- $('progressBar').style.width=(100*done/count)+'%';
+ $('progressPct').textContent=percentage+'%';
+ $('progressBar').style.width=percentage+'%';
+ $('challengeSummary').textContent=`Challenge progress · ${done} of ${count} found`;
+ $('challengeClues').innerHTML=state.picks.map((clue,index)=>`<li><span>${safe(clue.name)}</span><strong>${state.found.has(index)?'Found':'Still to find'}</strong></li>`).join('');
+ renderHuntNav();
  $('huntBoard').classList.toggle('challenge',count===16);
  $('huntBoard').classList.toggle('mega',count===30);
  if(count===30){
@@ -369,7 +382,7 @@ async function uploadPhoto(){
   const sharedWithOther=$('photoShare').checked;
   const form=new FormData();form.append('photo',blob,'hunt-photo.jpg');const night=activeNight(),megaIndex=night?state.picks[index]?.megaIndex:null;form.append('clueIndex',String(Number.isInteger(megaIndex)?megaIndex:index));if(night&&!Number.isInteger(megaIndex))form.append('nightId',night.id);form.append('shared',$('photoShare').checked?'1':'0');
   const r=await fetch('/api/hunts/'+room+'/photos/upload',{method:'POST',headers:photoAuth(),body:form});const data=await r.json();if(!r.ok)throw Error(data.error||'Could not upload photo');
-  state.found.add(index);if(activeNight())state.nightFound[state.activeNightId]=[...state.found];else{state.directFound.add(index);state.megaFound.add(index)}store();photoEditorClose();await sendProgress();await loadGallery();
+  state.found.add(index);if(activeNight())state.nightFound[state.activeNightId]=[...state.found];else{state.directFound.add(index);state.megaFound.add(index)}store();photoEditorClose();renderBoard();await sendProgress();await loadGallery();
   const unsuccessful=[];for(const item of also){try{await uploadToOtherHunt(item,blob,sharedWithOther)}catch(e){unsuccessful.push(item.target.title+': '+e.message)}}
   errors(unsuccessful.length?'Saved in this hunt, but '+unsuccessful.join(' · '):'');
  }catch(e){errors(e.message)}finally{state.photoBusy=false;$('photoSave').disabled=false;$('photoSave').textContent='Save this find'}
