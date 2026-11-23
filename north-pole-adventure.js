@@ -1,4 +1,4 @@
-/* Santa HQ Families — North Pole Adventure (2026-11-22 compatible)
+/* Santa HQ Families — North Pole Adventure v2 (2026-11-23, Santa HQ Families compatible)
  * Additive Kid View enhancement. Load after kid-view-recording-fix.js.
  * Does not touch gifts, budgets, shopping, family sync or other adult pages.
  */
@@ -12,23 +12,55 @@
   }
   if (window.__santaNorthPoleAdventureLoaded) return;
   window.__santaNorthPoleAdventureLoaded = true;
-  console.info("Santa HQ North Pole Adventure loaded successfully (Families-compatible).");
+  console.info("Santa HQ North Pole Adventure v2 loaded successfully (Families-compatible).");
 
   const originalRender = renderKidPortal;
   const originalEnter = enterKid;
   const originalSent = showKidSent;
   const YEAR = new Date().getFullYear();
   const STAMPS_KEY = `santa_hq_north_pole_passport_${YEAR}`;
-  const state = { view: 'arrival', found: [], santaChoice: 'hello', boardingToken: 0 };
+  const state = { view: 'arrival', found: [], santaChoice: 'hello', storyStage: 0, storyBranch: 0, gameMode: 'explorer', gameRound: 0, wrong: 0, hinted: -1, voiceIndex: 0, boardingToken: 0 };
   let sessionStamps = {};
 
   const stars = [
-    { left: 12, top: 28, title: 'Twinkly star one' },
-    { left: 76, top: 18, title: 'Twinkly star two' },
-    { left: 31, top: 63, title: 'Twinkly star three' },
-    { left: 58, top: 42, title: 'Twinkly star four' },
-    { left: 85, top: 71, title: 'Twinkly star five' }
+    { left: 12, top: 28 }, { left: 76, top: 18 }, { left: 31, top: 63 },
+    { left: 58, top: 42 }, { left: 85, top: 71 }, { left: 43, top: 19 },
+    { left: 69, top: 82 }, { left: 18, top: 77 }, { left: 90, top: 37 },
+    { left: 51, top: 85 }, { left: 27, top: 39 }, { left: 70, top: 57 }
   ];
+  const decoys = [
+    { left: 19, top: 45 }, { left: 55, top: 23 }, { left: 82, top: 51 },
+    { left: 38, top: 81 }, { left: 71, top: 33 }, { left: 9, top: 68 },
+    { left: 47, top: 54 }, { left: 90, top: 83 }, { left: 30, top: 18 },
+    { left: 62, top: 68 }, { left: 11, top: 13 }, { left: 80, top: 12 }
+  ];
+  const modes = {
+    little: { label: 'Little Elf', instruction: 'Find five bright stars. A perfect first mission.', count: 5, decoys: 0 },
+    explorer: { label: 'Star Explorer', instruction: 'Find seven hidden gold stars. Some snowflakes are just there to fool you!', count: 7, decoys: 7 },
+    master: { label: 'Master Elf', instruction: 'Find nine tiny stars among the snowflakes and ornaments.', count: 9, decoys: 11 }
+  };
+  const adventures = {
+    hello: {
+      opener: 'Oh, hello, {name}! I was just about to open a mysterious little box. It made a jingling sound! What should we do?',
+      choices: [ ['Peek inside the box', 'We lift the lid and... oh! A tiny silver bell rolls into my mitten. A reindeer must have lost it!'], ['Shake it gently', 'Jingle, jingle! An elf pops around the corner. That bell belongs to a very important reindeer, he says.'] ],
+      ending: 'We put the little bell back where it belongs. The workshop fills with happy jingles. Thank you for helping me, {name}!'
+    },
+    reindeer: {
+      opener: 'Something strange happened at the reindeer barn. I found sparkly hoofprints in the snow, but no reindeer! How shall we look?',
+      choices: [ ['Follow the footprints', 'The sparkly tracks lead us straight to a sleepy reindeer tucked under a blanket. He has been having a lovely nap!'], ['Listen for bells', 'We close our eyes. Jingle, jingle! There is a reindeer playing hide-and-seek behind the tallest Christmas tree.'] ],
+      ending: 'We give our reindeer a gentle scratch behind the ears and a carrot for the journey home. What a wonderful little rescue!'
+    },
+    elves: {
+      opener: 'An elf rushed into my room with a ribbon twice as long as the table! The wrapping station needs help. What should we try?',
+      choices: [ ['Make a giant bow', 'You loop the ribbon into the fluffiest bow I have ever seen. Even the elves stop to clap!'], ['Ask an elf to help', 'Two elves hold the ends while you make the knot. Together, you finish the wrapping in no time.'] ],
+      ending: 'We hang a little paper star over the workbench to celebrate. Helping hands make the North Pole shine, {name}!'
+    },
+    secret: {
+      opener: 'I have a snowy secret to share. There is a tiny door beside the fireplace, and this morning it was open. Shall we investigate?',
+      choices: [ ['Look through the door', 'Beyond it is a warm room where the elves keep their collection of thank-you letters. Every letter is treasured.'], ['Knock three times', 'Tap, tap, tap. A little elf opens the door and hands us a handmade card covered in glittery snowflakes!'] ],
+      ending: 'You know the best part of Christmas magic? It grows every time we make someone else smile. That is a secret worth keeping!'
+    }
+  };
 
   function htmlEscape(value) {
     return String(value == null ? '' : value)
@@ -69,6 +101,7 @@
   }
   function stopNarration() {
     try { window.speechSynthesis?.cancel(); } catch (_) { }
+    isSpeaking = false;
   }
   function starIcon(size = 18) {
     return `<svg class="np-star-icon" width="${size}" height="${size}" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 1.8 2.8 6 6.6.8-4.8 4.6 1.2 6.5-5.8-3.1-5.8 3.1 1.2-6.5-4.8-4.6 6.6-.8Z"/></svg>`;
@@ -81,7 +114,7 @@
     // Fully inline winter illustration: no external image request needed.
     return `<svg class="np-village-art" viewBox="0 0 800 355" role="img" aria-label="Snowy North Pole village with glowing windows, Christmas trees, and Santa's workshop" preserveAspectRatio="xMidYMax slice">
       <defs>
-        <linearGradient id="np-sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#14384b"/><stop offset=".7" stop-color="#527687"/><stop offset="1" stop-color="#92b2b0"/></linearGradient>
+        <linearGradient id="np-sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#503a52"/><stop offset=".7" stop-color="#977384"/><stop offset="1" stop-color="#d9abb0"/></linearGradient>
         <linearGradient id="np-house" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#e9c1a9"/><stop offset="1" stop-color="#ba806c"/></linearGradient>
         <linearGradient id="np-pine" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#315e58"/><stop offset="1" stop-color="#163e42"/></linearGradient>
         <radialGradient id="np-glow"><stop stop-color="#ffe5ac" stop-opacity=".85"/><stop offset="1" stop-color="#ffe5ac" stop-opacity="0"/></radialGradient>
@@ -121,7 +154,7 @@
   }
   function topBar(crumb = 'NORTH POLE ADVENTURE') {
     return `<header class="np-topbar">
-      <div class="np-brand"><span class="np-brandmark">${snowflake()}</span><span><b>Santa HQ</b><small>${crumb}</small></span></div>
+      <div class="np-brand"><span class="np-brandmark"><img src="./art/santa-peek.svg" alt=""></span><span><b>Santa HQ</b><small>${crumb}</small></span></div>
       <button type="button" class="np-grownups" data-np-action="grownups" aria-label="Return to grown-up Santa HQ with PIN">Grown-ups <span aria-hidden="true">↗</span></button>
     </header>`;
   }
@@ -195,7 +228,7 @@
         <div class="np-section-intro"><span class="np-eyebrow np-eyebrow-dark">THE VILLAGE MAP</span><h2>Where should we go first?</h2><p>Tap a place to explore.</p></div>
         <div class="np-destinations">
           ${destinationCard('santa', "Santa's Cozy Corner", 'Say hello and discover a Santa surprise.', './art/santa-full.svg', 'A SPECIAL VISIT', 'santa')}
-          ${destinationCard('workshop', "The Elf Workshop", 'Find five twinkling stars and help the elves.', './art/elf.svg', 'A LITTLE MISSION', 'elf')}
+          ${destinationCard('workshop', "The Elf Workshop", 'Choose a mission. Search carefully. Earn your elf badge.', './art/elf.svg', 'A LITTLE MISSION', 'elf')}
           ${destinationCard('mail', 'North Pole Post Office', 'Talk, draw, or send a letter to Santa.', './art/mailbox.svg', 'A MESSAGE TO SANTA', 'post')}
         </div>
         ${passport()}
@@ -203,48 +236,66 @@
       </div>
     </div>`;
   }
-  function santaReply() {
-    const name = childName();
-    const answers = {
-      hello: `Ho ho ho! Welcome to my little corner of the North Pole, ${name}! It makes me so happy to see you here.`,
-      reindeer: 'My reindeer love crunchy carrots and a cozy place to rest. Rudolph especially enjoys seeing the stars twinkle!',
-      elves: 'My elves tell me the best part of the workshop is helping each other. Every small act of kindness is its own kind of magic!',
-      secret: 'Here is a North Pole secret: the warmest Christmas magic comes from making someone else smile.'
-    };
-    return answers[state.santaChoice] || answers.hello;
+  function storyDetails() {
+    const story = adventures[state.santaChoice] || adventures.hello;
+    const raw = state.storyStage === 0 ? story.opener : state.storyStage === 1 ? story.choices[state.storyBranch][1] : story.ending;
+    return raw.replaceAll('{name}', familyChildren().find(c => String(c.id) === String(child()))?.name || 'little helper');
+  }
+  function storyActions() {
+    const item = adventures[state.santaChoice] || adventures.hello;
+    if (state.storyStage === 0) return `<div class="np-story-actions" aria-label="Choose what Santa and you do next">${item.choices.map(([label],i)=>`<button type="button" class="np-story-option" data-np-action="story-branch" data-choice="${i}">${starIcon(14)}<span>${htmlEscape(label)}</span>${chevron()}</button>`).join('')}</div>`;
+    if (state.storyStage === 1) return '<button type="button" class="np-story-next" data-np-action="story-next">What happens next? ' + chevron() + '</button>';
+    return '<button type="button" class="np-story-next" data-np-action="story-restart">Tell me another story ' + chevron() + '</button>';
   }
   function santaPage() {
-    return `<div class="np-shell">${topBar('VISITING SANTA')}
+    return `<div class="np-shell">${topBar('A VISIT WITH SANTA')}
       <div class="np-inner">${backNav()}
         <section class="np-santa-room">
           <span class="np-room-spark one" aria-hidden="true">${starIcon(30)}</span><span class="np-room-spark two" aria-hidden="true">${starIcon(16)}</span>
-          <div class="np-santa-portrait"><div class="np-portrait-light"></div><img src="./art/santa-full.svg" alt="Illustration of Santa Claus" class="${state.santaChoice === 'hello' ? 'np-santa-wave' : ''}"></div>
-          <div class="np-santa-words"><span class="np-eyebrow np-eyebrow-dark">SANTA'S COZY CORNER</span><h1>Oh! A special visitor!</h1><p>Choose a little question and see what Santa says.</p>
-            <div class="np-story-card"><span class="np-story-label">A LITTLE MESSAGE FROM SANTA</span><p id="npSantaReply" aria-live="polite">${santaReply()}</p><button type="button" class="np-read-aloud" data-np-action="narrate"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Zm12-1a6 6 0 0 1 0 8M18.5 5a10 10 0 0 1 0 14"/></svg> Read it to me</button></div>
+          <div class="np-santa-portrait"><div class="np-portrait-light"></div><img src="./kid-santa-new.webp" onerror="this.onerror=null;this.src='./art/santa-full.svg'" alt="A friendly illustrated Santa" class="np-santa-wave"></div>
+          <div class="np-santa-words"><span class="np-eyebrow np-eyebrow-dark">SANTA'S STORY CORNER</span><h1>A story just for ${childName()}</h1><p>Pick a story, then choose what happens next.</p>
+            <div class="np-story-card"><div class="np-story-topline"><span class="np-story-label">${state.storyStage === 2 ? 'THE HAPPY ENDING' : state.storyStage === 1 ? 'WHAT A SURPRISE!' : 'ONCE UPON A CHRISTMAS...'}</span><span class="np-story-beat">${state.storyStage + 1} / 3</span></div>
+              <p id="npSantaReply" aria-live="polite">${htmlEscape(storyDetails())}</p>
+              ${storyActions()}
+              <div class="np-narrator-controls"><button type="button" class="np-read-aloud" data-np-action="narrate" aria-label="Play or stop the story narrator"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Zm12-1a6 6 0 0 1 0 8M18.5 5a10 10 0 0 1 0 14"/></svg><span>${state.storyStage === 0 ? 'Read this part to me' : 'Hear this part again'}</span></button><button type="button" class="np-voice-change" data-np-action="voice">Try a different voice</button></div><small class="np-voice-feedback" id="npVoiceFeedback" aria-live="polite"></small>
+            </div>
           </div>
         </section>
-        <section class="np-choices"><div class="np-section-intro"><span class="np-eyebrow np-eyebrow-dark">PICK A QUESTION</span><h2>What should Santa talk about?</h2></div>
+        <section class="np-choices"><div class="np-section-intro"><span class="np-eyebrow np-eyebrow-dark">CHOOSE YOUR ADVENTURE</span><h2>What should we explore?</h2><p>Every visit has a new little decision to make.</p></div>
           <div class="np-question-grid">
-            ${[['hello', 'Say hello', './art/ornament.svg'], ['reindeer', 'The reindeer', './art/tree.svg'], ['elves', 'Santa’s elves', './art/elf.svg'], ['secret', 'A little secret', './art/letter.svg']].map(([key, label, img]) => `<button type="button" class="np-question ${state.santaChoice === key ? 'active' : ''}" data-np-action="ask" data-ask="${key}" aria-pressed="${state.santaChoice === key}"><img src="${img}" alt=""><strong>${label}</strong><span>${starIcon(14)}</span></button>`).join('')}
+            ${[['hello', 'The mystery box', './art/ornament.svg'], ['reindeer', 'Reindeer rescue', './art/tree.svg'], ['elves', 'The wrapping workshop', './art/elf.svg'], ['secret', 'Santa’s secret door', './art/letter.svg']].map(([key, label, img]) => `<button type="button" class="np-question ${state.santaChoice === key ? 'active' : ''}" data-np-action="ask" data-ask="${key}" aria-pressed="${state.santaChoice === key}"><img src="${img}" alt=""><strong>${label}</strong><span>${starIcon(14)}</span></button>`).join('')}
           </div>
-          <p class="np-story-note">This is pretend-play storytelling. Messages are written ahead of time, not live conversations with Santa.</p>
-          <button type="button" class="np-secondary" data-np-action="mail">Send a real message to the Santa mailbox ${chevron()}</button>
+          <p class="np-story-note">These are make-believe, choose-your-path stories, not a live conversation with Santa. The narrator uses the voice available on your device.</p>
+          <button type="button" class="np-secondary" data-np-action="mail">Send your own message to Santa ${chevron()}</button>
         </section>
       </div>
     </div>`;
   }
+  function getMode() { return modes[state.gameMode] || modes.explorer; }
+  function targetStars() {
+    const count = getMode().count;
+    return [...stars].map((_, i) => (i + state.gameRound * 3) % stars.length).slice(0, count);
+  }
   function workshopPage() {
+    const mode = getMode();
+    const targets = targetStars();
     const found = state.found.length;
-    const complete = found === stars.length;
+    const complete = found === mode.count;
+    const levels = stamps().workshopLevels || {};
     return `<div class="np-shell">${topBar('THE ELF WORKSHOP')}
       <div class="np-inner">${backNav()}
-        <section class="np-workshop-intro"><span class="np-eyebrow np-eyebrow-dark">A SPECIAL ELF MISSION</span><h1>Oh no! The workshop<br><em>lost its twinkles!</em></h1><p>Can you help the elves find all five stars? Tap each glowing star you see.</p></section>
-        <div class="np-progress-track"><div class="np-progress-copy"><b>${found} of 5 stars found</b><span>${complete ? 'Magical work!' : 'Tap the stars in the snowy scene'}</span></div><div class="np-progress-bar" role="progressbar" aria-valuenow="${found}" aria-valuemax="5" aria-valuemin="0" aria-label="Stars found"><span style="width:${found * 20}%"></span></div></div>
-        <div class="np-workshop-scene" aria-label="Interactive snowy workshop scene with hidden stars">
-          ${villageArt()}
-          ${stars.map((position, i) => `<button type="button" class="np-find-star ${state.found.includes(i) ? 'found' : ''}" data-np-action="find-star" data-star="${i}" aria-label="${position.title}${state.found.includes(i) ? ', found' : ''}" ${state.found.includes(i) ? 'disabled' : ''} style="left:${position.left}%;top:${position.top}%">${starIcon(31)}</button>`).join('')}
+        <section class="np-workshop-intro"><span class="np-eyebrow np-eyebrow-dark">HELP THE NORTH POLE SHINE</span><h1>Become a <em>star-finding elf!</em></h1><p>Choose a mission, then search the snowy village. There are trick decorations in the harder missions!</p></section>
+        <div class="np-mission-switch" role="group" aria-label="Choose your workshop mission">
+          ${Object.entries(modes).map(([key,m])=>`<button type="button" class="np-mode ${state.gameMode===key?'selected':''}" data-np-action="mode" data-mode="${key}" aria-pressed="${state.gameMode===key}"><strong>${htmlEscape(m.label)}</strong><small>${key==='little'?'Easy':key==='explorer'?'Tricky':'Extra tricky'}${levels[key]?' · Completed':''}</small></button>`).join('')}
         </div>
-        ${complete ? `<div class="np-mission-complete" role="status">${starIcon(25)}<h2>You saved the sparkle!</h2><p>Santa's elves stamped your North Pole passport. Wonderful helping!</p><div class="np-complete-actions"><button type="button" class="np-primary" data-np-action="village">See my passport ${chevron()}</button><button type="button" class="np-text-button np-replay" data-np-action="replay">Play again</button></div></div>` : `<div class="np-elf-help"><img src="./art/elf.svg" alt="An elf"><p><strong>The elves are cheering you on!</strong><span>Look in the sky, by the trees, and near the workshop roof.</span></p></div>`}
+        <p class="np-mission-instructions" id="npInstructions">${htmlEscape(mode.instruction)}</p>
+        <div class="np-progress-track"><div class="np-progress-copy"><b>${found} of ${mode.count} stars found</b><span>${complete ? 'Mission complete!' : state.hinted >= 0 ? 'A star is sparkling a little brighter…' : state.wrong >= 3 ? 'Good searching! Try a hint if you need it.' : 'Look closely—the stars are smaller in harder missions'}</span></div><div class="np-progress-bar" role="progressbar" aria-valuenow="${found}" aria-valuemax="${mode.count}" aria-valuemin="0" aria-label="Stars found"><span style="width:${found/mode.count*100}%"></span></div></div>
+        <div class="np-workshop-scene np-game-${state.gameMode}" aria-label="Interactive snowy workshop: tap the golden stars" aria-describedby="npInstructions">
+          ${villageArt()}
+          ${targets.map((index, i) => { const position = stars[index], done = state.found.includes(index); return `<button type="button" class="np-find-star ${done?'found':''} ${state.hinted===index?'hinted':''}" data-np-action="find-star" data-star="${index}" aria-label="Golden star ${i+1}${done?', already found':''}" ${done?'disabled':''} style="left:${position.left}%;top:${position.top}%">${starIcon(31)}</button>` }).join('')}
+          ${decoys.slice(0, mode.decoys).map((d,i)=>`<button type="button" class="np-decoy" data-np-action="decoy" aria-label="${i%2?'An ornament, not a star':'A snowflake, not a star'}" style="left:${d.left}%;top:${d.top}%">${i%2?'<span class="np-tiny-ornament" aria-hidden="true"></span>':snowflake()}</button>`).join('')}
+        </div>
+        ${complete ? `<div class="np-mission-complete" role="status">${starIcon(27)}<h2>You did it, ${childName()}!</h2><p>You completed the ${htmlEscape(mode.label)} mission. Your passport remembers your hard work!</p><div class="np-complete-actions"><button type="button" class="np-primary" data-np-action="village">See my passport ${chevron()}</button><button type="button" class="np-text-button np-replay" data-np-action="replay">Try a new round</button></div></div>` : `<div class="np-game-tools"><div class="np-elf-help"><img src="./art/elf.svg" alt="A friendly elf"><p><strong>The elves are cheering for you!</strong><span>${state.wrong>0?'That one was a decoration. Keep looking for gold stars!':'Try the roof, the trees, and the night sky.'}</span></p></div><button type="button" class="np-hint-button" data-np-action="hint">${snowflake()} Give me a hint</button></div>`}
       </div>
     </div>`;
   }
@@ -295,7 +346,11 @@
     state.boardingToken++;
     state.view = 'arrival';
     state.santaChoice = 'hello';
+    state.storyStage = 0;
+    state.storyBranch = 0;
     state.found = [];
+    state.wrong = 0;
+    state.hinted = -1;
     stopNarration();
     return originalEnter.apply(this, arguments);
   };
@@ -336,19 +391,88 @@
     window.scrollTo({ top: 0, behavior: 'instant' });
   }
 
+  // Browsers expose different built-in voices. Favor higher-quality voices when present;
+  // never suggest this is recorded/live Santa audio or require a paid API service.
+  function availableVoices() {
+    const voices = window.speechSynthesis?.getVoices?.() || [];
+    const english = voices.filter(v => /^en([_-]|$)/i.test(v.lang || ''));
+    function score(v) {
+      const n = (v.name || '').toLowerCase();
+      let s = v.localService === false ? 20 : 0;
+      if (/natural|neural|premium|enhanced/.test(n)) s += 55;
+      if (/aria|jenny|ava|samantha|karen|zoe|alex|moira|daniel|serena|allison/.test(n)) s += 30;
+      if (/fred|compact|e-speak|espeak/.test(n)) s -= 60;
+      if (v.lang === 'en-US') s += 10;
+      return s;
+    }
+    return english.sort((a,b)=>score(b)-score(a));
+  }
+  function preferredVoice() {
+    const voices = availableVoices();
+    return voices[state.voiceIndex % voices.length] || null;
+  }
+  let isSpeaking = false;
   function narrate() {
+    const label = document.querySelector('.np-read-aloud span');
     if (!('speechSynthesis' in window) || typeof window.SpeechSynthesisUtterance !== 'function') {
-      const btn = document.querySelector('[data-np-action="narrate"]');
-      if (btn) btn.textContent = 'Ask a grown-up to read with you';
+      if (label) label.textContent = 'Ask a grown-up to read with you';
       return;
     }
-    stopNarration();
-    const text = santaReply().replace(/&amp;/g, '&').replace(/&#39;/g, "'");
-    const speech = new SpeechSynthesisUtterance(text.replace(/<[^>]*>/g, ''));
-    speech.rate = 0.85;
-    speech.pitch = 1.08;
+    if (isSpeaking) {
+      stopNarration(); isSpeaking = false;
+      if (label) label.textContent = 'Read this part to me';
+      return;
+    }
+    const speech = new SpeechSynthesisUtterance(storyDetails());
     speech.lang = 'en-US';
+    const voice = preferredVoice();
+    if (voice) speech.voice = voice;
+    speech.rate = 0.96;
+    speech.pitch = 0.99;
+    speech.volume = 1;
+    speech.onend = speech.onerror = () => {
+      isSpeaking = false;
+      const live = document.querySelector('.np-read-aloud span');
+      if (live) live.textContent = 'Read this part to me';
+    };
+    stopNarration();
+    isSpeaking = true;
+    if (label) label.textContent = 'Stop the narrator';
     window.speechSynthesis.speak(speech);
+  }
+  function resetStory(topic) {
+    state.santaChoice = topic;
+    state.storyStage = 0;
+    state.storyBranch = 0;
+    stopNarration(); isSpeaking = false;
+    renderKidPortal();
+  }
+  function playSparkle() {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      const context = new AudioContext();
+      const t = context.currentTime;
+      [740, 990].forEach((hz, i) => {
+        const osc = context.createOscillator();
+        const gain = context.createGain();
+        osc.type = 'sine'; osc.frequency.value = hz;
+        gain.gain.setValueAtTime(0.0001, t+i*.09);
+        gain.gain.exponentialRampToValueAtTime(0.048, t+i*.09+.015);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t+i*.09+.24);
+        osc.connect(gain); gain.connect(context.destination);
+        osc.start(t+i*.09); osc.stop(t+i*.09+.25);
+      });
+      window.setTimeout(()=>context.close().catch(()=>{}), 550);
+    } catch (_) { /* Sound is optional; gameplay does not depend on audio. */ }
+  }
+  function recordLevel(mode) {
+    earnStamp('workshop');
+    const all = getAllStamps();
+    const id = child();
+    all[id] = {...(all[id]||{}), workshopLevels: {...(all[id]?.workshopLevels||{}), [mode]: true}};
+    sessionStamps = all;
+    try { localStorage.setItem(STAMPS_KEY, JSON.stringify(all)); } catch (_) {}
   }
 
   document.addEventListener('click', event => {
@@ -378,33 +502,64 @@
         if (token === state.boardingToken && appState.kidActive && state.view === 'boarding') go('village');
       }, window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ? 300 : 2200);
     } else if (['village', 'arrival', 'santa', 'workshop', 'mail'].includes(action)) {
-      if (action === 'santa') { state.santaChoice = 'hello'; earnStamp('santa'); }
-      if (action === 'workshop') state.found = [];
+      if (action === 'santa') { state.santaChoice = 'hello'; state.storyStage = 0; earnStamp('santa'); }
+      if (action === 'workshop') { state.found = []; state.wrong = 0; state.hinted = -1; }
       if (action === 'mail' && typeof resetKidDraft === 'function') resetKidDraft();
       go(action);
     } else if (action === 'ask') {
-      if (!['hello', 'reindeer', 'elves', 'secret'].includes(node.dataset.ask)) return;
-      state.santaChoice = node.dataset.ask;
-      stopNarration();
-      const reply = document.getElementById('npSantaReply');
-      if (reply) reply.textContent = santaReply().replace(/&amp;/g, '&').replace(/&#39;/g, "'");
-      document.querySelectorAll('.np-question').forEach(q => {
-        const active = q.dataset.ask === state.santaChoice;
-        q.classList.toggle('active', active);
-        q.setAttribute('aria-pressed', String(active));
-      });
-      const photo = document.querySelector('.np-santa-portrait img');
-      if (photo) { photo.classList.remove('np-santa-wave'); void photo.offsetWidth; photo.classList.add('np-santa-wave'); }
+      if (!adventures[node.dataset.ask]) return;
+      resetStory(node.dataset.ask);
+    } else if (action === 'story-branch') {
+      const branch = Number(node.dataset.choice);
+      if (state.storyStage !== 0 || ![0,1].includes(branch)) return;
+      state.storyBranch = branch;
+      state.storyStage = 1;
+      stopNarration(); isSpeaking = false;
+      renderKidPortal();
+    } else if (action === 'story-next') {
+      if (state.storyStage !== 1) return;
+      state.storyStage = 2;
+      stopNarration(); isSpeaking = false;
+      renderKidPortal();
+    } else if (action === 'story-restart') {
+      resetStory('hello');
     } else if (action === 'narrate') {
       narrate();
+    } else if (action === 'voice') {
+      const voices = availableVoices();
+      const feedback = document.getElementById('npVoiceFeedback');
+      if (voices.length < 2) {
+        if (feedback) feedback.textContent = 'This device only has one narrator available.';
+        return;
+      }
+      state.voiceIndex = (state.voiceIndex + 1) % voices.length;
+      stopNarration();
+      if (feedback) feedback.textContent = 'Narrator: ' + voices[state.voiceIndex].name;
+      narrate();
+    } else if (action === 'mode') {
+      if (!modes[node.dataset.mode]) return;
+      state.gameMode = node.dataset.mode;
+      state.found = []; state.wrong = 0; state.hinted = -1;
+      renderKidPortal();
+    } else if (action === 'hint') {
+      const missing = targetStars().find(index => !state.found.includes(index));
+      if (missing !== undefined) state.hinted = missing;
+      renderKidPortal();
+    } else if (action === 'decoy') {
+      state.wrong++;
+      node.classList.add('np-decoy-shake');
+      const msg = document.querySelector('.np-elf-help span');
+      if (msg) msg.textContent = 'That was a decoration! Look for a little five-pointed star.';
     } else if (action === 'find-star') {
       const index = Number(node.dataset.star);
-      if (!Number.isInteger(index) || index < 0 || index >= stars.length || state.found.includes(index)) return;
+      if (!Number.isInteger(index) || !targetStars().includes(index) || state.found.includes(index)) return;
       state.found.push(index);
-      if (state.found.length === stars.length) earnStamp('workshop');
+      state.hinted = -1;
+      playSparkle();
+      if (state.found.length === getMode().count) recordLevel(state.gameMode);
       renderKidPortal();
     } else if (action === 'replay') {
-      state.found = [];
+      state.found = []; state.wrong = 0; state.hinted = -1; state.gameRound++;
       renderKidPortal();
     }
   }, true);
@@ -460,6 +615,121 @@
   @media(max-width:750px){.np-welcome-hero{height:540px;max-height:none}.np-welcome-copy{left:7%;top:10%;max-width:82%}.np-welcome-copy h1{font-size:clamp(39px,8.3vw,57px)}.np-welcome-shade{background:linear-gradient(180deg,#163949f0 0%,#14394bbf 40%,#14394b05 100%)}.np-welcome-bottom{grid-template-columns:1fr;gap:17px}.np-destinations{gap:10px}.np-destination-scene{height:135px}.np-destination-scene img{height:122px}.np-destination-copy{padding:14px 11px;min-height:137px}.np-destination-copy strong{font-size:17px}.np-destination-copy small{font-size:11px}.np-dest-kicker{font-size:8px}.np-santa-room{grid-template-columns:31% 1fr;gap:10px;padding:21px}.np-santa-portrait{min-height:260px}.np-santa-portrait img{max-height:265px}.np-portrait-light{width:175px;height:175px;top:26px;left:calc(50% - 87px)}}
   @media(max-width:520px){.np-topbar{height:70px;padding:10px 15px}.np-brandmark{width:37px;height:37px}.np-brand b{font-size:19px}.np-brand small{font-size:7px;letter-spacing:.7px}.np-grownups{padding:8px 12px;font-size:11px}.np-welcome-hero{margin:0 9px;height:500px;min-height:470px;border-radius:23px}.np-welcome-copy{top:9%}.np-welcome-copy h1{font-size:43px;letter-spacing:-1.4px;margin:13px 0}.np-welcome-copy p{max-width:270px;font-size:13px;margin-bottom:20px}.np-welcome-hero .np-village-art{object-position:center bottom}.np-welcome-bottom{padding:22px 20px 0}.np-village-banner{height:265px}.np-village-title{top:12%;left:7%}.np-village-title h1{font-size:33px}.np-village-title p{font-size:13px}.np-village-content,.np-inner{padding:17px 15px 25px}.np-current-traveler{justify-content:start}.np-current-traveler .np-traveler-picker{display:block;width:100%}.np-current-traveler .np-traveler-picker>span{margin-bottom:8px}.np-destinations{grid-template-columns:1fr;gap:11px}.np-destination{display:grid;grid-template-columns:35% 1fr;padding:0;min-height:130px;border-radius:18px;align-items:stretch}.np-destination-scene{height:auto;min-height:134px}.np-destination-scene img{max-width:92%;height:112px}.np-destination-orbit{height:115px;width:115px}.np-destination-copy{padding:15px 34px 13px 15px;min-height:unset}.np-destination-copy strong{font-size:21px;margin:6px 0}.np-destination-copy small{font-size:11px}.np-dest-arrow{bottom:12px;right:10px}.np-passport{padding:17px 12px}.np-passport h2{font-size:23px}.np-stamp-count{font-size:10px}.np-passport-stamps{gap:6px}.np-stamp{min-height:115px;padding:10px 2px}.np-stamp-art,.np-stamp-art img{height:40px}.np-stamp strong{font-size:10px}.np-stamp small{font-size:7px}.np-santa-room{display:flex;flex-direction:column;padding:15px 15px 19px;gap:3px}.np-santa-portrait{min-height:170px;height:170px;align-items:flex-end}.np-santa-portrait img{max-height:185px}.np-portrait-light{top:0;width:165px;height:165px;left:calc(50% - 82px)}.np-santa-words{width:100%}.np-santa-words h1{font-size:29px}.np-story-card{padding:16px}.np-story-card p{font-size:17px}.np-question-grid{grid-template-columns:repeat(2,1fr);gap:8px}.np-question{min-height:107px}.np-question img{width:45px;height:45px}.np-workshop-scene{height:320px;min-height:320px;border-width:5px}.np-find-star{width:49px;height:49px}.np-find-star svg{width:27px;height:27px}.np-progress-copy{font-size:11px}.np-progress-copy span{font-size:10px}.np-workshop-intro h1{font-size:32px}.np-workshop-intro p{font-size:13px}.np-elf-help img{height:47px;width:47px}.np-elf-help span{font-size:11px}.kid-header .np-mail-home{padding:7px 9px;min-height:39px}.kid-header .np-mail-home span{display:none}.kid-header .np-mail-home svg{width:17px;height:17px}.kid-header .kid-brand strong{font-size:17px!important}.kid-header .kid-exit{font-size:11px;padding:8px 12px}.kid-header .kid-brand-icon{height:35px;width:35px}.kid-header .kid-brand-icon img{height:36px;width:36px}.np-after-send{min-width:0;width:100%;max-width:300px}}
   @media(prefers-reduced-motion:reduce){.np-app *, .np-app *::before,.np-app *::after{animation:none!important;transition:none!important}.np-santa-wave{animation:none!important}}
+
+  /* North Pole Studio v2 — inherit the editorial Santa HQ identity: warm blush, cranberry, cream, gold and evergreen. */
+  #kidPortal.np-adventure-portal{background:#fff6f5!important;color:#3a3037!important}
+  #kidPortal.np-adventure-portal .np-app,
+  #kidPortal.np-adventure-portal .np-shell{background:#fff8f6;color:#3a3037}
+  .np-shell{box-shadow:0 15px 65px #74404a12}
+  .np-topbar{background:#fff9f7;border-bottom:1px solid #f1e6e3}
+  .np-brand{color:#403039}.np-brand b{font-weight:750;font-size:22px}
+  .np-brand small{color:#b05b65;letter-spacing:1.4px}
+  .np-brandmark{background:#fff;border:1px solid #f2dfe0;border-radius:15px;box-shadow:0 6px 14px #a94e4f14}
+  .np-brandmark img{height:37px;width:37px;object-fit:contain}
+  .np-grownups{color:#95495a;background:#fff;border:1px solid #efdadd}
+  .np-eyebrow-dark,.np-dest-kicker{color:#aa5365}
+  .np-eyebrow-light{color:#ffe6b9}
+  .np-welcome-hero{background:#724d61;box-shadow:0 16px 35px #673d4926}
+  .np-welcome-shade{background:linear-gradient(92deg,#503343ee 1%,#6b4556b8 43%,#5c434133 90%)}
+  .np-welcome-copy h1,.np-village-title h1,.np-boarding h1{letter-spacing:-1.8px;text-wrap:balance}
+  .np-welcome-copy h1 em,.np-village-title h1 em,.np-boarding h1 em{color:#fbe1b6}
+  .np-welcome-copy p{color:#fff1ee}
+  .np-primary{background:#c72234;color:#fff;box-shadow:0 9px 20px #b7213445;border:1px solid #b82131}
+  .np-primary:hover{background:#ae1c2e;transform:translateY(-1px)}
+  .np-primary:focus-visible,.np-story-option:focus-visible,.np-question:focus-visible,.np-mode:focus-visible,.np-find-star:focus-visible,.np-decoy:focus-visible,.np-hint-button:focus-visible{outline:3px solid #ba6377;outline-offset:3px}
+  .np-traveler.selected{border-color:#c96a78;background:#fff0f1;box-shadow:0 3px 0 #f5d7dc}
+  .np-traveler,.np-welcome-ticket{border-color:#f0dfe0;background:#fff}
+  .np-ticket-icon{color:#b65a6b;background:#fff0f2}
+  .np-traveler-picker>span{color:#a35b69}
+  .np-train-shell{background:linear-gradient(180deg,#563746,#906b77 67%,#fff1eb)}
+  .np-village-banner{background:#643d50}
+  .np-village-banner::after{background:linear-gradient(90deg,#563847ef 0%,#593b4ac9 43%,#593b4a12 100%)}
+  .np-destination{border:1px solid #f0dedf;box-shadow:0 12px 28px #7f4c5712;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+  .np-destination:hover{transform:translateY(-3px);box-shadow:0 17px 33px #81435420;border-color:#dfb6c0}
+  .np-dest-santa .np-destination-scene{background:linear-gradient(140deg,#f8dcdf,#fff1eb)}
+  .np-dest-elf .np-destination-scene{background:linear-gradient(140deg,#e6f0e9,#d7e5d6)}
+  .np-dest-post .np-destination-scene{background:linear-gradient(140deg,#fff2da,#f5ddc9)}
+  .np-destination-copy strong,.np-section-intro h2,.np-passport h2{color:#40323a}
+  .np-destination-copy small,.np-section-intro p{color:#80737b}
+  .np-passport{background:#fff4ed;border:1px solid #f0ded6}
+  .np-stamp{background:#fff;border-color:#eddfe0}
+  .np-stamp.earned{border-color:#d8a4af;background:#fff3f4}
+  .np-stamp-check{background:#bb5e6d}
+  .np-santa-room{background:linear-gradient(125deg,#f6d9dc 0%,#fae9e7 62%,#fff1e6);border:1px solid #efdbdd}
+  .np-room-spark{color:#d5a86a}
+  .np-portrait-light{background:radial-gradient(circle,#fff9ebbb,#ffffff07 71%)}
+  .np-santa-portrait img{filter:drop-shadow(0 12px 15px #a4676924)}
+  .np-santa-words h1,.np-workshop-intro h1{color:#49333b}
+  .np-santa-words>p,.np-workshop-intro p{color:#826d77}
+  .np-story-card{background:#fffdfb;border-color:#ecd9d8;box-shadow:0 12px 22px #a2666b15}
+  .np-story-label{color:#a65666}
+  .np-story-card p{color:#55424a;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:650;line-height:1.67}
+  .np-story-topline{display:flex;gap:10px;justify-content:space-between;align-items:center}
+  .np-story-beat{font-size:10px;letter-spacing:.8px;color:#b96875;font-weight:900}
+  .np-story-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0 15px}
+  .np-story-option,.np-story-next{min-height:54px;display:flex;align-items:center;gap:8px;padding:12px 14px;text-align:left;color:#843e4f;background:#fff2f1;border:1px solid #efd6d9;border-radius:15px;font-weight:850;font-size:12px;line-height:1.3;cursor:pointer}
+  .np-story-option:hover,.np-story-next:hover{background:#ffe8ea;border-color:#daa9b3}
+  .np-story-option>span{flex:1}.np-story-option>svg:first-child{flex:none;color:#d5a562}.np-story-option>svg:last-child{width:13px;flex:none}
+  .np-story-next{margin:14px 0;width:100%;justify-content:space-between;background:#f1f5ef;border-color:#dfeadd;color:#4c715e}
+  .np-read-aloud{background:#fff;border:1px solid #f1e1e3;color:#ae5868;min-height:44px;border-radius:999px;padding:10px 14px;font-size:12px}
+  .np-read-aloud:hover{background:#fff3f2}
+  .np-question{background:#fff;border:1px solid #efdfdf;box-shadow:0 5px 16px #8144530a;transition:transform .18s ease}
+  .np-question:hover{transform:translateY(-2px)}
+  .np-question.active{background:#fff1f1;border:2px solid #c86d80}
+  .np-question>span{color:#ba596a}
+  .np-story-note{color:#8f7f88}
+  .np-secondary{color:#aa4b5d;border-color:#edced4;background:#fff}
+  .np-workshop-intro em{color:#bd4d64}
+  .np-mission-switch{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;max-width:710px;margin:20px auto 10px}
+  .np-mode{display:grid;gap:5px;min-height:68px;justify-items:center;align-content:center;background:#fff;border:1.5px solid #ecdfe0;color:#7a6670;border-radius:17px;padding:9px 5px;cursor:pointer}
+  .np-mode strong{font:750 15px 'Fraunces',Georgia,serif}.np-mode small{font-size:10px;font-weight:700;color:#978991}
+  .np-mode.selected{background:#c72234;border-color:#b81f33;color:#fff;box-shadow:0 7px 18px #bd283b24}
+  .np-mode.selected small{color:#ffdde1}
+  .np-mission-instructions{text-align:center;margin:10px 0 18px;color:#806f79;font-size:13px;line-height:1.5}
+  .np-progress-copy b{color:#a13f51}.np-progress-copy span{color:#927a85}
+  .np-progress-bar{background:#f3e6e5}.np-progress-bar span{background:linear-gradient(90deg,#b54966,#d9ab76)}
+  .np-workshop-scene{background:#664d5d;border:6px solid #fff;box-shadow:0 9px 28px #73545f24}
+  .np-find-star{width:55px;height:55px;background:#fff4d699;border:1px solid #fff6dc77;box-shadow:0 0 22px #ffe3a481;color:#c79d42;animation:np-star-bounce 3s ease-in-out infinite alternate;transition:opacity .15s}
+  .np-find-star svg{width:27px;height:27px}
+  .np-game-explorer .np-find-star{width:45px;height:45px;background:#ffefb429;border:0;box-shadow:0 0 10px #fff1a946;color:#efc66e}
+  .np-game-explorer .np-find-star svg{width:19px;height:19px;filter:drop-shadow(0 0 3px #fff8cf)}
+  .np-game-master .np-find-star{width:43px;height:43px;background:transparent;border:0;box-shadow:none;color:#efcd8c;animation:none}
+  .np-game-master .np-find-star svg{width:15px;height:15px;filter:drop-shadow(0 0 2px #fee9a4)}
+  .np-find-star.hinted{background:#fff3cbbf!important;box-shadow:0 0 0 7px #f5cf7088,0 0 25px 10px #fffae3bb!important;animation:np-star-bounce .6s ease-in-out infinite alternate!important}
+  .np-find-star.hinted svg{width:29px;height:29px}
+  .np-find-star.found{opacity:.14;animation:none;box-shadow:none;background:transparent}
+  .np-decoy{position:absolute;display:grid;place-items:center;transform:translate(-50%,-50%);width:42px;height:42px;background:transparent;border:0;color:#ffebd7c4;z-index:2;cursor:pointer}
+  .np-decoy .np-small-icon{height:18px;width:18px;fill:none;stroke:currentColor;stroke-width:1.6}
+  .np-tiny-ornament{display:block;position:relative;width:15px;height:16px;background:radial-gradient(circle at 35% 24%,#ffedbd,#ce7270 63%,#905a5b);border:1px solid #f5d7b6;border-radius:50%}
+  .np-tiny-ornament::before{content:'';position:absolute;width:6px;height:4px;border:1px solid #ffe1a1;border-radius:2px;top:-5px;left:4px}
+  .np-decoy-shake{animation:np-nope .28s ease-in-out}
+  @keyframes np-nope{30%,70%{transform:translate(-55%,-50%)}50%{transform:translate(-45%,-50%)}}
+  .np-game-tools{display:flex;justify-content:space-between;align-items:center;gap:12px;max-width:750px;margin:16px auto;flex-wrap:wrap}
+  .np-game-tools .np-elf-help{margin:0;justify-content:flex-start}
+  .np-elf-help strong{color:#547563}.np-elf-help span{color:#897982}
+  .np-hint-button{display:inline-flex;align-items:center;gap:8px;min-height:45px;background:#fff;border:1px solid #e4c6cb;padding:9px 13px;border-radius:100px;color:#ab5265;font-weight:850;font-size:12px}
+  .np-hint-button svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.7}
+  .np-mission-complete{background:#fff1e9;color:#bb7680;border:1px solid #efdad9}
+  .np-mission-complete h2{color:#b2495a}.np-mission-complete p{color:#886f78}
+  .np-mail-home{background:#fff;color:#ad5866}
+  #kidPortal:not(.np-adventure-portal) .kid-portal{background:#fff7f6}
+  .np-narrator-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+  .np-voice-change{background:transparent;color:#a25b68;border:0;font-size:11px;font-weight:850;min-height:44px;padding:8px 9px;text-decoration:underline;text-underline-offset:3px}
+  .np-voice-feedback{display:block;min-height:0;font-size:10px;color:#a18a93;margin-top:3px}
+  @media(max-width:520px){
+    .np-welcome-shade{background:linear-gradient(180deg,#533847f0 0%,#67434ad9 47%,#543a4108 100%)}
+    .np-welcome-hero{box-shadow:0 11px 26px #75525c22}
+    .np-story-actions{grid-template-columns:1fr}
+    .np-story-card p{font-size:15px}
+    .np-mode{min-height:65px;padding:8px 3px}.np-mode strong{font-size:13px}.np-mode small{font-size:9px}
+    .np-mission-instructions{font-size:12px;margin:10px auto 17px}
+    .np-game-tools{align-items:stretch}.np-game-tools .np-elf-help{flex:1;min-width:220px}
+    .np-hint-button{width:100%;justify-content:center}
+    .np-find-star{width:51px;height:51px}
+    .np-game-explorer .np-find-star{width:46px;height:46px}
+    .np-game-master .np-find-star{width:43px;height:43px}
+  }
+  @media(prefers-reduced-motion:reduce){.np-destination:hover,.np-question:hover,.np-primary:hover{transform:none!important}}
   `;
   if (!document.getElementById('northPoleAdventureStyles')) {
     const style = document.createElement('style');
