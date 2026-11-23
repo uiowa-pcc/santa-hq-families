@@ -1,4 +1,4 @@
-/* Santa HQ Families — North Pole Adventure v2 (2026-11-23, Santa HQ Families compatible)
+/* Santa HQ Families — North Pole Adventure v3 (2026-11-23, Santa HQ Families compatible)
  * Additive Kid View enhancement. Load after kid-view-recording-fix.js.
  * Does not touch gifts, budgets, shopping, family sync or other adult pages.
  */
@@ -12,14 +12,14 @@
   }
   if (window.__santaNorthPoleAdventureLoaded) return;
   window.__santaNorthPoleAdventureLoaded = true;
-  console.info("Santa HQ North Pole Adventure v2 loaded successfully (Families-compatible).");
+  console.info("Santa HQ North Pole Adventure v3 loaded successfully (Families-compatible).");
 
   const originalRender = renderKidPortal;
   const originalEnter = enterKid;
   const originalSent = showKidSent;
   const YEAR = new Date().getFullYear();
   const STAMPS_KEY = `santa_hq_north_pole_passport_${YEAR}`;
-  const state = { view: 'arrival', found: [], santaChoice: 'hello', storyStage: 0, storyBranch: 0, gameMode: 'explorer', gameRound: 0, wrong: 0, hinted: -1, voiceIndex: 0, boardingToken: 0 };
+  const state = { view: 'arrival', found: [], santaChoice: 'hello', storyStage: 0, storyBranch: 0, gameMode: 'explorer', gameRound: 0, wrong: 0, hinted: -1, voiceIndex: 0, boardingToken: 0, deskItem: 'globe', deskTaps: 0, deskFinished: {}, letterSeal: 'star' };
   let sessionStamps = {};
 
   const stars = [
@@ -180,15 +180,15 @@
     </section>`;
   }
   function welcomePage() {
-    return `<div class="np-shell">${topBar('A LITTLE CHRISTMAS MAGIC')}
+    return `<div class="np-shell">${topBar('WELCOME ABOARD')}
       <section class="np-welcome-hero">
         ${villageArt()}
         <div class="np-welcome-shade"></div>
         <div class="np-welcome-copy">
           <span class="np-eyebrow np-eyebrow-light">THE NORTH POLE EXPRESS</span>
-          <h1>There's magic<br>waiting <em>up north.</em></h1>
-          <p>One special ticket. A whole village of wonder. Santa is waiting for a visitor.</p>
-          <button type="button" class="np-primary np-arrival-btn" data-np-action="board">All aboard! <span>${chevron()}</span></button>
+          <h1>Your ticket to <em>Christmas magic.</em></h1>
+          <p>Climb aboard, visit Santa's magical desk, and send something special through North Pole Post.</p>
+          <button type="button" class="np-primary np-arrival-btn" data-np-action="board">Enter the North Pole ${chevron()}</button>
         </div>
         <span class="np-hero-trail" aria-hidden="true">${starIcon(15)} ${starIcon(22)} ${starIcon(12)}</span>
       </section>
@@ -227,7 +227,7 @@
         <div class="np-current-traveler">${childPicker()}</div>
         <div class="np-section-intro"><span class="np-eyebrow np-eyebrow-dark">THE VILLAGE MAP</span><h2>Where should we go first?</h2><p>Tap a place to explore.</p></div>
         <div class="np-destinations">
-          ${destinationCard('santa', "Santa's Cozy Corner", 'Say hello and discover a Santa surprise.', './art/santa-full.svg', 'A SPECIAL VISIT', 'santa')}
+          ${destinationCard('santa', "Santa’s Magic Desk", 'Tap, discover, and make a little magic.', './art/santa-full.svg', 'A SPECIAL VISIT', 'santa')}
           ${destinationCard('workshop', "The Elf Workshop", 'Choose a mission. Search carefully. Earn your elf badge.', './art/elf.svg', 'A LITTLE MISSION', 'elf')}
           ${destinationCard('mail', 'North Pole Post Office', 'Talk, draw, or send a letter to Santa.', './art/mailbox.svg', 'A MESSAGE TO SANTA', 'post')}
         </div>
@@ -236,38 +236,43 @@
       </div>
     </div>`;
   }
-  function storyDetails() {
-    const story = adventures[state.santaChoice] || adventures.hello;
-    const raw = state.storyStage === 0 ? story.opener : state.storyStage === 1 ? story.choices[state.storyBranch][1] : story.ending;
-    return raw.replaceAll('{name}', familyChildren().find(c => String(c.id) === String(child()))?.name || 'little helper');
-  }
-  function storyActions() {
-    const item = adventures[state.santaChoice] || adventures.hello;
-    if (state.storyStage === 0) return `<div class="np-story-actions" aria-label="Choose what Santa and you do next">${item.choices.map(([label],i)=>`<button type="button" class="np-story-option" data-np-action="story-branch" data-choice="${i}">${starIcon(14)}<span>${htmlEscape(label)}</span>${chevron()}</button>`).join('')}</div>`;
-    if (state.storyStage === 1) return '<button type="button" class="np-story-next" data-np-action="story-next">What happens next? ' + chevron() + '</button>';
-    return '<button type="button" class="np-story-next" data-np-action="story-restart">Tell me another story ' + chevron() + '</button>';
+  // Santa's desk replaces the text-to-speech branching stories with tactile, short activities.
+  // Children can use the desk without sound or reading.
+  const deskItems = {
+    globe: { label: 'Snow globe', prompt: 'Shake the snow globe!', instruction: 'Tap the globe three times to make a snowstorm.', end: 'A little snowflake carries this message: you make Christmas brighter!', art: '❄' },
+    bells: { label: 'Reindeer bells', prompt: 'Ring the reindeer bells!', instruction: 'Tap the bell three times to wake the sleigh team.', end: 'Jingle-jingle! The reindeer are awake and ready for a Christmas adventure!', art: '♫' },
+    drawer: { label: 'Secret drawer', prompt: 'Open Santa’s secret drawer!', instruction: 'Tap the drawer to discover what Santa tucked inside.', end: 'Inside is a golden note: “Tell me something you are proud of!”', art: '✉' }
+  };
+  function deskGraphic() {
+    const kind = state.deskItem;
+    if (kind === 'globe') return `<div class="np-object np-globe ${state.deskTaps?'np-activated':''}" aria-hidden="true"><span class="np-globe-glass"><img src="./art/tree.svg" alt=""><i class="np-flake f1">✦</i><i class="np-flake f2">❄</i><i class="np-flake f3">✧</i><i class="np-flake f4">✦</i></span><span class="np-globe-base">NORTH POLE</span></div>`;
+    if (kind === 'bells') return `<div class="np-object np-bell ${state.deskTaps?'np-activated':''}" aria-hidden="true"><svg width="164" height="170" viewBox="0 0 164 170"><path d="M82 23c-21 0-35 18-35 43v33c0 16-9 22-19 31h108c-10-9-19-15-19-31V66c0-25-14-43-35-43Z" fill="#f1c56d" stroke="#a56b3f" stroke-width="6"/><path d="M56 54c4-13 12-20 22-22" fill="none" stroke="#fff5c9" stroke-width="7" stroke-linecap="round"/><path d="M68 143q14 22 28 0" fill="#9b5e46" stroke="#9b5e46" stroke-width="8" stroke-linecap="round"/><path d="M76 22a7 7 0 1 1 13 0" fill="none" stroke="#b9874a" stroke-width="6"/></svg></div>`;
+    return `<div class="np-object np-drawer ${state.deskTaps?'np-activated':''}" aria-hidden="true"><span class="np-drawer-envelope"><img src="./art/letter.svg" alt=""></span><div class="np-drawer-face"><span class="np-drawer-knob">✦</span></div></div>`;
   }
   function santaPage() {
-    return `<div class="np-shell">${topBar('A VISIT WITH SANTA')}
+    const item = deskItems[state.deskItem];
+    const need = state.deskItem === 'drawer' ? 1 : 3;
+    const done = state.deskTaps >= need;
+    const completed = Object.keys(state.deskFinished).length;
+    return `<div class="np-shell">${topBar('SANTA’S MAGIC DESK')}
       <div class="np-inner">${backNav()}
-        <section class="np-santa-room">
-          <span class="np-room-spark one" aria-hidden="true">${starIcon(30)}</span><span class="np-room-spark two" aria-hidden="true">${starIcon(16)}</span>
-          <div class="np-santa-portrait"><div class="np-portrait-light"></div><img src="./kid-santa-new.webp" onerror="this.onerror=null;this.src='./art/santa-full.svg'" alt="A friendly illustrated Santa" class="np-santa-wave"></div>
-          <div class="np-santa-words"><span class="np-eyebrow np-eyebrow-dark">SANTA'S STORY CORNER</span><h1>A story just for ${childName()}</h1><p>Pick a story, then choose what happens next.</p>
-            <div class="np-story-card"><div class="np-story-topline"><span class="np-story-label">${state.storyStage === 2 ? 'THE HAPPY ENDING' : state.storyStage === 1 ? 'WHAT A SURPRISE!' : 'ONCE UPON A CHRISTMAS...'}</span><span class="np-story-beat">${state.storyStage + 1} / 3</span></div>
-              <p id="npSantaReply" aria-live="polite">${htmlEscape(storyDetails())}</p>
-              ${storyActions()}
-              <div class="np-narrator-controls"><button type="button" class="np-read-aloud" data-np-action="narrate" aria-label="Play or stop the story narrator"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Zm12-1a6 6 0 0 1 0 8M18.5 5a10 10 0 0 1 0 14"/></svg><span>${state.storyStage === 0 ? 'Read this part to me' : 'Hear this part again'}</span></button><button type="button" class="np-voice-change" data-np-action="voice">Try a different voice</button></div><small class="np-voice-feedback" id="npVoiceFeedback" aria-live="polite"></small>
-            </div>
+        <section class="np-desk-hero">
+          <div class="np-desk-santa"><img src="./kid-santa-new.webp" onerror="this.onerror=null;this.src='./art/santa-full.svg'" alt="Friendly illustrated Santa"></div>
+          <div class="np-desk-hero-text"><span class="np-eyebrow np-eyebrow-dark">COME ON IN, ${childName().toUpperCase()}</span><h1>Something magical is on Santa's desk.</h1><p>I saved three little surprises just for you. Tap an object and watch the magic happen!</p><span class="np-desk-status">${completed} of 3 surprises discovered</span></div>
+        </section>
+        <section class="np-desk-play" aria-label="Choose a magical object on Santa's desk">
+          <div class="np-section-intro"><span class="np-eyebrow np-eyebrow-dark">LOOK, TOUCH, DISCOVER</span><h2>Which one will you try?</h2></div>
+          <div class="np-desk-choices">${Object.entries(deskItems).map(([key,it])=>`<button type="button" class="np-desk-choice ${state.deskItem===key?'selected':''}" data-np-action="desk-choose" data-item="${key}" aria-pressed="${state.deskItem===key}"><span class="np-desk-choice-art">${it.art}</span><strong>${htmlEscape(it.label)}</strong>${state.deskFinished[key]?'<small>✓ Discovered</small>':'<small>Tap to explore</small>'}</button>`).join('')}</div>
+          <div class="np-desk-stage ${done?'np-desk-done':''}">
+            <div class="np-desk-stage-light" aria-hidden="true">✧ &nbsp; ✦ &nbsp; ✧</div>
+            <span class="np-eyebrow np-eyebrow-dark">${htmlEscape(item.prompt)}</span>
+            <button type="button" class="np-desk-touch" data-np-action="desk-tap" aria-label="${htmlEscape(item.instruction)}">${deskGraphic()}</button>
+            <p class="np-desk-instruction" aria-live="polite">${done?htmlEscape(item.end):htmlEscape(item.instruction)}</p>
+            <div class="np-desk-dots" aria-label="Progress">${Array.from({length:need},(_,i)=>`<span class="${i<state.deskTaps?'lit':''}">${starIcon(16)}</span>`).join('')}</div>
+            ${done?`<button type="button" class="np-secondary np-desk-again" data-np-action="desk-reset">Play again</button>`:''}
           </div>
         </section>
-        <section class="np-choices"><div class="np-section-intro"><span class="np-eyebrow np-eyebrow-dark">CHOOSE YOUR ADVENTURE</span><h2>What should we explore?</h2><p>Every visit has a new little decision to make.</p></div>
-          <div class="np-question-grid">
-            ${[['hello', 'The mystery box', './art/ornament.svg'], ['reindeer', 'Reindeer rescue', './art/tree.svg'], ['elves', 'The wrapping workshop', './art/elf.svg'], ['secret', 'Santa’s secret door', './art/letter.svg']].map(([key, label, img]) => `<button type="button" class="np-question ${state.santaChoice === key ? 'active' : ''}" data-np-action="ask" data-ask="${key}" aria-pressed="${state.santaChoice === key}"><img src="${img}" alt=""><strong>${label}</strong><span>${starIcon(14)}</span></button>`).join('')}
-          </div>
-          <p class="np-story-note">These are make-believe, choose-your-path stories, not a live conversation with Santa. The narrator uses the voice available on your device.</p>
-          <button type="button" class="np-secondary" data-np-action="mail">Send your own message to Santa ${chevron()}</button>
-        </section>
+        <section class="np-desk-letter"><img src="./art/mailbox.svg" alt=""><div><span class="np-eyebrow np-eyebrow-dark">A REAL MESSAGE FROM YOU</span><h2>Santa's favorite surprise? Your own words.</h2><p>Record your voice, make a picture, or write a note. You can give it a magic seal before sending.</p><button type="button" class="np-primary" data-np-action="mail">Make a message for Santa ${chevron()}</button></div></section>
       </div>
     </div>`;
   }
@@ -311,6 +316,15 @@
     portal.innerHTML = `<main class="np-app">${page}</main>`;
   }
 
+  const seals = {
+    star: { symbol: '✦', label: 'Golden star', description: 'A little Christmas sparkle' },
+    snow: { symbol: '❄', label: 'Snowflake', description: 'Snowy North Pole magic' },
+    heart: { symbol: '♥', label: 'Kind heart', description: 'Sent with extra love' },
+    bell: { symbol: '♫', label: 'Jingle bell', description: 'A joyful little jingle' }
+  };
+  function sealChooser() {
+    return `<section class="np-seal-section" aria-label="Choose a magical seal for the letter"><div class="np-seal-head"><span>THE FINAL TOUCH</span><h3>Pick a magical seal</h3><p>Give your message a special North Pole stamp before it goes.</p></div><div class="np-seal-options">${Object.entries(seals).map(([key,val])=>`<button type="button" class="np-seal ${state.letterSeal===key?'selected':''}" data-np-action="seal" data-seal="${key}" aria-pressed="${state.letterSeal===key}"><span>${val.symbol}</span><strong>${htmlEscape(val.label)}</strong></button>`).join('')}</div><div class="np-envelope-preview"><div class="np-envelope-art"><div class="np-envelope-flap"></div><span class="np-wax np-wax-${state.letterSeal}">${seals[state.letterSeal].symbol}</span></div><div><strong>For Santa • North Pole</strong><small>${seals[state.letterSeal].description}</small><small class="np-envelope-hint">Your message will be saved when you tap Send.</small></div></div></section>`;
+  }
   function decorateMail() {
     const portal = document.getElementById('kidPortal');
     const header = portal?.querySelector('.kid-header');
@@ -322,8 +336,25 @@
       back.setAttribute('aria-label', 'Back to the North Pole village');
       header.insertBefore(back, header.querySelector('.kid-exit'));
     }
+    const title = portal.querySelector('.kid-intro h1');
+    if (title) title.innerHTML = `A special delivery <span>from ${childName()}.</span>`;
     const intro = portal.querySelector('.kid-intro p');
-    if (intro) intro.textContent = 'Record, draw, or write your message—then send it to the North Pole mailbox.';
+    if (intro) intro.textContent = 'Choose how to say hello. Add your own seal. Then watch your message fly to Santa’s mailbox!';
+    const studio = portal.querySelector('.kid-inner');
+    if (studio && !studio.querySelector('.np-mail-journey')) {
+      studio.insertAdjacentHTML('afterbegin', `<section class="np-mail-journey" aria-label="How to send a message"><div class="np-mail-step"><img src="./art/microphone.svg" alt=""><span><strong>1. Create</strong><small>Talk, draw, or write</small></span></div><span class="np-mail-connector" aria-hidden="true">✦ ✦ ✦</span><div class="np-mail-step"><img src="./art/letter.svg" alt=""><span><strong>2. Decorate</strong><small>Choose a magic seal</small></span></div><span class="np-mail-connector" aria-hidden="true">✦ ✦ ✦</span><div class="np-mail-step"><img src="./art/mailbox.svg" alt=""><span><strong>3. Deliver</strong><small>Send to Santa</small></span></div></section>`);
+    }
+    const form = portal.querySelector('#kidMessageForm');
+    const submit = form?.querySelector('#kidSubmit');
+    if (form && submit && !form.querySelector('.np-seal-section')) {
+      submit.insertAdjacentHTML('beforebegin', sealChooser());
+    }
+    if (submit) {
+      submit.classList.add('np-ship-btn');
+      submit.setAttribute('aria-label','Save your message to the North Pole mailbox');
+    }
+    const label = portal.querySelector('.kid-message-panel > .kid-section-title');
+    if (label) label.textContent = '3. Make your special message';
   }
 
   renderKidPortal = function () {
@@ -348,6 +379,7 @@
     state.santaChoice = 'hello';
     state.storyStage = 0;
     state.storyBranch = 0;
+    state.deskItem = 'globe'; state.deskTaps = 0; state.deskFinished = {}; state.letterSeal = 'star';
     state.found = [];
     state.wrong = 0;
     state.hinted = -1;
@@ -356,22 +388,17 @@
   };
 
   showKidSent = function () {
+    // This hook is called by the existing app only after its save completes.
+    // Never display successful delivery merely because a child pressed Send.
     earnStamp('post');
     originalSent.apply(this, arguments);
-    const success = document.querySelector('#kidPortal .kid-success');
-    if (!success) return;
-    success.classList.add('np-success');
-    const message = success.querySelector('p');
-    if (message) message.textContent = 'Your letter is safely saved in Santa’s mailbox. Your passport has a new stamp!';
-    const again = success.querySelector('[data-action="kid-again"]');
-    if (again) {
-      again.textContent = 'Send another letter';
-      const go = document.createElement('button');
-      go.type = 'button'; go.className = 'np-secondary np-after-send';
-      go.dataset.npAction = 'village';
-      go.textContent = 'Return to Santa’s Village';
-      again.insertAdjacentElement('afterend', go);
-    }
+    const portal = document.getElementById('kidPortal');
+    if (!portal) return;
+    portal.classList.remove('np-adventure-portal');
+    portal.innerHTML = `<section class="np-delivered" role="status" aria-live="polite">
+      <div class="np-delivered-sky" aria-hidden="true"><span class="np-delivery-trail">✦ &nbsp; ✧ &nbsp; ✦ &nbsp; ✧</span><span class="np-flying-envelope"><img src="./art/letter.svg" alt=""></span><span class="np-delivery-mailbox"><img src="./art/mailbox.svg" alt=""></span></div>
+      <div class="np-delivered-content"><span class="np-eyebrow np-eyebrow-dark">SPECIAL DELIVERY COMPLETE</span><h1>Your message made it to Santa's mailbox!</h1><p>Hooray, ${childName()}! Your message is saved in North Pole Post. Look for your special delivery stamp in your passport.</p><div class="np-delivered-seal"><span>${seals[state.letterSeal].symbol}</span><strong>${htmlEscape(seals[state.letterSeal].label)} seal</strong></div><div class="np-delivered-actions"><button class="np-primary" data-action="kid-again" type="button">Send another message ${chevron()}</button><button class="np-secondary" data-np-action="village" type="button">Back to Santa's Village</button></div><p class="np-delivery-footnote">Only the adults in your family's Santa HQ account can view the saved message. Santa's replies are written by your grown-ups.</p></div>
+    </section>`;
   };
 
   function go(view) {
@@ -502,10 +529,31 @@
         if (token === state.boardingToken && appState.kidActive && state.view === 'boarding') go('village');
       }, window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ? 300 : 2200);
     } else if (['village', 'arrival', 'santa', 'workshop', 'mail'].includes(action)) {
-      if (action === 'santa') { state.santaChoice = 'hello'; state.storyStage = 0; earnStamp('santa'); }
+      if (action === 'santa') { state.deskItem = 'globe'; state.deskTaps = 0; }
       if (action === 'workshop') { state.found = []; state.wrong = 0; state.hinted = -1; }
       if (action === 'mail' && typeof resetKidDraft === 'function') resetKidDraft();
       go(action);
+    } else if (action === 'desk-choose') {
+      if (!deskItems[node.dataset.item]) return;
+      state.deskItem = node.dataset.item; state.deskTaps = 0;
+      renderKidPortal();
+    } else if (action === 'desk-tap') {
+      const need = state.deskItem === 'drawer' ? 1 : 3;
+      if (state.deskTaps < need) {
+        state.deskTaps++;
+        playSparkle();
+        if (state.deskTaps === need) { state.deskFinished[state.deskItem] = true; earnStamp('santa'); }
+      }
+      renderKidPortal();
+    } else if (action === 'desk-reset') {
+      state.deskTaps = 0;
+      renderKidPortal();
+    } else if (action === 'seal') {
+      if (!seals[node.dataset.seal]) return;
+      state.letterSeal = node.dataset.seal;
+      const region = document.querySelector('#kidPortal .np-seal-section');
+      if (region) region.outerHTML = sealChooser();
+      playSparkle();
     } else if (action === 'ask') {
       if (!adventures[node.dataset.ask]) return;
       resetStory(node.dataset.ask);
@@ -730,6 +778,58 @@
     .np-game-master .np-find-star{width:43px;height:43px}
   }
   @media(prefers-reduced-motion:reduce){.np-destination:hover,.np-question:hover,.np-primary:hover{transform:none!important}}
+
+  /* V3: fixed, height-safe boarding CTA. The copy is in normal flow, never clipped. */
+  .np-welcome-hero{height:auto!important;max-height:none!important;min-height:475px!important;display:flex!important;align-items:stretch;overflow:hidden}
+  .np-welcome-copy{position:relative!important;top:auto!important;left:auto!important;max-width:580px!important;width:auto;min-width:0;padding:clamp(30px,5vw,58px);display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:12px}
+  .np-welcome-copy h1{margin:6px 0!important;line-height:1.06}
+  .np-welcome-copy p{margin:0 0 7px!important;max-width:355px}
+  .np-arrival-btn{flex:none;position:relative;z-index:5;max-width:100%;white-space:normal;text-align:center;line-height:1.3;padding:14px 19px}
+  .np-app button{touch-action:manipulation}
+  /* Magical desk, tactile instead of robotic narration. */
+  .np-desk-hero{display:grid;grid-template-columns:230px 1fr;gap:24px;align-items:center;background:linear-gradient(117deg,#f9e0e4,#fff4e9);border:1px solid #efdde0;border-radius:27px;overflow:hidden;padding:18px 30px}
+  .np-desk-santa{height:237px;display:flex;align-items:flex-end;justify-content:center}.np-desk-santa img{height:100%;max-width:100%;object-fit:contain;filter:drop-shadow(0 12px 12px #95525c27)}
+  .np-desk-hero-text h1{font:750 clamp(29px,4vw,44px)/1.09 'Fraunces',Georgia,serif;color:#4b3440;letter-spacing:-1.1px;margin:10px 0}.np-desk-hero-text p{font-size:14px;line-height:1.55;color:#836e79;max-width:410px}
+  .np-desk-status{display:inline-flex;border-radius:100px;padding:8px 13px;background:#fff9f4;color:#a95667;font-weight:900;font-size:12px;border:1px solid #efdadd}
+  .np-desk-play{padding-top:23px}.np-desk-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
+  .np-desk-choice{display:flex;flex-direction:column;align-items:center;gap:6px;min-height:115px;border:1px solid #eadce0;background:white;border-radius:18px;padding:15px 6px 11px;color:#694957;cursor:pointer}
+  .np-desk-choice.selected{background:#fff1f0;border:2px solid #c86d7d;box-shadow:0 4px 0 #f5d7d9}.np-desk-choice strong{font:750 16px 'Fraunces',Georgia,serif}.np-desk-choice small{font-size:10px;color:#967e86;font-weight:800}.np-desk-choice-art{font-size:31px;color:#b65a67;line-height:1.1}
+  .np-desk-stage{background:radial-gradient(circle at center,#fffbf3 0%,#fff4e9 74%,#fbe9e5 100%);border:1px solid #ecd9d4;border-radius:25px;margin-top:18px;padding:23px 17px 21px;display:flex;flex-direction:column;align-items:center;text-align:center;min-height:365px;overflow:hidden;position:relative}
+  .np-desk-stage-light{position:absolute;left:0;right:0;top:8px;color:#dcac6b;opacity:.66;letter-spacing:45px;pointer-events:none}.np-desk-stage>.np-eyebrow{position:relative;z-index:2}
+  .np-desk-touch{background:transparent;border:0;display:grid;place-items:center;width:240px;max-width:95%;height:207px;cursor:pointer;position:relative;z-index:2;overflow:visible}.np-desk-touch:focus-visible{outline:3px solid #c46c7f;outline-offset:1px;border-radius:24px}
+  .np-object{position:relative;display:grid;place-items:center}.np-globe{height:182px;width:182px;filter:drop-shadow(0 10px 11px #ad728633)}
+  .np-globe-glass{display:grid;place-items:center;border:5px solid #e3e8e8;width:174px;height:161px;border-radius:50% 50% 44% 44%;position:relative;background:radial-gradient(circle at 30% 23%,#fff 0%,#e8f7f2 28%,#b5d8cd 95%);overflow:hidden;box-shadow:inset -7px -10px 14px #6b9d9f46}
+  .np-globe-glass>img{height:114px;max-width:88%;object-fit:contain;margin-top:22px}.np-globe-base{display:block;position:absolute;bottom:-8px;padding:7px 20px;border-radius:8px;background:#b95060;color:#fff;font-size:9px;font-weight:900;letter-spacing:1px;border-bottom:7px solid #893d50;z-index:3}
+  .np-flake{position:absolute;color:#fff;font-size:20px;animation:np-flutter 3s ease-in-out infinite alternate}.np-flake.f1{top:18%;left:14%}.np-flake.f2{top:32%;right:12%}.np-flake.f3{bottom:20%;left:18%}.np-flake.f4{bottom:33%;right:29%}.np-globe.np-activated .np-flake{animation:np-snowfall .9s linear infinite alternate}
+  @keyframes np-snowfall{to{transform:translate(10px,33px) rotate(75deg);opacity:.42}}@keyframes np-flutter{to{transform:translateY(9px);opacity:.56}}
+  .np-bell{filter:drop-shadow(0 9px 9px #ae865d33)}.np-bell.np-activated{animation:np-ringing .42s ease-in-out}@keyframes np-ringing{25%{transform:rotate(-12deg)}75%{transform:rotate(11deg)}}
+  .np-drawer{width:200px;height:150px;background:#e9b983;border:7px solid #a4674f;border-radius:12px;box-shadow:0 10px 14px #7f5e4b33;position:relative}.np-drawer-face{background:#b86463;border:5px solid #a65755;width:90%;height:73px;border-radius:8px;display:grid;place-items:center;position:absolute;bottom:15px;box-shadow:0 7px 0 #873f40}.np-drawer-knob{width:30px;height:30px;border-radius:50%;background:#f2cf8a;color:#965c42;display:grid;place-items:center}.np-drawer-envelope{position:absolute;top:-26px;transform:scale(.72);transition:transform .3s,top .3s}.np-drawer-envelope img{height:88px}.np-drawer.np-activated .np-drawer-envelope{top:-71px;transform:scale(1)}
+  .np-desk-instruction{max-width:420px;font-weight:750;color:#694757;font-size:17px;line-height:1.4;margin:2px auto 12px;min-height:48px}.np-desk-done .np-desk-instruction{color:#386955}
+  .np-desk-dots{display:flex;gap:11px;margin-top:3px}.np-desk-dots span{color:#d4c7b6;opacity:.75}.np-desk-dots span.lit{color:#da9e39;opacity:1;filter:drop-shadow(0 0 6px #e8bc64)}
+  .np-desk-again{margin:13px auto 0}.np-desk-letter{display:grid;grid-template-columns:155px 1fr;gap:19px;align-items:center;background:#f4e2d7;border-radius:25px;padding:19px 23px;margin-top:23px}.np-desk-letter img{width:145px;max-width:100%;max-height:146px;object-fit:contain}.np-desk-letter h2{font:750 26px/1.18 'Fraunces',Georgia,serif;color:#553b47;margin:9px 0}.np-desk-letter p{font-size:13px;color:#846f74;line-height:1.5;margin:0 0 14px}.np-desk-letter .np-primary{font-size:13px;min-height:50px}
+  /* Post office: a tiny magic journey using existing mail and recording actions. */
+  #kidPortal:not(.np-adventure-portal){background:#fff9f7!important}.np-mail-journey{display:flex;align-items:center;justify-content:space-between;gap:5px;margin:4px auto 23px;padding:13px 14px;border-radius:19px;background:#fff5ed;border:1px solid #eadbd4}
+  .np-mail-step{display:flex;align-items:center;gap:8px;min-width:0;flex:1}.np-mail-step>img{width:39px;height:43px;object-fit:contain}.np-mail-step span{display:grid;gap:3px}.np-mail-step strong{font:750 13px 'Fraunces',Georgia,serif;color:#884658}.np-mail-step small{font-size:10px;color:#8d7780}.np-mail-connector{font-size:10px;color:#d5a473;letter-spacing:3px}
+  #kidPortal:not(.np-adventure-portal) .kid-intro{min-height:215px;padding-top:26px;padding-bottom:30px}
+  #kidPortal:not(.np-adventure-portal) .kid-intro h1{font-size:clamp(28px,5vw,44px)!important;line-height:1.12;max-width:460px}
+  #kidPortal:not(.np-adventure-portal) .kid-intro p{max-width:420px}
+  .np-seal-section{border:1px solid #ecd8db;border-radius:21px;background:#fff9f7;padding:19px 18px;margin:25px 0 15px;text-align:left}
+  .np-seal-head>span{font-size:10px;font-weight:900;color:#ae586a;letter-spacing:1.6px}.np-seal-head h3{font:750 24px 'Fraunces',Georgia,serif;color:#583743;margin:6px 0}.np-seal-head p{font-size:12px;line-height:1.5;color:#8b7580;margin:0 0 12px}
+  .np-seal-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.np-seal{display:grid;place-items:center;gap:6px;min-height:82px;background:white;border:1px solid #ecd9db;border-radius:15px;padding:8px 3px;cursor:pointer;color:#a65767}.np-seal span{font-size:29px;line-height:1}.np-seal strong{font-size:10px;line-height:1.2}.np-seal.selected{border:2px solid #b55065;background:#fff0f1;box-shadow:0 3px 0 #f2d5d8}
+  .np-envelope-preview{display:flex;align-items:center;gap:17px;justify-content:center;margin:17px auto 2px;padding:15px 12px;background:#fff;border:1px dashed #e4c9cc;border-radius:17px}.np-envelope-preview>div:last-child{display:grid;gap:3px}.np-envelope-preview strong{font:750 15px 'Fraunces',Georgia,serif;color:#6b4953}.np-envelope-preview small{font-size:11px;color:#8f7780}.np-envelope-preview .np-envelope-hint{font-size:10px;color:#a28f97}
+  .np-envelope-art{width:95px;height:65px;background:#f4e6d6;border:2px solid #d6ae99;position:relative;display:grid;place-items:center;border-radius:5px;overflow:hidden;flex:none;box-shadow:0 6px 11px #b28c8933}.np-envelope-flap{position:absolute;inset:0;background:linear-gradient(148deg,transparent 49%,#d6ae99 49%,#f8ebde 52%);clip-path:polygon(0 0,100% 0,50% 66%)}.np-wax{display:grid;place-items:center;width:27px;height:27px;border-radius:50%;background:#bf465b;color:#fff;z-index:1;font-size:16px;border:2px solid #f1b7b2;box-shadow:0 3px 6px #9a536344}.np-wax-snow{background:#7aaaba}.np-wax-heart{background:#d47898}.np-wax-bell{background:#a7854a}
+  .kid-send.np-ship-btn{position:relative;min-height:63px;font-size:18px!important;background:linear-gradient(115deg,#b91836,#d73b50)!important;box-shadow:0 6px 0 #85243b,0 9px 20px #c5435440!important;letter-spacing:.1px}.kid-send.np-ship-btn:not(:disabled):active{transform:translateY(3px);box-shadow:0 3px 0 #85243b!important}
+  /* Confirmation shows only after the app has saved the message. */
+  .np-delivered{max-width:780px;min-height:100dvh;margin:auto;background:linear-gradient(180deg,#fbebeb 0%,#fff7ed 72%);text-align:center;color:#5d414e;display:flex;flex-direction:column;align-items:center;padding:20px 18px 45px}
+  .np-delivered-sky{margin:12px auto 17px;position:relative;height:260px;width:min(100%,480px);background:radial-gradient(ellipse at 50% 80%,#fffaf2 0%,#fbe7d9 70%,transparent 72%);overflow:hidden;border-radius:28px}.np-delivered-sky:before{content:'✦   ✧   ✦  ✧   ✦';position:absolute;top:18px;left:0;right:0;color:#d5a56a;letter-spacing:22px}.np-delivery-trail{position:absolute;top:45%;left:7%;right:7%;color:#cf8b78;letter-spacing:12px;opacity:.65}
+  .np-flying-envelope{position:absolute;width:140px;height:140px;left:0;top:72px;z-index:2;animation:np-mail-flight 2s ease-in-out both}.np-flying-envelope img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 8px 10px #b07f7d33)}.np-delivery-mailbox{position:absolute;width:143px;height:155px;right:0;bottom:11px}.np-delivery-mailbox img{width:100%;height:100%;object-fit:contain}
+  @keyframes np-mail-flight{0%{transform:translate(-9%,44%) rotate(-14deg) scale(.92)}55%{transform:translate(80%,-30%) rotate(11deg) scale(.85)}100%{transform:translate(203%,3%) rotate(-15deg) scale(.4);opacity:0}}
+  .np-delivered-content{max-width:520px}.np-delivered h1{font:750 clamp(32px,5vw,45px)/1.12 'Fraunces',Georgia,serif;color:#8b394f;letter-spacing:-1px;margin:10px 0 14px}.np-delivered p{font-size:15px;color:#846773;line-height:1.6;margin:0 0 15px}
+  .np-delivered-seal{display:inline-flex;gap:9px;align-items:center;background:#fff;border:1px solid #e4c6cc;border-radius:40px;padding:9px 18px;color:#a45363;font-weight:900;font-size:12px;margin:6px auto 18px}.np-delivered-seal span{font-size:23px}
+  .np-delivered-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center}.np-delivered-actions .np-secondary,.np-delivered-actions .np-primary{min-height:51px}.np-delivered .np-delivery-footnote{font-size:11px;margin:20px auto 0;max-width:410px;color:#a18990}
+  @media(max-width:620px){.np-welcome-hero{min-height:0!important;height:auto!important;max-height:none!important}.np-welcome-copy{width:100%;max-width:100%!important;padding:31px 22px 34px!important;min-height:440px;justify-content:flex-start;gap:12px}.np-welcome-copy h1{font-size:clamp(33px,9vw,44px)!important;margin:13px 0 5px!important}.np-welcome-copy p{max-width:295px;font-size:13px;line-height:1.5!important}.np-arrival-btn{width:100%;max-width:315px;margin-top:8px}.np-desk-hero{grid-template-columns:120px 1fr;padding:14px;gap:13px}.np-desk-santa{height:180px}.np-desk-hero-text h1{font-size:26px}.np-desk-hero-text p{font-size:12px}.np-desk-choices{gap:7px}.np-desk-choice{min-height:97px;padding:11px 3px}.np-desk-choice strong{font-size:12px;text-align:center}.np-desk-choice small{font-size:9px}.np-desk-choice-art{font-size:25px}.np-desk-letter{grid-template-columns:85px 1fr;gap:8px;padding:13px}.np-desk-letter img{width:84px}.np-desk-letter h2{font-size:20px}.np-desk-letter .np-primary{font-size:11px;min-height:46px;padding:9px 12px}.np-mail-journey{padding:11px 7px;gap:4px}.np-mail-step{flex-direction:column;text-align:center;gap:2px}.np-mail-step>img{width:30px;height:35px}.np-mail-step strong{font-size:11px}.np-mail-step small{font-size:9px}.np-mail-connector{font-size:8px;letter-spacing:1px}.np-envelope-preview{gap:9px}.np-envelope-art{width:78px;height:55px}.np-seal-section{padding:15px 11px}.np-seal strong{font-size:9px}.np-seal span{font-size:24px}}
+  @media(max-width:350px){.np-welcome-copy{padding:24px 16px 26px!important}.np-welcome-copy h1{font-size:32px!important}.np-welcome-copy p{font-size:12px}.np-desk-hero{display:flex;flex-direction:column}.np-desk-santa{height:128px}.np-desk-santa img{height:130px}.np-desk-hero-text h1{font-size:27px}.np-seal-options{grid-template-columns:repeat(2,1fr)}.np-mail-journey{gap:0}.np-mail-step small{display:none}}
+  @media(prefers-reduced-motion:reduce){.np-flying-envelope,.np-globe .np-flake,.np-bell{animation:none!important}.np-desk-hero *{scroll-behavior:auto!important}}
   `;
   if (!document.getElementById('northPoleAdventureStyles')) {
     const style = document.createElement('style');
