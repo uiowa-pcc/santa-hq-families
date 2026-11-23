@@ -22,6 +22,7 @@ const exists = async path => { try { await access(path); return true; } catch { 
 await mkdir('public', { recursive: true });
 websiteFiles.push('kid-view-recording-fix.js', 'north-pole-adventure.js');
 websiteFiles.push('hunt-print.html', 'hunt-print.js');
+websiteFiles.push('mega-hunt-picker-upgrade.js');
 for (const file of websiteFiles) {
   const destination = join('public', file);
   if (await exists(file)) {
