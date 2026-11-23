@@ -1,4 +1,4 @@
-/* Santa HQ Families — North Pole Adventure v3 (2026-11-23, Santa HQ Families compatible)
+/* Santa HQ Families — North Pole Adventure v4 Magic Window (2026-11-23, Santa HQ Families compatible)
  * Additive Kid View enhancement. Load after kid-view-recording-fix.js.
  * Does not touch gifts, budgets, shopping, family sync or other adult pages.
  */
@@ -12,14 +12,14 @@
   }
   if (window.__santaNorthPoleAdventureLoaded) return;
   window.__santaNorthPoleAdventureLoaded = true;
-  console.info("Santa HQ North Pole Adventure v3 loaded successfully (Families-compatible).");
+  console.info("Santa HQ North Pole Adventure v4 Magic Window loaded successfully (Families-compatible).");
 
   const originalRender = renderKidPortal;
   const originalEnter = enterKid;
   const originalSent = showKidSent;
   const YEAR = new Date().getFullYear();
   const STAMPS_KEY = `santa_hq_north_pole_passport_${YEAR}`;
-  const state = { view: 'arrival', found: [], santaChoice: 'hello', storyStage: 0, storyBranch: 0, gameMode: 'explorer', gameRound: 0, wrong: 0, hinted: -1, voiceIndex: 0, boardingToken: 0, deskItem: 'globe', deskTaps: 0, deskFinished: {}, letterSeal: 'star' };
+  const state = { view: 'arrival', found: [], santaChoice: 'hello', storyStage: 0, storyBranch: 0, gameMode: 'explorer', gameRound: 0, wrong: 0, hinted: -1, voiceIndex: 0, boardingToken: 0, deskItem: 'globe', deskTaps: 0, deskFinished: {}, magicStars: [], magicAwake: false, magicMission: 'gifts', magicDone: [], magicReveals: [], magicReaction: 'ready', magicSecret: '', magicVisits: 0, deliveryRide: 'reindeer', letterSeal: 'star' };
   let sessionStamps = {};
 
   const stars = [
@@ -187,7 +187,7 @@
         <div class="np-welcome-copy">
           <span class="np-eyebrow np-eyebrow-light">THE NORTH POLE EXPRESS</span>
           <h1>Your ticket to <em>Christmas magic.</em></h1>
-          <p>Climb aboard, visit Santa's magical desk, and send something special through North Pole Post.</p>
+          <p>Climb aboard, visit Santa through his magic window, and send something special through North Pole Post.</p>
           <button type="button" class="np-primary np-arrival-btn" data-np-action="board">Enter the North Pole ${chevron()}</button>
         </div>
         <span class="np-hero-trail" aria-hidden="true">${starIcon(15)} ${starIcon(22)} ${starIcon(12)}</span>
@@ -227,7 +227,7 @@
         <div class="np-current-traveler">${childPicker()}</div>
         <div class="np-section-intro"><span class="np-eyebrow np-eyebrow-dark">THE VILLAGE MAP</span><h2>Where should we go first?</h2><p>Tap a place to explore.</p></div>
         <div class="np-destinations">
-          ${destinationCard('santa', "Santa’s Magic Desk", 'Tap, discover, and make a little magic.', './art/santa-full.svg', 'A SPECIAL VISIT', 'santa')}
+          ${destinationCard('santa', "Santa’s Magic Window", 'Wake the window and help Santa with a mission.', './art/santa-full.svg', 'A SPECIAL VISIT', 'santa')}
           ${destinationCard('workshop', "The Elf Workshop", 'Choose a mission. Search carefully. Earn your elf badge.', './art/elf.svg', 'A LITTLE MISSION', 'elf')}
           ${destinationCard('mail', 'North Pole Post Office', 'Talk, draw, or send a letter to Santa.', './art/mailbox.svg', 'A MESSAGE TO SANTA', 'post')}
         </div>
@@ -236,45 +236,67 @@
       </div>
     </div>`;
   }
-  // Santa's desk replaces the text-to-speech branching stories with tactile, short activities.
-  // Children can use the desk without sound or reading.
-  const deskItems = {
-    globe: { label: 'Snow globe', prompt: 'Shake the snow globe!', instruction: 'Tap the globe three times to make a snowstorm.', end: 'A little snowflake carries this message: you make Christmas brighter!', art: '❄' },
-    bells: { label: 'Reindeer bells', prompt: 'Ring the reindeer bells!', instruction: 'Tap the bell three times to wake the sleigh team.', end: 'Jingle-jingle! The reindeer are awake and ready for a Christmas adventure!', art: '♫' },
-    drawer: { label: 'Secret drawer', prompt: 'Open Santa’s secret drawer!', instruction: 'Tap the drawer to discover what Santa tucked inside.', end: 'Inside is a golden note: “Tell me something you are proud of!”', art: '✉' }
+  // Santa's Magic Window: offline, touch-first interactions with scripted responses.
+  const magicMissions = {
+    gifts: {title:'Load Santa’s sleigh',subtitle:'PACK THE PRESENTS',description:'The elves wrapped three gifts. Tap them to send them into Santa’s sleigh.',count:3},
+    tree: {title:'Decorate the Christmas tree',subtitle:'ADD SOME SPARKLE',description:'Choose three ornaments to finish decorating Santa’s special tree.',count:3},
+    bell: {title:'Find the missing reindeer bell',subtitle:'A CHRISTMAS MYSTERY',description:'A reindeer lost its bell. Look inside the four hiding places!',count:1}
   };
-  function deskGraphic() {
-    const kind = state.deskItem;
-    if (kind === 'globe') return `<div class="np-object np-globe ${state.deskTaps?'np-activated':''}" aria-hidden="true"><span class="np-globe-glass"><img src="./art/tree.svg" alt=""><i class="np-flake f1">✦</i><i class="np-flake f2">❄</i><i class="np-flake f3">✧</i><i class="np-flake f4">✦</i></span><span class="np-globe-base">NORTH POLE</span></div>`;
-    if (kind === 'bells') return `<div class="np-object np-bell ${state.deskTaps?'np-activated':''}" aria-hidden="true"><svg width="164" height="170" viewBox="0 0 164 170"><path d="M82 23c-21 0-35 18-35 43v33c0 16-9 22-19 31h108c-10-9-19-15-19-31V66c0-25-14-43-35-43Z" fill="#f1c56d" stroke="#a56b3f" stroke-width="6"/><path d="M56 54c4-13 12-20 22-22" fill="none" stroke="#fff5c9" stroke-width="7" stroke-linecap="round"/><path d="M68 143q14 22 28 0" fill="#9b5e46" stroke="#9b5e46" stroke-width="8" stroke-linecap="round"/><path d="M76 22a7 7 0 1 1 13 0" fill="none" stroke="#b9874a" stroke-width="6"/></svg></div>`;
-    return `<div class="np-object np-drawer ${state.deskTaps?'np-activated':''}" aria-hidden="true"><span class="np-drawer-envelope"><img src="./art/letter.svg" alt=""></span><div class="np-drawer-face"><span class="np-drawer-knob">✦</span></div></div>`;
+  const magicKeys = Object.keys(magicMissions);
+  const magicGiftColors = ['cranberry','green','gold'];
+  const magicOrnamentColors = ['rose','gold','violet','green'];
+  function magicIcon(name) {
+    if (name==='gifts' || name==='gift') return `<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="9" y="23" width="46" height="32" rx="5" fill="#ae5363" stroke="#8e3c4b" stroke-width="3"/><path d="M9 33h46M32 23v32" stroke="#f6d38c" stroke-width="7"/><path d="M32 23c-19 0-20-15-10-15 6 0 10 9 10 15Zm0 0c19 0 20-15 10-15-6 0-10 9-10 15Z" fill="#f9dea0" stroke="#bb8a4b" stroke-width="2"/></svg>`;
+    if (name==='tree') return `<svg viewBox="0 0 64 64" aria-hidden="true"><path d="m32 8 18 26h-7l12 16H9l12-16h-7Z" fill="#397b61" stroke="#285945" stroke-width="2"/><rect x="27" y="47" width="10" height="13" rx="2" fill="#b98464"/><path d="m32 1 3 7 7 1-5 5 2 7-7-4-7 4 2-7-5-5 7-1Z" fill="#f6c96a"/></svg>`;
+    return `<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 12c-10 0-18 9-18 22v10L8 52h48l-6-8V34c0-13-8-22-18-22Z" fill="#e8bd66" stroke="#a87b47" stroke-width="3"/><path d="M22 26c1-6 5-10 11-10" fill="none" stroke="#fff2ba" stroke-width="4" stroke-linecap="round"/><circle cx="32" cy="55" r="6" fill="#ac6e57"/></svg>`;
+  }
+  function magicSaved() { return stamps().windowMissions || {}; }
+  function magicRecordMission(key) {
+    earnStamp('santa');
+    const all=getAllStamps(), id=child();
+    all[id]={...(all[id]||{}),windowMissions:{...(all[id]?.windowMissions||{}),[key]:true}};
+    sessionStamps=all;
+    try {localStorage.setItem(STAMPS_KEY,JSON.stringify(all));}catch (_){}
+  }
+  function magicSpeak() {
+    const name=childName(), n=state.magicDone.length;
+    if (!state.magicAwake) return `Psst, ${name}! Find the three glowing stars to wake Santa's magic window.`;
+    if(state.magicSecret) return state.magicSecret;
+    if(state.magicReaction==='complete') return ({gifts:`Ho, ho, ho! The sleigh is packed, ${name}! You saved the day!`,tree:`Look at our sparkling Christmas tree, ${name}! Beautiful work!`,bell:`You found my reindeer's bell, ${name}! What a wonderful helper!`})[state.magicMission];
+    if(state.magicReaction==='miss') return `Not there! Keep searching. The elves are very clever at hiding things!`;
+    if(state.magicMission==='gifts') return n?`Wonderful, ${name}! Only ${3-n} ${3-n===1?'present':'presents'} to go!`:`Oh, ${name}! Will you help me load these presents?`;
+    if(state.magicMission==='tree') return n?`That ornament looks wonderful! Let's add ${3-n} more.`:`Which colors should we put on my Christmas tree, ${name}?`;
+    return `Oh dear, ${name}! My reindeer lost a little golden bell. Where could it be?`;
+  }
+  function magicStarScene() {
+    const ready=state.magicAwake, celebrated=state.magicReaction==='complete';
+    return `<section class="npw-scene ${ready?'awake':''} ${celebrated?'celebrated':''}" aria-label="Interactive magical window to Santa's North Pole workshop">
+      <div class="npw-sky"><span class="npw-moon"></span>${Array.from({length:18},(_,i)=>`<i style="--x:${(i*47+11)%97}%;--y:${(i*23+17)%86}%;--d:${i%5}s"></i>`).join('')}</div>
+      <div class="npw-room"><div class="npw-fireplace"><span>✦</span></div><div class="npw-shelf">✦ &nbsp; ✧ &nbsp; ✦</div><div class="npw-floor"></div><img class="npw-santa" src="./kid-santa-new.webp" onerror="this.onerror=null;this.src='./art/santa-full.svg'" alt="Santa smiling and waving in his workshop"/></div>
+      <div class="npw-frame" aria-hidden="true"><div class="npw-arch"></div><div class="npw-window-sign">✦ &nbsp; SANTA'S MAGIC WINDOW &nbsp; ✦</div></div>
+      ${ready?`<button class="npw-easter" type="button" data-np-action="magic-secret" aria-label="Discover a hidden sparkle">✦</button>`:`<div class="npw-frost"><span class="npw-frost-label">TAP THREE MAGIC STARS</span>${[[18,30],[80,31],[48,71]].map(([x,y],i)=>`<button class="npw-star ${state.magicStars.includes(i)?'found':''}" data-np-action="magic-wake" data-star="${i}" type="button" style="left:${x}%;top:${y}%" aria-label="${state.magicStars.includes(i)?'Found':'Wake-up'} star ${i+1}" ${state.magicStars.includes(i)?'disabled':''}>${starIcon(i===1?48:40)}</button>`).join('')}</div>`}
+    </section>`;
+  }
+  function magicChoice(key) {
+    const labels={gifts:'Pack gifts',tree:'Decorate tree',bell:'Find bell'};
+    return `<button class="npw-choice ${state.magicMission===key?'selected':''}" type="button" data-np-action="magic-mission" data-mission="${key}" aria-pressed="${state.magicMission===key}"><span>${magicIcon(key)}</span><strong>${labels[key]}</strong>${magicSaved()[key]?'<i aria-label="Completed mission">✓</i>':''}</button>`;
+  }
+  function magicActivity() {
+    if(!state.magicAwake) return `<section class="npw-awaken"><span class="np-eyebrow np-eyebrow-dark">THE SECRET NORTH POLE SIGNAL</span><h2>Wake the magic!</h2><p>Tap each glowing star to open the frosted window.</p><div class="npw-wake-progress" aria-live="polite">${[0,1,2].map(i=>`<span class="${state.magicStars.includes(i)?'found':''}">${starIcon(25)}</span>`).join('')}<small>${state.magicStars.length} / 3 stars</small></div></section>`;
+    const key=state.magicMission, config=magicMissions[key], complete=state.magicReaction==='complete';
+    let contents='';
+    if(key==='gifts') contents=`<div class="npw-sleigh"><span>${magicIcon('gifts')}</span><strong>Santa's sleigh</strong><div class="npw-packed">${state.magicDone.map(()=>'<b aria-hidden="true">✦</b>').join('')}</div></div><div class="npw-gifts">${magicGiftColors.map((c,i)=>{const done=state.magicDone.includes(String(i));return `<button type="button" class="npw-gift ${c} ${done?'packed':''}" data-np-action="magic-gift" data-id="${i}" ${done?'disabled':''} aria-label="${done?'Loaded':'Load'} ${c} gift">${magicIcon('gift')}<small>${done?'Packed!':c+' gift'}</small></button>`}).join('')}</div>`;
+    if(key==='tree') contents=`<div class="npw-tree-scene"><div class="npw-tree-art">${magicIcon('tree')}${state.magicDone.map((i,k)=>`<span class="npw-tree-ball ${magicOrnamentColors[Number(i)]}" style="--i:${k}"></span>`).join('')}</div><div class="npw-colors">${magicOrnamentColors.map((c,i)=>{const done=state.magicDone.includes(String(i));return `<button type="button" class="npw-color ${c} ${done?'used':''}" data-np-action="magic-ornament" data-id="${i}" ${done?'disabled':''}><i></i><span>${c} ornament</span></button>`}).join('')}</div></div>`;
+    if(key==='bell') {
+      const places=[['stocking','Stocking'],['tree','Behind tree'],['gifts','Toy box'],['bell','Reindeer barn']];
+      const answer=(new Date().getDate()+String(child()).length+state.magicVisits)%4;
+      contents=`<div class="npw-hiding">${places.map(([icon,label],i)=>{const opened=state.magicReveals.includes(String(i));return `<button type="button" class="npw-hide ${opened?'checked':''}" data-np-action="magic-hide" data-id="${i}" data-answer="${answer}" ${opened?'disabled':''}><span>${magicIcon(icon)}</span><strong>${label}</strong><small>${opened?(i===answer?'Found it!':'Not here'):'Peek inside'}</small></button>`}).join('')}</div>`;
+    }
+    return `<section class="npw-activity"><div class="npw-mission-title"><span class="np-eyebrow np-eyebrow-dark">CHOOSE A NORTH POLE MISSION</span><h2>Help Santa make magic!</h2></div><div class="npw-choices">${magicKeys.map(magicChoice).join('')}</div><div class="npw-task ${complete?'finished':''}" aria-live="polite"><span class="np-eyebrow np-eyebrow-dark">${config.subtitle}</span><h3>${config.title}</h3><p>${config.description}</p>${contents}<div class="npw-task-progress">${complete?`${starIcon(22)} Mission complete!`:key==='bell'?`${state.magicReveals.length} hiding places checked`:`${state.magicDone.length} of ${config.count} done`}</div>${complete?`<div class="npw-task-actions"><button class="np-primary" data-np-action="mail" type="button">Send Santa a message ${chevron()}</button><button type="button" class="npw-next" data-np-action="magic-next">Another mission</button></div>`:''}</div></section>`;
   }
   function santaPage() {
-    const item = deskItems[state.deskItem];
-    const need = state.deskItem === 'drawer' ? 1 : 3;
-    const done = state.deskTaps >= need;
-    const completed = Object.keys(state.deskFinished).length;
-    return `<div class="np-shell">${topBar('SANTA’S MAGIC DESK')}
-      <div class="np-inner">${backNav()}
-        <section class="np-desk-hero">
-          <div class="np-desk-santa"><img src="./kid-santa-new.webp" onerror="this.onerror=null;this.src='./art/santa-full.svg'" alt="Friendly illustrated Santa"></div>
-          <div class="np-desk-hero-text"><span class="np-eyebrow np-eyebrow-dark">COME ON IN, ${childName().toUpperCase()}</span><h1>Something magical is on Santa's desk.</h1><p>I saved three little surprises just for you. Tap an object and watch the magic happen!</p><span class="np-desk-status">${completed} of 3 surprises discovered</span></div>
-        </section>
-        <section class="np-desk-play" aria-label="Choose a magical object on Santa's desk">
-          <div class="np-section-intro"><span class="np-eyebrow np-eyebrow-dark">LOOK, TOUCH, DISCOVER</span><h2>Which one will you try?</h2></div>
-          <div class="np-desk-choices">${Object.entries(deskItems).map(([key,it])=>`<button type="button" class="np-desk-choice ${state.deskItem===key?'selected':''}" data-np-action="desk-choose" data-item="${key}" aria-pressed="${state.deskItem===key}"><span class="np-desk-choice-art">${it.art}</span><strong>${htmlEscape(it.label)}</strong>${state.deskFinished[key]?'<small>✓ Discovered</small>':'<small>Tap to explore</small>'}</button>`).join('')}</div>
-          <div class="np-desk-stage ${done?'np-desk-done':''}">
-            <div class="np-desk-stage-light" aria-hidden="true">✧ &nbsp; ✦ &nbsp; ✧</div>
-            <span class="np-eyebrow np-eyebrow-dark">${htmlEscape(item.prompt)}</span>
-            <button type="button" class="np-desk-touch" data-np-action="desk-tap" aria-label="${htmlEscape(item.instruction)}">${deskGraphic()}</button>
-            <p class="np-desk-instruction" aria-live="polite">${done?htmlEscape(item.end):htmlEscape(item.instruction)}</p>
-            <div class="np-desk-dots" aria-label="Progress">${Array.from({length:need},(_,i)=>`<span class="${i<state.deskTaps?'lit':''}">${starIcon(16)}</span>`).join('')}</div>
-            ${done?`<button type="button" class="np-secondary np-desk-again" data-np-action="desk-reset">Play again</button>`:''}
-          </div>
-        </section>
-        <section class="np-desk-letter"><img src="./art/mailbox.svg" alt=""><div><span class="np-eyebrow np-eyebrow-dark">A REAL MESSAGE FROM YOU</span><h2>Santa's favorite surprise? Your own words.</h2><p>Record your voice, make a picture, or write a note. You can give it a magic seal before sending.</p><button type="button" class="np-primary" data-np-action="mail">Make a message for Santa ${chevron()}</button></div></section>
-      </div>
-    </div>`;
+    const done=Object.keys(magicSaved()).length;
+    return `<div class="np-shell npw-shell">${topBar('SANTA’S MAGIC WINDOW')}<div class="np-inner npw-inner">${backNav()}<header class="npw-heading"><span class="np-eyebrow np-eyebrow-dark">A SPECIAL NORTH POLE VISIT</span><h1>Santa's <em>Magic Window</em></h1><p>Can you wake the window and help Santa with his Christmas missions?</p></header><div class="npw-stage-area">${magicStarScene()}<div class="npw-dialog" role="status" aria-live="polite"><span class="npw-face"><img src="./art/santa-peek.svg" alt="" /></span><div><small>SANTA SAYS</small><p>${magicSpeak()}</p></div></div></div>${magicActivity()}<section class="npw-post"><img src="./art/letter.svg" alt=""/><div><span class="np-eyebrow np-eyebrow-dark">SANTA WOULD LOVE TO HEAR FROM YOU</span><h2>Send something special</h2><p>Record a voice message, draw a picture, or write a note. Then choose a magic seal before sending it to North Pole Post.</p><button class="np-primary" type="button" data-np-action="mail">Visit the Post Office ${chevron()}</button></div></section><p class="npw-caption">${done} of 3 magic missions completed. Santa's messages in this scene are part of a pretend interactive adventure.</p></div></div>`;
   }
   function getMode() { return modes[state.gameMode] || modes.explorer; }
   function targetStars() {
@@ -325,6 +347,14 @@
   function sealChooser() {
     return `<section class="np-seal-section" aria-label="Choose a magical seal for the letter"><div class="np-seal-head"><span>THE FINAL TOUCH</span><h3>Pick a magical seal</h3><p>Give your message a special North Pole stamp before it goes.</p></div><div class="np-seal-options">${Object.entries(seals).map(([key,val])=>`<button type="button" class="np-seal ${state.letterSeal===key?'selected':''}" data-np-action="seal" data-seal="${key}" aria-pressed="${state.letterSeal===key}"><span>${val.symbol}</span><strong>${htmlEscape(val.label)}</strong></button>`).join('')}</div><div class="np-envelope-preview"><div class="np-envelope-art"><div class="np-envelope-flap"></div><span class="np-wax np-wax-${state.letterSeal}">${seals[state.letterSeal].symbol}</span></div><div><strong>For Santa • North Pole</strong><small>${seals[state.letterSeal].description}</small><small class="np-envelope-hint">Your message will be saved when you tap Send.</small></div></div></section>`;
   }
+  const deliveryRides={
+    reindeer:{name:'Reindeer Express',line:'A magical reindeer delivery',symbol:'<svg viewBox="0 0 64 64" aria-hidden="true"><path d="m20 25-10-8V5M44 25l10-8V5M20 18 8 13m36 5 12-5" fill="none" stroke="#ad7950" stroke-width="5" stroke-linecap="round"/><path d="M18 27q14-15 28 0v15q-14 19-28 0Z" fill="#bb8a6a"/><circle cx="25" cy="35" r="2" fill="#513c38"/><circle cx="40" cy="35" r="2" fill="#513c38"/><circle cx="32" cy="46" r="5" fill="#c65d63"/></svg>'},
+    snow:{name:'Snowy Owl Mail',line:'A flutter through the snowfall',symbol:'<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12 23 16 9l14 7 15-7 6 14v23q-19 23-39 0Z" fill="#fff7e5" stroke="#ad94a0" stroke-width="3"/><circle cx="23" cy="30" r="8" fill="#c4b0a8"/><circle cx="42" cy="30" r="8" fill="#c4b0a8"/><circle cx="23" cy="30" r="3" fill="#44364c"/><circle cx="42" cy="30" r="3" fill="#44364c"/><path d="m28 39 4 6 5-6" fill="#dba65b"/></svg>'},
+    sparkle:{name:'Star Trail',line:'A trail of North Pole sparkle',symbol:starIcon(31)}
+  };
+  function rideChooser() {
+    return `<section class="npw-delivery-choose" aria-label="Choose your magical delivery"><span>HOW SHOULD YOUR LETTER TRAVEL?</span><h3>Choose a magical delivery</h3><div class="npw-delivery-options">${Object.entries(deliveryRides).map(([key,ride])=>`<button type="button" class="npw-delivery-mode ${state.deliveryRide===key?'chosen':''}" data-np-action="ride" data-ride="${key}" aria-pressed="${state.deliveryRide===key}"><span>${ride.symbol}</span><strong>${htmlEscape(ride.name)}</strong></button>`).join('')}</div><small>The special delivery animation plays after your message is saved.</small></section>`;
+  }
   function decorateMail() {
     const portal = document.getElementById('kidPortal');
     const header = portal?.querySelector('.kid-header');
@@ -339,7 +369,7 @@
     const title = portal.querySelector('.kid-intro h1');
     if (title) title.innerHTML = `A special delivery <span>from ${childName()}.</span>`;
     const intro = portal.querySelector('.kid-intro p');
-    if (intro) intro.textContent = 'Choose how to say hello. Add your own seal. Then watch your message fly to Santa’s mailbox!';
+    if (intro) intro.textContent = state.magicReaction==='complete' ? 'Santa loved your help! Tell him about your mission, decorate your message, and choose a magical delivery.' : 'Choose how to say hello. Add a magic seal, then choose how your letter travels!';
     const studio = portal.querySelector('.kid-inner');
     if (studio && !studio.querySelector('.np-mail-journey')) {
       studio.insertAdjacentHTML('afterbegin', `<section class="np-mail-journey" aria-label="How to send a message"><div class="np-mail-step"><img src="./art/microphone.svg" alt=""><span><strong>1. Create</strong><small>Talk, draw, or write</small></span></div><span class="np-mail-connector" aria-hidden="true">✦ ✦ ✦</span><div class="np-mail-step"><img src="./art/letter.svg" alt=""><span><strong>2. Decorate</strong><small>Choose a magic seal</small></span></div><span class="np-mail-connector" aria-hidden="true">✦ ✦ ✦</span><div class="np-mail-step"><img src="./art/mailbox.svg" alt=""><span><strong>3. Deliver</strong><small>Send to Santa</small></span></div></section>`);
@@ -347,7 +377,7 @@
     const form = portal.querySelector('#kidMessageForm');
     const submit = form?.querySelector('#kidSubmit');
     if (form && submit && !form.querySelector('.np-seal-section')) {
-      submit.insertAdjacentHTML('beforebegin', sealChooser());
+      submit.insertAdjacentHTML('beforebegin', sealChooser() + rideChooser());
     }
     if (submit) {
       submit.classList.add('np-ship-btn');
@@ -379,7 +409,7 @@
     state.santaChoice = 'hello';
     state.storyStage = 0;
     state.storyBranch = 0;
-    state.deskItem = 'globe'; state.deskTaps = 0; state.deskFinished = {}; state.letterSeal = 'star';
+    state.deskItem = 'globe'; state.deskTaps = 0; state.deskFinished = {}; state.magicStars=[]; state.magicAwake=false; state.magicMission='gifts'; state.magicDone=[]; state.magicReveals=[]; state.magicReaction='ready'; state.magicSecret=''; state.magicVisits=0; state.deliveryRide='reindeer'; state.letterSeal='star';
     state.found = [];
     state.wrong = 0;
     state.hinted = -1;
@@ -395,9 +425,9 @@
     const portal = document.getElementById('kidPortal');
     if (!portal) return;
     portal.classList.remove('np-adventure-portal');
-    portal.innerHTML = `<section class="np-delivered" role="status" aria-live="polite">
-      <div class="np-delivered-sky" aria-hidden="true"><span class="np-delivery-trail">✦ &nbsp; ✧ &nbsp; ✦ &nbsp; ✧</span><span class="np-flying-envelope"><img src="./art/letter.svg" alt=""></span><span class="np-delivery-mailbox"><img src="./art/mailbox.svg" alt=""></span></div>
-      <div class="np-delivered-content"><span class="np-eyebrow np-eyebrow-dark">SPECIAL DELIVERY COMPLETE</span><h1>Your message made it to Santa's mailbox!</h1><p>Hooray, ${childName()}! Your message is saved in North Pole Post. Look for your special delivery stamp in your passport.</p><div class="np-delivered-seal"><span>${seals[state.letterSeal].symbol}</span><strong>${htmlEscape(seals[state.letterSeal].label)} seal</strong></div><div class="np-delivered-actions"><button class="np-primary" data-action="kid-again" type="button">Send another message ${chevron()}</button><button class="np-secondary" data-np-action="village" type="button">Back to Santa's Village</button></div><p class="np-delivery-footnote">Only the adults in your family's Santa HQ account can view the saved message. Santa's replies are written by your grown-ups.</p></div>
+    portal.innerHTML = `<section class="np-delivered np-delivery-${state.deliveryRide}" role="status" aria-live="polite">
+      <div class="np-delivered-sky" aria-hidden="true"><span class="np-delivery-trail">✦ &nbsp; ✧ &nbsp; ✦ &nbsp; ✧</span><span class="npw-delivery-courier" aria-hidden="true">${deliveryRides[state.deliveryRide].symbol}</span><span class="np-flying-envelope"><img src="./art/letter.svg" alt=""></span><span class="np-delivery-mailbox"><img src="./art/mailbox.svg" alt=""></span></div>
+      <div class="np-delivered-content"><span class="np-eyebrow np-eyebrow-dark">SPECIAL DELIVERY COMPLETE</span><h1>Your message made it to Santa's mailbox!</h1><p>Hooray, ${childName()}! Your message is saved in North Pole Post. Look for your special delivery stamp in your passport.</p><p class="npw-delivery-method">${htmlEscape(deliveryRides[state.deliveryRide].name)} is on the way!</p><div class="np-delivered-seal"><span>${seals[state.letterSeal].symbol}</span><strong>${htmlEscape(seals[state.letterSeal].label)} seal</strong></div><div class="np-delivered-actions"><button class="np-primary" data-action="kid-again" type="button">Send another message ${chevron()}</button><button class="np-secondary" data-np-action="village" type="button">Back to Santa's Village</button></div><p class="np-delivery-footnote">Only the adults in your family's Santa HQ account can view the saved message. Santa's replies are written by your grown-ups.</p></div>
     </section>`;
   };
 
@@ -529,25 +559,48 @@
         if (token === state.boardingToken && appState.kidActive && state.view === 'boarding') go('village');
       }, window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ? 300 : 2200);
     } else if (['village', 'arrival', 'santa', 'workshop', 'mail'].includes(action)) {
-      if (action === 'santa') { state.deskItem = 'globe'; state.deskTaps = 0; }
+      if (action === 'santa') { state.magicSecret=''; }
       if (action === 'workshop') { state.found = []; state.wrong = 0; state.hinted = -1; }
       if (action === 'mail' && typeof resetKidDraft === 'function') resetKidDraft();
       go(action);
-    } else if (action === 'desk-choose') {
-      if (!deskItems[node.dataset.item]) return;
-      state.deskItem = node.dataset.item; state.deskTaps = 0;
+    } else if (action === 'magic-wake') {
+      const id=Number(node.dataset.star);
+      if(state.magicAwake || !Number.isInteger(id) || id<0 || id>2 || state.magicStars.includes(id))return;
+      state.magicStars.push(id);playSparkle();
+      if(state.magicStars.length===3){state.magicAwake=true;state.magicReaction='ready';earnStamp('santa');state.magicMission=magicKeys[Object.keys(magicSaved()).length%3];}
       renderKidPortal();
-    } else if (action === 'desk-tap') {
-      const need = state.deskItem === 'drawer' ? 1 : 3;
-      if (state.deskTaps < need) {
-        state.deskTaps++;
-        playSparkle();
-        if (state.deskTaps === need) { state.deskFinished[state.deskItem] = true; earnStamp('santa'); }
-      }
+    } else if (action === 'magic-mission') {
+      if(!magicMissions[node.dataset.mission])return;
+      state.magicMission=node.dataset.mission;state.magicDone=[];state.magicReveals=[];state.magicReaction='ready';state.magicSecret='';state.magicVisits++;
       renderKidPortal();
-    } else if (action === 'desk-reset') {
-      state.deskTaps = 0;
+    } else if (action === 'magic-gift' || action === 'magic-ornament') {
+      const key=action==='magic-gift'?'gifts':'tree';
+      if(state.magicMission!==key || state.magicReaction==='complete')return;
+      const id=String(node.dataset.id), choices=key==='gifts'?3:4;
+      if(!Array.from({length:choices},(_,i)=>String(i)).includes(id)||state.magicDone.includes(id))return;
+      state.magicDone.push(id);playSparkle();state.magicSecret='';
+      if(state.magicDone.length===3){state.magicReaction='complete';magicRecordMission(key);}
       renderKidPortal();
+    } else if (action === 'magic-hide') {
+      if(state.magicMission!=='bell'||state.magicReaction==='complete')return;
+      const id=String(node.dataset.id), answer=String(node.dataset.answer);
+      if(!['0','1','2','3'].includes(id)||state.magicReveals.includes(id))return;
+      state.magicReveals.push(id);state.magicSecret='';
+      if(id===answer){state.magicDone=['bell'];state.magicReaction='complete';magicRecordMission('bell');playSparkle();}
+      else state.magicReaction='miss';
+      renderKidPortal();
+    } else if (action === 'magic-next') {
+      const n=(magicKeys.indexOf(state.magicMission)+1)%magicKeys.length;
+      state.magicMission=magicKeys[n];state.magicDone=[];state.magicReveals=[];state.magicReaction='ready';state.magicSecret='';state.magicVisits++;
+      renderKidPortal();
+    } else if (action === 'magic-secret') {
+      const notes=['Santa winked! That little star is a North Pole good-luck wish.','You found a secret Christmas sparkle! The elves never noticed it.','A magical wish for a wonderful day, from Santa to you!'];
+      state.magicSecret=notes[(state.magicVisits+state.magicDone.length)%notes.length];playSparkle();renderKidPortal();
+    } else if (action === 'ride') {
+      if(!deliveryRides[node.dataset.ride])return;
+      state.deliveryRide=node.dataset.ride;playSparkle();
+      const section=document.querySelector('#kidPortal .npw-delivery-choose');
+      if(section)section.outerHTML=rideChooser();
     } else if (action === 'seal') {
       if (!seals[node.dataset.seal]) return;
       state.letterSeal = node.dataset.seal;
@@ -830,6 +883,84 @@
   @media(max-width:620px){.np-welcome-hero{min-height:0!important;height:auto!important;max-height:none!important}.np-welcome-copy{width:100%;max-width:100%!important;padding:31px 22px 34px!important;min-height:440px;justify-content:flex-start;gap:12px}.np-welcome-copy h1{font-size:clamp(33px,9vw,44px)!important;margin:13px 0 5px!important}.np-welcome-copy p{max-width:295px;font-size:13px;line-height:1.5!important}.np-arrival-btn{width:100%;max-width:315px;margin-top:8px}.np-desk-hero{grid-template-columns:120px 1fr;padding:14px;gap:13px}.np-desk-santa{height:180px}.np-desk-hero-text h1{font-size:26px}.np-desk-hero-text p{font-size:12px}.np-desk-choices{gap:7px}.np-desk-choice{min-height:97px;padding:11px 3px}.np-desk-choice strong{font-size:12px;text-align:center}.np-desk-choice small{font-size:9px}.np-desk-choice-art{font-size:25px}.np-desk-letter{grid-template-columns:85px 1fr;gap:8px;padding:13px}.np-desk-letter img{width:84px}.np-desk-letter h2{font-size:20px}.np-desk-letter .np-primary{font-size:11px;min-height:46px;padding:9px 12px}.np-mail-journey{padding:11px 7px;gap:4px}.np-mail-step{flex-direction:column;text-align:center;gap:2px}.np-mail-step>img{width:30px;height:35px}.np-mail-step strong{font-size:11px}.np-mail-step small{font-size:9px}.np-mail-connector{font-size:8px;letter-spacing:1px}.np-envelope-preview{gap:9px}.np-envelope-art{width:78px;height:55px}.np-seal-section{padding:15px 11px}.np-seal strong{font-size:9px}.np-seal span{font-size:24px}}
   @media(max-width:350px){.np-welcome-copy{padding:24px 16px 26px!important}.np-welcome-copy h1{font-size:32px!important}.np-welcome-copy p{font-size:12px}.np-desk-hero{display:flex;flex-direction:column}.np-desk-santa{height:128px}.np-desk-santa img{height:130px}.np-desk-hero-text h1{font-size:27px}.np-seal-options{grid-template-columns:repeat(2,1fr)}.np-mail-journey{gap:0}.np-mail-step small{display:none}}
   @media(prefers-reduced-motion:reduce){.np-flying-envelope,.np-globe .np-flake,.np-bell{animation:none!important}.np-desk-hero *{scroll-behavior:auto!important}}
+  /* North Pole Magic Window: warm Santa HQ scene, touch-first missions. */
+  .npw-shell{background:linear-gradient(180deg,#f9f1eb,#fff9f4 55%,#fff)}
+  .npw-inner{max-width:880px;margin:auto;padding:9px 17px 28px}
+  .npw-heading{text-align:center;margin:7px auto 20px;max-width:580px}
+  .npw-heading h1{font:800 clamp(35px,5vw,51px)/1.08 'Fraunces',Georgia,serif;color:#683d4f;letter-spacing:-1px;margin:8px 0}
+  .npw-heading h1 em{font-weight:600;color:#af5f65}
+  .npw-heading p{font-size:14px;color:#846d75;margin:0;line-height:1.5}
+  .npw-stage-area{max-width:740px;margin:auto}
+  .npw-scene{position:relative;isolation:isolate;height:clamp(320px,52vw,425px);border:9px solid #f5d8a8;border-radius:33px;overflow:hidden;background:#253c53;box-shadow:0 6px 0 #bf916c,0 14px 32px #7562733b,inset 0 0 0 4px #e9c59a}
+  .npw-sky{position:absolute;inset:0;background:linear-gradient(170deg,#1a324d,#465675 63%,#a87f90)}
+  .npw-moon{position:absolute;left:12%;top:9%;width:80px;height:80px;border-radius:50%;background:#fff0c8;box-shadow:0 0 35px 14px #ffe7a47a}
+  .npw-sky i{position:absolute;left:var(--x);top:var(--y);width:4px;height:4px;border-radius:50%;background:#fff7e6;opacity:.75;animation:npw-snow 6s linear infinite;animation-delay:var(--d)}
+  @keyframes npw-snow{to{transform:translate(-9px,120px);opacity:.05}}
+  .npw-room{position:absolute;inset:9% 9% 15%;border-radius:130px 130px 12px 12px;overflow:hidden;border:4px solid #b27d60;background:linear-gradient(120deg,#673d55,#ae7880 55%,#644a5d);filter:brightness(.45) blur(2px);transform:scale(.95);transition:filter 1s ease,transform .85s ease}
+  .npw-scene.awake .npw-room{filter:brightness(1);transform:scale(1)}
+  .npw-fireplace{position:absolute;right:7%;bottom:12%;width:26%;height:51%;border:10px solid #b87b65;border-bottom:0;border-radius:70px 70px 0 0;background:radial-gradient(ellipse at bottom,#fcb450,#d35e47 25%,#403147 75%);box-shadow:0 0 18px #f4aa6680}
+  .npw-fireplace span{position:absolute;bottom:13%;left:30%;font-size:50px;color:#ffe4a0;text-shadow:0 0 12px #ffb663;animation:npw-fire 1s ease-in-out infinite alternate}
+  @keyframes npw-fire{to{transform:rotate(11deg) scale(1.15);opacity:.7}}
+  .npw-shelf{position:absolute;right:13%;top:22%;width:26%;font-size:20px;color:#ffe2a0;border-bottom:6px solid #b08363}
+  .npw-floor{position:absolute;bottom:0;left:0;right:0;height:14%;background:repeating-linear-gradient(90deg,#885a4a 0 70px,#9b6654 70px 77px);border-top:5px solid #c99b7a}
+  .npw-santa{position:absolute;height:100%;max-width:57%;left:25%;bottom:-7%;object-fit:contain;object-position:bottom;z-index:2;filter:drop-shadow(0 11px 10px #392b374f);animation:npw-breathe 3s ease-in-out infinite alternate}
+  .npw-scene.awake .npw-santa{animation:npw-wave 1.7s ease-in-out 1,npw-breathe 3s ease-in-out 2s infinite alternate}
+  .npw-scene.celebrated .npw-santa{animation:npw-jump .5s ease-in-out 2}
+  @keyframes npw-breathe{to{transform:translateY(5px) rotate(1.3deg)}}
+  @keyframes npw-wave{50%{transform:rotate(-7deg) scale(1.04)}}
+  @keyframes npw-jump{50%{transform:translateY(-14px) rotate(-5deg)}}
+  .npw-frame{position:absolute;inset:0;pointer-events:none;z-index:3}
+  .npw-arch{position:absolute;top:7%;left:8%;right:8%;height:48%;border:10px solid #e6ba80;border-bottom:none;border-radius:190px 190px 0 0;box-shadow:0 -5px 0 #a87050,inset 0 5px #fff2cf}
+  .npw-window-sign{position:absolute;bottom:6%;left:4%;right:4%;background:linear-gradient(180deg,#f9dbab,#d1a071);border:3px solid #fff0c7;border-radius:12px;box-shadow:0 5px #ad7853;font:800 clamp(10px,2vw,16px) 'Fraunces',Georgia,serif;letter-spacing:1px;text-align:center;color:#704943;padding:12px 4px}
+  .npw-frost{position:absolute;inset:0;background:linear-gradient(135deg,#e0f6ff73,#aac6d559);backdrop-filter:blur(4px);z-index:5;pointer-events:none}
+  .npw-frost-label{position:absolute;bottom:20%;left:0;right:0;padding:7px;background:#3d5066a8;color:#fff;text-align:center;letter-spacing:2px;font-weight:900;font-size:11px}
+  .npw-star{position:absolute;transform:translate(-50%,-50%);width:78px;height:78px;border-radius:50%;border:2px solid #fff1b5;background:#fbd88966;color:#ffeca7;box-shadow:0 0 24px 8px #f8e0a68c;pointer-events:auto;display:grid;place-items:center;animation:npw-glow 1.3s ease-in-out infinite alternate;cursor:pointer}
+  .npw-star.found{opacity:.18;animation:none;transform:translate(-50%,-50%) scale(.55)}
+  @keyframes npw-glow{to{box-shadow:0 0 33px 13px #ffdfacb8}}
+  .npw-easter{position:absolute;top:14%;right:14%;z-index:6;width:46px;height:46px;color:#ffe7a0;font-size:27px;border:0;background:transparent;text-shadow:0 0 10px #ffe8ae;animation:npw-glint 2s ease-in-out infinite alternate}
+  @keyframes npw-glint{to{opacity:.55;transform:rotate(35deg)}}
+  .npw-dialog{position:relative;z-index:7;max-width:690px;width:95%;min-height:88px;margin:-8px auto 0;padding:12px 17px;display:flex;align-items:center;gap:12px;border:2px solid #ead2ba;border-radius:22px;background:#fffdf9;box-shadow:0 7px 18px #7f6a5d24}
+  .npw-face{flex:none;display:grid;place-items:center;width:60px;height:60px;border-radius:50%;border:2px solid #e6cda8;background:#f6e4ce;overflow:hidden}.npw-face img{width:90%;height:90%;object-fit:contain}
+  .npw-dialog small{font-weight:900;letter-spacing:1.9px;font-size:9px;color:#b46b65}.npw-dialog p{margin:4px 0 0;font:750 clamp(14px,2.2vw,19px)/1.35 'Fraunces',Georgia,serif;color:#633c4b}
+  .npw-awaken{margin:18px auto 0;max-width:740px;padding:19px;text-align:center;background:#fff7ec;border:1px solid #ebd5be;border-radius:25px}
+  .npw-awaken h2,.npw-mission-title h2{font:800 27px 'Fraunces',Georgia,serif;color:#704550;margin:8px 0}.npw-awaken p{font-size:13px;color:#927477;margin:5px auto 14px}
+  .npw-wake-progress{display:flex;align-items:center;justify-content:center;gap:9px;color:#d0c5b9}.npw-wake-progress span.found{color:#e5ac4b}.npw-wake-progress small{font-weight:900;font-size:12px;color:#96766a;margin-left:7px}
+  .npw-activity{max-width:740px;margin:22px auto 0}.npw-mission-title{text-align:center}
+  .npw-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:15px auto}.npw-choice{position:relative;min-height:120px;display:grid;justify-items:center;align-content:center;gap:5px;padding:10px;border-radius:19px;border:2px solid #ecd5cb;color:#6e4a53;background:white;cursor:pointer}
+  .npw-choice.selected{background:#fff0ef;border-color:#b96a73;box-shadow:0 4px #f2d5d6}.npw-choice span svg{width:50px;height:50px}.npw-choice strong{font:800 13px 'Fraunces',Georgia,serif}.npw-choice i{position:absolute;right:8px;top:7px;font-style:normal;border-radius:50%;background:#4b8667;color:white;padding:3px 6px;font-size:10px}
+  .npw-task{background:#fff;border:1px solid #ecd6ce;border-radius:26px;text-align:center;padding:21px clamp(13px,3vw,28px);box-shadow:0 8px 20px #b0808030}.npw-task.finished{background:linear-gradient(180deg,#fffefa,#fff5e6);border-color:#e3c18d}.npw-task h3{font:800 clamp(23px,4vw,31px) 'Fraunces',Georgia,serif;color:#754454;margin:7px 0}.npw-task>p{font-size:13px;line-height:1.5;color:#846e77;max-width:450px;margin:0 auto 14px}
+  .npw-task-progress{margin:14px auto 0;font-size:13px;display:flex;align-items:center;justify-content:center;gap:7px;color:#57816b;font-weight:900}
+  .npw-task-actions{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:10px;margin-top:15px}.npw-task-actions .np-primary{font-size:13px;min-height:50px}.npw-next{border:0;background:transparent;color:#a15e68;font-weight:900;min-height:45px}
+  .npw-sleigh{display:flex;justify-content:center;align-items:center;gap:13px;background:linear-gradient(#fff7ea,#f6eadc);border:1px dashed #d6bca3;border-radius:19px;max-width:370px;margin:12px auto 15px;min-height:100px;position:relative}.npw-sleigh svg{width:75px;height:75px}.npw-sleigh strong{font:800 19px 'Fraunces',Georgia,serif;color:#825055}.npw-packed{position:absolute;left:30%;bottom:10px;display:flex;gap:5px;color:#c86671;animation:npw-packed .5s ease both}
+  @keyframes npw-packed{from{transform:translateY(-30px);opacity:0}}
+  .npw-gifts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.npw-gift{min-height:115px;display:grid;justify-items:center;align-content:center;gap:4px;background:#fff9f4;border:2px solid #efd7c8;border-radius:18px;cursor:pointer}.npw-gift svg{width:70px;height:70px}.npw-gift.green svg rect{fill:#4c9070}.npw-gift.gold svg rect{fill:#d8a44d}.npw-gift small{font-weight:850;font-size:11px;color:#7e5460;text-transform:capitalize}.npw-gift.packed{opacity:.4}
+  .npw-tree-scene{max-width:520px;display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:center;margin:12px auto}.npw-tree-art{min-height:199px;display:grid;place-items:center;position:relative;border-radius:19px;background:radial-gradient(ellipse at bottom,#f0f1df,#fff 78%)}.npw-tree-art>svg{width:179px;height:179px}.npw-tree-ball{position:absolute;width:19px;height:19px;top:calc(37% + var(--i)*18%);left:calc(36% + var(--i)*8%);border-radius:50%;background:#b75572;border:3px solid #f8dab1;box-shadow:0 0 8px #e8c67a;animation:npw-packed .5s ease}.npw-tree-ball.gold{background:#dfb254}.npw-tree-ball.violet{background:#9a7abb}.npw-tree-ball.green{background:#518c6c}
+  .npw-colors{display:grid;grid-template-columns:1fr 1fr;gap:7px}.npw-color{display:flex;align-items:center;gap:7px;min-height:55px;padding:8px;background:#fff8f1;border:1px solid #ead9ca;border-radius:12px;cursor:pointer}.npw-color i{width:22px;height:22px;flex:none;border-radius:50%;background:#b75572;border:3px solid #f9deb0}.npw-color.gold i{background:#dfb254}.npw-color.violet i{background:#9a7abb}.npw-color.green i{background:#518c6c}.npw-color span{font-size:10px;font-weight:800;color:#7a545b;text-align:left;text-transform:capitalize}.npw-color.used{opacity:.4}
+  .npw-hiding{max-width:510px;display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:13px auto}.npw-hide{min-height:132px;background:#fff9f4;border:2px solid #ead3c7;border-radius:19px;display:grid;justify-items:center;align-content:center;gap:3px;padding:10px;cursor:pointer}.npw-hide span svg{width:55px;height:55px}.npw-hide strong{font:800 14px 'Fraunces',Georgia,serif;color:#754958}.npw-hide small{font-size:11px;color:#a7837e}.npw-hide.checked{opacity:.48}
+  .npw-post{max-width:740px;margin:23px auto 0;background:#f5e7e1;border:1px solid #e7cfc5;border-radius:25px;display:grid;grid-template-columns:110px 1fr;align-items:center;gap:16px;padding:16px 21px}.npw-post>img{width:100%;max-height:130px;object-fit:contain}.npw-post h2{font:800 24px 'Fraunces',Georgia,serif;color:#784657;margin:7px 0}.npw-post p{font-size:12px;color:#806d73;line-height:1.5;margin:0 0 13px}.npw-post .np-primary{min-height:48px;font-size:12px;padding:10px 16px}.npw-caption{text-align:center;color:#ac9296;font-size:11px;line-height:1.55;margin:17px auto 0;max-width:600px}
+  @media(max-width:620px){.npw-inner{padding:6px 12px 26px}.npw-heading h1{font-size:32px;margin:7px 0}.npw-heading{margin:2px 0 15px}.npw-scene{height:355px;border-width:6px;border-radius:24px}.npw-room{inset:9% 6% 15%}.npw-arch{left:5%;right:5%}.npw-santa{left:23%;max-width:62%}.npw-fireplace{border-width:7px}.npw-dialog{width:97%;padding:9px 11px;gap:9px}.npw-face{width:48px;height:48px}.npw-dialog p{font-size:14px}.npw-choices{gap:6px}.npw-choice{min-height:105px;padding:6px}.npw-choice span svg{width:43px;height:43px}.npw-choice strong{font-size:11px}.npw-gift{min-height:103px}.npw-gift svg{width:53px;height:53px}.npw-gift small{font-size:9px}.npw-tree-art{min-height:177px}.npw-tree-art>svg{width:155px;height:155px}.npw-post{grid-template-columns:76px 1fr;gap:9px;padding:13px}.npw-post h2{font-size:19px}.npw-post .np-primary{font-size:11px;min-height:46px}.npw-post>img{max-height:82px}}
+  @media(max-width:350px){.npw-scene{height:320px}.npw-star{width:57px;height:57px}.npw-task{padding:16px 9px}.npw-hide{min-height:110px}.npw-gift{min-height:94px}.npw-gift svg{width:45px;height:45px}}
+  @media(prefers-reduced-motion:reduce){.npw-scene *, .npw-scene *:before, .npw-scene *:after{animation:none!important;transition:none!important}}
+
+  .npw-delivery-choose{background:linear-gradient(125deg,#fffaf1,#f5e7ed);border:1px solid #ead0c9;border-radius:21px;margin:17px 0 19px;padding:16px;text-align:center}
+  .npw-delivery-choose>span{font-size:10px;font-weight:900;letter-spacing:1.5px;color:#ab6670}
+  .npw-delivery-choose h3{font:800 24px 'Fraunces',Georgia,serif;color:#754354;margin:6px 0 12px}
+  .npw-delivery-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .npw-delivery-mode{display:grid;place-items:center;gap:6px;min-height:92px;padding:9px 5px;border:2px solid #e5d5cc;border-radius:15px;background:white;color:#764e59;cursor:pointer}
+  .npw-delivery-mode.chosen{border-color:#b25c6b;background:#fff0f2;box-shadow:0 3px 0 #ebccce}
+  .npw-delivery-mode svg{width:37px;height:37px;stroke:#ac6783;fill:#e8bf76}.npw-delivery-mode strong{font:800 11px/1.2 'Fraunces',Georgia,serif;text-align:center}
+  .npw-delivery-choose>small{display:block;color:#9a7f82;font-size:10px;margin-top:11px}
+  .npw-delivery-method{font:800 17px 'Fraunces',Georgia,serif;color:#b45b70!important;margin-top:10px!important}
+  @media(max-width:350px){.npw-delivery-mode{min-height:80px}.npw-delivery-mode strong{font-size:10px}}
+
+  .npw-delivery-courier{position:absolute;left:8%;top:12%;width:68px;height:68px;display:grid;place-items:center;color:#b27564;z-index:3;animation:npw-courier-flight 2.6s ease-in-out both}
+  .npw-delivery-courier svg{width:65px;height:65px;filter:drop-shadow(0 5px 9px #91676c55)}
+  .np-delivery-snow .npw-delivery-courier{color:#88aec7}
+  .np-delivery-sparkle .npw-delivery-courier{color:#d4ad57}
+  .np-delivery-sparkle .np-delivery-trail{color:#d6a751;text-shadow:0 0 8px #e4c875}
+  .np-delivery-snow .np-delivery-trail{color:#78aabd}
+  @keyframes npw-courier-flight{0%{opacity:0;transform:translateX(-45px) rotate(-10deg) scale(.7)}25%{opacity:1}75%{opacity:1}100%{opacity:0;transform:translateX(245px) translateY(-14px) rotate(9deg) scale(.65)}}
+  @media(prefers-reduced-motion:reduce){.npw-delivery-courier{animation:none!important;left:auto;right:5%;opacity:1}}
   `;
   if (!document.getElementById('northPoleAdventureStyles')) {
     const style = document.createElement('style');
