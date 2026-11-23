@@ -20,7 +20,7 @@ const originalRepository = 'https://raw.githubusercontent.com/uiowa-pcc/santa-hq
 const exists = async path => { try { await access(path); return true; } catch { return false; } };
 
 await mkdir('public', { recursive: true });
-websiteFiles.push('kid-view-recording-fix.js' 'north-pole-adventure.js');
+websiteFiles.push('kid-view-recording-fix.js', 'north-pole-adventure.js');
 for (const file of websiteFiles) {
   const destination = join('public', file);
   if (await exists(file)) {
