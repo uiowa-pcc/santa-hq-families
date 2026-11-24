@@ -265,9 +265,12 @@ function card(c,i){
  const image=altSrc?`<span class="photo custom-photo-wrap"><img class="custom-hunt-photo" src="${safe(altSrc)}" alt="${mySrc?'Your photo of ':'Example of '}${safe(c.name)}" loading="lazy"></span>`:
   picture?`<span class="photo" role="img" aria-label="Example photograph of ${safe(c.name)}" style="background-position:${x}% ${y}%"></span>`:
   `<span class="photo graphic ${safe(c.type)}" role="img" aria-label="Illustrated clue: ${safe(c.name)}"><span class="graphic-icon" aria-hidden="true">${safe(c.icon||'✨')}</span></span>`;
- const content=`<span class="content"><strong>${safe(c.name)}</strong><small>${safe(c.hint)}</small>${c.category?`<span style="display:block;font-size:.72rem;color:inherit;opacity:.8;margin-top:4px">${safe(c.category)} · ${safe(c.tier[0].toUpperCase()+c.tier.slice(1))}</span>`:''}<span class="found-label">${state.found.has(i)?'✓ Found':state.photoMode?'Add a photo to find':'Tap when found'}</span></span>`;
+ const content=`<span class="content"><strong>${safe(c.name)}</strong><small>${safe(c.hint)}</small>${c.category?`<span style="display:block;font-size:.72rem;color:inherit;opacity:.8;margin-top:4px">${safe(c.category)} · ${safe(c.tier[0].toUpperCase()+c.tier.slice(1))}</span>`:''}<span class="found-label">${state.found.has(i)?'✓ Found':state.photoMode?'':'Tap when found'}</span></span>`;
  if(!state.photoMode)return `<button class="find ${state.found.has(i)?'found':''}" data-spot="${i}" aria-pressed="${state.found.has(i)}" type="button">${image}${content}</button>`;
- return `<div class="find photo-find ${state.found.has(i)?'found':''}">${image}${content}<div class="photo-find-actions"><button type="button" class="btn primary" data-photo-for="${i}">${myPhoto?'Replace photo':'Take / add photo'}</button>${myPhoto?`<button type="button" class="photo-small-action" data-photo-share="${safe(myPhoto.id)}">${myPhoto.shared?'Unshare':'Share'}</button><button type="button" class="photo-small-action" data-photo-remove="${safe(myPhoto.id)}">Remove</button>`:''}</div></div>`;
+ const found=state.found.has(i),locked=!!state.hunt?.archived;
+ const canUndo=found&&(activeNight()||state.hunt?.mode!=='mega'||state.directFound.has(i));
+ const manualAction=!myPhoto&&(!found||canUndo)?`<button type="button" class="photo-manual-action" data-manual-spot="${i}" ${locked?'disabled':''}>${found?'Undo find':'Mark found (no photo)'}</button>`:'';
+ return `<div class="find photo-find ${found?'found':''}">${image}${content}<div class="photo-find-actions"><button type="button" class="btn primary" data-photo-for="${i}" ${locked?'disabled':''}>${myPhoto?'Replace photo':found?'Add photo':'Take / add photo'}</button>${manualAction}${myPhoto?`<button type="button" class="photo-small-action" data-photo-share="${safe(myPhoto.id)}">${myPhoto.shared?'Unshare':'Share'}</button><button type="button" class="photo-small-action" data-photo-remove="${safe(myPhoto.id)}">Remove</button>`:''}</div></div>`;
 }
 // Presentation only: group by the actual clue name; never change saved clue indices.
 const DEC_GROUPS=[
@@ -518,7 +521,21 @@ async function init(){
 }
 $('startBtn').addEventListener('click',start);
 $('playerName').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();start()}});
-$('huntBoard').addEventListener('click',e=>{if(state.photoMode||state.hunt?.archived)return;const b=e.target.closest('[data-spot]');if(!b||!state.playerId)return;const i=Number(b.dataset.spot);if(!Number.isInteger(i)||i<0||i>=state.picks.length)return;const next=!state.found.has(i);if(next)state.found.add(i);else state.found.delete(i);if(activeNight())state.nightFound[state.activeNightId]=[...state.found];else{if(next)state.directFound.add(i);else state.directFound.delete(i);state.megaFound=new Set(state.found)}store();renderBoard();sendProgress()});
+function toggleFind(i,manual=false){
+ if(state.hunt?.archived||!state.playerId||!Number.isInteger(i)||i<0||i>=state.picks.length)return;
+ if(manual!==state.photoMode)return;
+ const night=activeNight(),next=!state.found.has(i);
+ // Do not clear an existing photo or a find earned only through a linked themed hunt.
+ if(manual&&(photoForClue(state.picks[i],i)||(!next&&!night&&state.hunt?.mode==='mega'&&!state.directFound.has(i))))return;
+ if(next)state.found.add(i);else state.found.delete(i);
+ if(night)state.nightFound[state.activeNightId]=[...state.found];
+ else{if(next)state.directFound.add(i);else state.directFound.delete(i);state.megaFound=new Set(state.found)}
+ store();renderBoard();sendProgress();
+}
+$('huntBoard').addEventListener('click',e=>{
+ const b=e.target.closest(state.photoMode?'[data-manual-spot]':'[data-spot]');
+ if(b)toggleFind(Number(state.photoMode?b.dataset.manualSpot:b.dataset.spot),state.photoMode);
+});
 $('resetBtn').addEventListener('click',()=>{if(state.hunt?.archived)return;if(!confirm('Clear finds for this board? Mega keeps points earned in other themed nights.'))return;state.found.clear();if(activeNight())state.nightFound[state.activeNightId]=[];else{state.directFound.clear();state.megaFound.clear()}store();renderBoard();sendProgress()});
 $('printBtn').addEventListener('click',()=>window.print());
 $('shareBtn').addEventListener('click',async()=>{const url=room?location.origin+location.pathname+'#room='+room:location.href;try{if(navigator.share){await navigator.share({title:'Santa HQ Christmas lights hunt',url,text:'Join our family lights hunt!'});return}await navigator.clipboard.writeText(url);$('shareBtn').textContent='Link copied!';setTimeout(()=>$('shareBtn').textContent='Share hunt',2200)}catch(e){if(e.name!=='AbortError')prompt('Copy the hunt link:',url)}});

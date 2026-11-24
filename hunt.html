@@ -147,13 +147,24 @@
 }
 @media print{.hunt-back,.challenge-progress{display:none!important}}
 </style>
+<style>
+/* Compact clue cards: keep title and find status; retain hidden hint text for matching printables. */
+#huntBoard .find .content > small,
+#huntBoard .find .content > span:not(.found-label){display:none!important}
+#huntBoard .found-label:empty{display:none}
+.photo-find-actions .btn,.photo-find-actions .photo-manual-action{flex:1 0 100%;width:100%;white-space:normal;min-height:36px;text-align:center}
+.photo-manual-action{background:#fff;border:1px solid #dcd5e8;border-radius:11px;color:#51466e;line-height:1.25;font-family:inherit;font-size:12px;font-weight:700;padding:8px 5px;cursor:pointer}
+.photo-manual-action:hover{background:#f7f4fb;border-color:#b7aad2}
+.photo-manual-action:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:520px){.photo-find-actions .photo-manual-action{font-size:11px;min-height:34px}}
+</style>
 </head><body class="santa-hunt">
 <div class="shell"><header class="top"><div class="brand"><span>✦</span>Santa HQ</div><a class="hunt-back" href="./?view=lights-hunt">Back to Santa HQ</a></header>
 <section class="hero"><div><div class="eyebrow">THE GREAT CHRISTMAS LIGHT SEARCH</div><h1>Find the lights.<br>Win the night.</h1><p>Follow picture clues, spot special characters and dazzling effects, and see who finds the most. No signup necessary.</p></div><img class="hunt-new-santa" src="./kid-santa-new.webp" alt="" aria-hidden="true" decoding="async"></section>
 <div class="layout"><main class="panel"><div class="panelhead"><div><h2 id="boardTitle">Our lights scavenger hunt</h2><p class="muted" id="boardSubtitle">Loading holiday clues…</p></div><span class="pill" id="progressCount">0 / 9</span></div>
 <p id="huntEndedNote" hidden>This hunt is archived. You can view its existing scores and shared pictures, but new finds are closed.</p><section id="nightNav" class="hunt-hq-nav" hidden aria-label="Switch between Mega Hunt and themed nights"></section>
 <section class="join" id="joinPanel"><label for="playerName">Your nickname or team name</label><input id="playerName" maxlength="24" autocomplete="nickname" placeholder="e.g. Team Jinglebells"><p>Pick a fun nickname instead of a child's full name. People with the link can see names and scores.</p><button class="btn primary" id="startBtn" type="button">Join family hunt</button></section>
-<div id="gamePanel" hidden><div class="progressmeta"><span id="progressLabel">Start spotting!</span><span id="progressPct">0%</span></div><div class="progress"><span id="progressBar"></span></div><p class="muted" id="classicHuntIntro">Tap a clue when you spot it. Photos are examples; displays may look different.</p><p class="muted" id="photoModeIntro" hidden>Take a photo to complete a clue. Your photo replaces the example on your board. You decide whether to share it with the family.</p>
+<div id="gamePanel" hidden><div class="progressmeta"><span id="progressLabel">Start spotting!</span><span id="progressPct">0%</span></div><div class="progress"><span id="progressBar"></span></div><p class="muted" id="classicHuntIntro">Tap a clue when you spot it. Photos are examples; displays may look different.</p><p class="muted" id="photoModeIntro" hidden>Spot a clue? Add a photo or mark it found without one. You can add a photo later.</p>
 <div class="photo-capture-actions"><button class="btn primary" type="button" id="photoTakeBtn" hidden>📷 Take or choose photo</button><input id="photoCapture" type="file" accept="image/*" hidden></div>
 <section id="photoComposer" class="photo-composer" hidden><h3>Add your Christmas lights find</h3><img id="photoPreview" alt="Preview of your photo"><label>Which clue did you find?<select id="photoClueSelect"></select></label><label class="photo-share"><input id="photoShare" type="checkbox"> Share this photo in the family feed</label><div class="other-hunts" id="otherHuntChoices" hidden></div><p class="muted">Only people with the hunt link can see shared photos. Avoid faces, house numbers and license plates.</p><div class="actions"><button class="btn primary" type="button" id="photoSave">Save this find</button><button class="btn white" type="button" id="photoCancel">Cancel</button></div></section>
 <section id="photoFeedPanel" class="photo-feed-section" hidden><div class="photo-feed-head"><div><h3>Family photo feed <span id="photoFeedCount"></span></h3><small>See what everyone finds as the hunt unfolds.</small></div><button type="button" class="btn secondary" id="photoFeedExpand" hidden>See all</button></div><div id="familyPhotoFeed" class="photo-feed"></div></section>
