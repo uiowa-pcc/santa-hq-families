@@ -67,7 +67,7 @@ function printLink(theme='classic'){const u=new URL('./hunt-print.html',document
 function showSheet(url){const w=window.open(url.href,'_blank');if(w){try{w.opener=null}catch{}}else{window.location.assign(url.href)} }
 function openTheme(theme){if(theme==='random'){alert('Create the Surprise Me hunt first, then use Print matching hunt inside it so every clue matches.');return}showSheet(printLink(theme))}
 function readActiveClues(){const board=document.getElementById('huntBoard');if(!board)return null;
- const cards=[...board.querySelectorAll('.find')];if(cards.length<8||cards.length>60)return null;
+ const cards=[...board.querySelectorAll('.find')];if(cards.length<8||cards.length>125)return null;
  const clues=cards.map(card=>{
   const content=card.querySelector('.content');
   const name=content?.querySelector('strong')?.textContent?.trim()||'';

@@ -219,6 +219,36 @@ async function fetchPriceQuote(product,env,requestFetch=fetch){
 }
 export { detectPriceProduct,resolveAmazonProduct,fetchAmazonListing,fetchPriceQuote };
 
+// December Mega photo capacity: run only for a photo-enabled Mega or an extended photo upload.
+// D1 batch is transactional. No changes to other tables or R2 objects.
+async function ensureDecemberPhotoCapacity(db){
+  const normalize=s=>String(s||'').toLowerCase().replace(/if\s+not\s+exists/g,'').replace(/[\s"`\[\];]/g,'');
+  const original=await db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='hunt_photos'").first();
+  const current=normalize(original?.sql);
+  const oldSchema=normalize("CREATE TABLE hunt_photos (\n id TEXT PRIMARY KEY,\n hunt_id TEXT NOT NULL REFERENCES hunts(id) ON DELETE CASCADE,\n player_id TEXT NOT NULL REFERENCES hunt_players(id) ON DELETE CASCADE,\n clue_index INTEGER NOT NULL CHECK(clue_index BETWEEN 0 AND 29),\n object_key TEXT NOT NULL,\n shared INTEGER NOT NULL DEFAULT 0 CHECK(shared IN (0,1)),\n created_at INTEGER NOT NULL,\n UNIQUE(hunt_id,player_id,clue_index)\n)");
+  const newSchema=normalize("CREATE TABLE hunt_photos (\n id TEXT PRIMARY KEY,\n hunt_id TEXT NOT NULL REFERENCES hunts(id) ON DELETE CASCADE,\n player_id TEXT NOT NULL REFERENCES hunt_players(id) ON DELETE CASCADE,\n clue_index INTEGER NOT NULL CHECK(clue_index BETWEEN 0 AND 124),\n object_key TEXT NOT NULL,\n shared INTEGER NOT NULL DEFAULT 0 CHECK(shared IN (0,1)),\n created_at INTEGER NOT NULL,\n UNIQUE(hunt_id,player_id,clue_index)\n)");
+  if(current===newSchema)return true;
+  if(current!==oldSchema)throw Error('Unexpected hunt_photos schema; automatic upgrade stopped.');
+  const schema=await db.prepare("SELECT type,name,tbl_name,sql FROM sqlite_master WHERE sql IS NOT NULL AND name<>'hunt_photos'").all();
+  const allowed=new Set(['hunt_photos_feed_idx','hunt_photos_player_idx']);
+  for(const row of schema.results||[]){
+    if(row.tbl_name==='hunt_photos'&&!allowed.has(row.name))throw Error('Unexpected photo table dependency; automatic upgrade stopped.');
+    if(row.tbl_name!=='hunt_photos'&&/\bhunt_photos\b/i.test(row.sql||''))throw Error('Unexpected photo table reference; automatic upgrade stopped.');
+    if(row.name==='hunt_photos_december_new')throw Error('A previous photo migration needs review.');
+  }
+  await db.batch([
+  "CREATE TABLE hunt_photos_december_new (\n id TEXT PRIMARY KEY,\n hunt_id TEXT NOT NULL REFERENCES hunts(id) ON DELETE CASCADE,\n player_id TEXT NOT NULL REFERENCES hunt_players(id) ON DELETE CASCADE,\n clue_index INTEGER NOT NULL CHECK(clue_index BETWEEN 0 AND 124),\n object_key TEXT NOT NULL,\n shared INTEGER NOT NULL DEFAULT 0 CHECK(shared IN (0,1)),\n created_at INTEGER NOT NULL,\n UNIQUE(hunt_id,player_id,clue_index)\n)",
+  "INSERT INTO hunt_photos_december_new(id,hunt_id,player_id,clue_index,object_key,shared,created_at)\n SELECT id,hunt_id,player_id,clue_index,object_key,shared,created_at FROM hunt_photos",
+  "DROP TABLE hunt_photos",
+  "ALTER TABLE hunt_photos_december_new RENAME TO hunt_photos",
+  "CREATE INDEX hunt_photos_feed_idx ON hunt_photos(hunt_id,shared,created_at DESC)",
+  "CREATE INDEX hunt_photos_player_idx ON hunt_photos(hunt_id,player_id)"
+].map(statement=>db.prepare(statement)));
+  const result=await db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='hunt_photos'").first();
+  if(normalize(result?.sql)!==newSchema)throw Error('Photo capacity verification failed.');
+  return true;
+}
+
 async function handleApi(request,env,url){
   if(!env.DB||!env.PASSWORD_PEPPER)return error('Server setup is incomplete. Ask the site administrator to configure DB and PASSWORD_PEPPER.',503);
   const db=env.DB,path=url.pathname,method=request.method;
@@ -303,17 +333,39 @@ async function handleApi(request,env,url){
   }
   // The installed D1 schema restricts mode to easy/family. A versioned seed marks
   // 30-clue mega hunts without changing that CHECK constraint or migrating old data.
+
+// December Mega v3: stable 125-clue catalogue, any 100 earns completion.
+const DEC_BASE = ["Christmas tree","Glowing star","Candy cane","Santa Claus","Snowman","Reindeer","Holiday wreath","Big light-up gift","Christmas elf","Icicle lights","Colorful roof","Gingerbread person","Penguin","Glowing snowflake","Santa sleigh","Pink or purple lights","Giant inflatable","Giant ornament","Nativity scene","Light-up mailbox","","","","","","Music-synced lights","Holiday projector","Chasing light pattern","Light tunnel or arch","Lights spelling a word"];
+const DEC_CATS = ["Christmas decorations","Christmas decorations","Christmas decorations","Characters","Characters","Animals & creatures","Christmas decorations","Christmas decorations","Characters","Colors & styles","Holiday scenes","Characters","Animals & creatures","Christmas decorations","Holiday scenes","Colors & styles","Holiday scenes","Christmas decorations","Holiday scenes","Holiday scenes","Characters","Characters","Characters","Characters","Characters","Words, music & effects","Words, music & effects","Words, music & effects","Words, music & effects","Words, music & effects"];
+const DEC_EXTRA = [["Minnie Mouse","Characters",1],["Donald Duck","Characters",1],["Goofy","Characters",1],["Pluto","Characters",1],["Stitch","Characters",1],["Bluey","Characters",1],["Bingo (Bluey)","Characters",1],["Hello Kitty","Characters",1],["Charlie Brown","Characters",2],["Woodstock","Characters",2],["Sally Brown","Characters",2],["Max (The Grinch)","Characters",2],["Cindy Lou Who","Characters",2],["Elsa","Characters",2],["Anna","Characters",2],["Jack Skellington","Characters",2],["Grogu (Baby Yoda)","Characters",2],["Minion","Characters",2],["The Nutcracker","Characters",2],["Mrs. Claus","Characters",2],["Buddy the Elf","Characters",2],["The Abominable Snow Monster","Characters",2],["Tigger","Characters",3],["Eeyore","Characters",3],["Scooby-Doo","Characters",3],["Rudolph","Animals & creatures",0],["Polar bear","Animals & creatures",0],["Fox","Animals & creatures",0],["Owl","Animals & creatures",0],["Cardinal","Animals & creatures",0],["Squirrel","Animals & creatures",0],["Rabbit","Animals & creatures",1],["Dog in a Santa hat","Animals & creatures",1],["Cat in a Santa hat","Animals & creatures",1],["Dinosaur","Animals & creatures",1],["Unicorn","Animals & creatures",1],["Dragon","Animals & creatures",2],["Giraffe","Animals & creatures",2],["Elephant","Animals & creatures",2],["Flamingo","Animals & creatures",3],["Christmas stocking","Christmas decorations",0],["Giant bow","Christmas decorations",0],["Light-up bell","Christmas decorations",0],["Holly leaves","Christmas decorations",0],["Mistletoe","Christmas decorations",0],["Christmas candle","Christmas decorations",0],["Light-up lantern","Christmas decorations",0],["Christmas drum","Christmas decorations",1],["Toy soldier","Christmas decorations",1],["Candy cane pathway","Christmas decorations",1],["Gingerbread house","Christmas decorations",1],["Peppermint swirl","Christmas decorations",1],["Light-up lollipop","Christmas decorations",1],["Christmas angel","Christmas decorations",1],["Christmas crown","Christmas decorations",1],["Light-up candy cottage","Christmas decorations",2],["Christmas ball cluster","Christmas decorations",2],["Lighted garland","Christmas decorations",2],["Light-up gift stack","Christmas decorations",2],["Light-up snow globe","Christmas decorations",3],["Red lights","Colors & styles",0],["Green lights","Colors & styles",0],["Blue lights","Colors & styles",0],["White lights","Colors & styles",0],["Purple lights","Colors & styles",0],["Pink lights","Colors & styles",0],["Yellow lights","Colors & styles",0],["Two colors together","Colors & styles",0],["Rainbow lights","Colors & styles",1],["Twinkling lights","Colors & styles",1],["Tree in a window","Holiday scenes",0],["Lighted front door","Holiday scenes",0],["Glowing bush","Holiday scenes",0],["Wrapped tree trunk","Holiday scenes",0],["Decorated porch","Holiday scenes",0],["Lighted fence","Holiday scenes",0],["Lighted driveway","Holiday scenes",1],["Lights on a balcony","Holiday scenes",1],["Santa on a roof","Holiday scenes",1],["Reindeer pulling a sleigh","Holiday scenes",1],["Christmas train","Holiday scenes",1],["Santa workshop","Holiday scenes",2],["North Pole sign","Holiday scenes",2],["Christmas village","Holiday scenes",2],["Lighted bridge","Holiday scenes",3],["JOY in lights","Words, music & effects",0],["NOEL in lights","Words, music & effects",0],["Merry Christmas in lights","Words, music & effects",0],["Happy Holidays in lights","Words, music & effects",0],["Lights in a spiral","Words, music & effects",1],["Color-changing lights","Words, music & effects",1],["Dancing light tree","Words, music & effects",1],["Laser light dots","Words, music & effects",1],["Animated Santa waving","Words, music & effects",2],["Singing Christmas display","Words, music & effects",2]];
+const DEC_TIERS = ["common","common","common","common","common","common","common","common","common","common","common","common","common","common","common","common","common","common","uncommon","uncommon","uncommon","uncommon","uncommon","uncommon","uncommon","rare","uncommon","uncommon","uncommon","uncommon","common","uncommon","uncommon","uncommon","uncommon","uncommon","uncommon","uncommon","uncommon","uncommon","rare","rare","rare","rare","rare","rare","rare","rare","rare","rare","rare","rare","legendary","legendary","legendary","common","common","common","common","common","common","uncommon","uncommon","uncommon","uncommon","uncommon","rare","rare","rare","legendary","common","common","common","common","common","common","common","uncommon","uncommon","uncommon","uncommon","uncommon","uncommon","uncommon","uncommon","rare","rare","rare","rare","legendary","common","common","common","common","common","common","common","common","uncommon","uncommon","common","common","common","common","common","common","uncommon","uncommon","uncommon","uncommon","uncommon","rare","rare","rare","legendary","common","common","common","common","uncommon","uncommon","uncommon","uncommon","rare","rare"];
+const DEC_RESERVE = ["Piglet","Rapunzel","SpongeBob SquarePants","Kermit the Frog","Pikachu","Mario","Yoshi","Peppa Pig","Elmo","Chase (PAW Patrol)"];
+const decSlug = s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const isDecemberMega = seed=>String(seed||'').startsWith('mega-v3-');
+function decemberCards(characters=[]){
+ const defaults=['Mickey Mouse','Winnie-the-Pooh','The Grinch','Snoopy','Olaf'];
+ const names=DEC_BASE.map((name,i)=>i>=20&&i<=24?(characters[i-20]||defaults[i-20]):name);
+ const used=new Set(names.map(decSlug));
+ const cards=names.map((name,i)=>({name,category:DEC_CATS[i],tier:DEC_TIERS[i]}));
+ for(const [original,category] of DEC_EXTRA){
+  let name=original;if(used.has(decSlug(name)))name=DEC_RESERVE.find(n=>!used.has(decSlug(n))&&!DEC_EXTRA.some(x=>decSlug(x[0])===decSlug(n)));
+  if(!name)throw Error('December clue reserve exhausted');
+  used.add(decSlug(name));cards.push({name,category,tier:DEC_TIERS[cards.length]});
+ }
+ return cards;
+}
+
   const publicHuntMode = room => String(room.seed||'').startsWith('mega-v')?'mega':room.mode;
   const collectionFor=async huntId=>await db.prepare('SELECT title,kind,theme,play_mode,clues_json,archived_at FROM hunt_collections WHERE hunt_id=?').bind(huntId).first();
   const publicMode=(room,collection)=>collection?.kind==='standalone'?'standalone':publicHuntMode(room);
   const allowChanges=(room,collection,now)=>room.expires_at>now&&!collection?.archived_at;
   const huntOptions = room => {
     const seed=String(room.seed||''),photoMode=seed.startsWith('photo-v1-');
-    if(!seed.startsWith('mega-v2-'))return {photoMode,characters:[]};
+    if(!seed.startsWith('mega-v2-')&&!isDecemberMega(seed))return {photoMode,characters:[]};
     try{
       const payload=JSON.parse(decodeURIComponent(seed.split('~')[1]||''));
       const characters=Array.isArray(payload.characters)?payload.characters:[];
-      return {photoMode:payload.photoMode===true,characters:characters.length===5?characters:[]};
+      return {photoMode:payload.photoMode===true,characters:characters.length===5?characters:[],goal:isDecemberMega(seed)?100:30,clueCount:isDecemberMega(seed)?125:30};
     }catch{return {photoMode:false,characters:[]}}
   };
   const huntPublic=(room,collection)=>({id:room.id,mode:publicMode(room,collection),seed:room.seed,expiresAt:room.expires_at,title:collection?.title|| (publicHuntMode(room)==='mega'?'Mega Lights Hunt':'Christmas Lights Hunt'),theme:collection?.theme||'',playMode:collection?.play_mode||'competition',archived:!!collection?.archived_at,clues:collection?.kind==='standalone'?JSON.parse(collection.clues_json||'[]'):[],...huntOptions(room)});
@@ -355,12 +407,14 @@ async function handleApi(request,env,url){
     if(!original)return [];
     let base=await db.prepare('SELECT found_json FROM hunt_direct_progress WHERE player_id=?').bind(playerId).first();
     if(!base){await db.prepare('INSERT OR IGNORE INTO hunt_direct_progress(player_id,found_json,updated_at) VALUES(?,?,?)').bind(playerId,original.found_json||'[]',now).run();base={found_json:original.found_json||'[]'}}
-    const score=new Set(safeFound(base.found_json,30));
+    const version=await db.prepare('SELECT seed FROM hunts WHERE id=?').bind(huntId).first();
+    const maximum=isDecemberMega(version?.seed)?125:30,goal=maximum===125?100:30;
+    const score=new Set(safeFound(base.found_json,maximum));
     const mini=await db.prepare(`SELECT p.found_json,n.clues_json FROM hunt_night_progress p JOIN hunt_nights n ON n.id=p.night_id WHERE n.hunt_id=? AND p.player_id=?`).bind(huntId,playerId).all();
-    for(const row of mini.results||[]){const clues=JSON.parse(row.clues_json||'[]');for(const index of safeFound(row.found_json,clues.length)){const mapped=clues[index]?.megaIndex;if(Number.isInteger(mapped)&&mapped>=0&&mapped<30)score.add(mapped)}}
+    for(const row of mini.results||[]){const clues=JSON.parse(row.clues_json||'[]');for(const index of safeFound(row.found_json,clues.length)){const mapped=clues[index]?.megaIndex;if(Number.isInteger(mapped)&&mapped>=0&&mapped<maximum)score.add(mapped)}}
     const values=[...score].sort((a,b)=>a-b);
     await db.prepare('UPDATE hunt_players SET found_json=?,finished_at=?,updated_at=? WHERE id=? AND hunt_id=?')
-      .bind(JSON.stringify(values),values.length===30?(original.finished_at||now):null,now,playerId,huntId).run();
+      .bind(JSON.stringify(values),values.length>=goal?(original.finished_at||now):null,now,playerId,huntId).run();
     return values;
   }
   const nightRoute=path.match(/^\/api\/hunts\/([a-f0-9]{32})\/nights(?:\/([a-f0-9]{32})\/progress)?$/);
@@ -379,7 +433,8 @@ async function handleApi(request,env,url){
       const existing=await db.prepare('SELECT COUNT(*) AS total FROM hunt_nights WHERE hunt_id=?').bind(huntId).first();
       if(existing.total>=45)return error('This competition already has 45 themed nights.',409);
       const options=huntOptions(room),names=MEGA_LABELS.map((name,i)=>i>=20&&i<=24?(options.characters[i-20]||['Mickey Mouse','Winnie-the-Pooh','The Grinch','Snoopy','Olaf'][i-20]):name);
-      const clues=spec.entries.map(entry=>{if(Number.isInteger(entry))return {name:names[entry],hint:'Spot this illuminated decoration',megaIndex:entry};const ix=theme==='disney'?options.characters.findIndex(x=>x.toLowerCase()===entry[0].toLowerCase()):-1;return {name:entry[0],hint:entry[1],megaIndex:ix>=0?20+ix:null}});
+      const expanded=isDecemberMega(room.seed)?decemberCards(options.characters):null;
+      const clues=spec.entries.map(entry=>{if(Number.isInteger(entry))return {name:names[entry],hint:'Spot this illuminated decoration',megaIndex:entry};if(expanded){const index=expanded.findIndex(c=>decSlug(c.name)===decSlug(entry[0]));return {name:entry[0],hint:entry[1],megaIndex:index>=0?index:null}}const ix=theme==='disney'?options.characters.findIndex(x=>x.toLowerCase()===entry[0].toLowerCase()):-1;return {name:entry[0],hint:entry[1],megaIndex:ix>=0?20+ix:null}});
       const idNew=hex(bytes(16));
       await db.prepare('INSERT INTO hunt_nights(id,hunt_id,theme,title,clues_json,created_at) VALUES(?,?,?,?,?,?)').bind(idNew,huntId,theme,spec.title,JSON.stringify(clues),now).run();
       return json({ok:true,night:{id:idNew,theme,title:spec.title,clues,createdAt:now}});
@@ -407,13 +462,13 @@ async function handleApi(request,env,url){
       .bind(roomId,await digest(token)).first();
   }
 
-  const huntClueCount = (room,collection) => collection?.kind==='standalone'?8:publicHuntMode(room)==='mega'?30:room.mode==='family'?16:9;
+  const huntClueCount = (room,collection) => collection?.kind==='standalone'?8:publicHuntMode(room)==='mega'?(isDecemberMega(room.seed)?125:30):room.mode==='family'?16:9;
   // Private owner index is authoritative across devices; guest links never expose household IDs.
   if(path==='/api/hunts/mine'&&method==='GET'){
     const owner=await session(request,db);if(!owner)return error('Sign in to see your hunts.',401);
     const results=await db.prepare(`SELECT h.id,h.mode,h.seed,h.created_at,h.expires_at,c.title,c.kind,c.theme,c.play_mode,c.archived_at
       FROM hunts h LEFT JOIN hunt_collections c ON c.hunt_id=h.id WHERE h.household_id=? ORDER BY h.created_at DESC LIMIT 100`).bind(owner.household_id).all();
-    return json({hunts:(results.results||[]).map(r=>({id:r.id,mode:r.kind&&r.kind!=='legacy'?r.kind:publicHuntMode(r),title:r.title||(publicHuntMode(r)==='mega'?'Mega Lights Hunt':'Classic Lights Hunt'),theme:r.theme||'',playMode:r.play_mode||'competition',archived:!!r.archived_at,createdAt:r.created_at,expiresAt:r.expires_at,photoMode:huntOptions(r).photoMode}))});
+    return json({hunts:(results.results||[]).map(r=>({id:r.id,mode:r.kind&&r.kind!=='legacy'?r.kind:publicHuntMode(r),title:r.title||(publicHuntMode(r)==='mega'?'Mega Lights Hunt':'Classic Lights Hunt'),theme:r.theme||'',playMode:r.play_mode||'competition',archived:!!r.archived_at,createdAt:r.created_at,expiresAt:r.expires_at,photoMode:huntOptions(r).photoMode,clueCount:huntClueCount(r,r),goal:isDecemberMega(r.seed)?100:publicHuntMode(r)==='mega'?30:undefined}))});
   }
   const manageRoute=path.match(/^\/api\/hunts\/([a-f0-9]{32})\/manage$/);
   if(manageRoute&&method==='POST'){
@@ -653,17 +708,17 @@ async function handleApi(request,env,url){
     if(action==='list'&&method==='GET'){
       const rows=await db.prepare(`SELECT hp.id,hp.player_id,hp.clue_index,hp.shared,hp.created_at,p.nickname
        FROM hunt_photos hp JOIN hunt_players p ON p.id=hp.player_id
-       WHERE hp.hunt_id=? AND (hp.shared=1 OR hp.player_id=?) ORDER BY hp.created_at DESC LIMIT 300`)
+       WHERE hp.hunt_id=? AND (hp.shared=1 OR hp.player_id=?) ORDER BY hp.created_at DESC LIMIT 1000`)
        .bind(huntId,player?.id||'').all();
       let combined=(rows.results||[]).map(r=>({id:r.id,playerId:r.player_id,clueIndex:r.clue_index,nightId:null,shared:!!r.shared,createdAt:r.created_at,nickname:r.nickname}));
       if(publicHuntMode(room)==='mega'){
         const nightRows=await db.prepare(`SELECT hp.id,hp.player_id,hp.clue_index,hp.night_id,hp.shared,hp.created_at,p.nickname,n.title,n.clues_json
          FROM hunt_night_photos hp JOIN hunt_players p ON p.id=hp.player_id JOIN hunt_nights n ON n.id=hp.night_id
-         WHERE hp.hunt_id=? AND (hp.shared=1 OR hp.player_id=?) ORDER BY hp.created_at DESC LIMIT 300`)
+         WHERE hp.hunt_id=? AND (hp.shared=1 OR hp.player_id=?) ORDER BY hp.created_at DESC LIMIT 1000`)
          .bind(huntId,player?.id||'').all();
         combined.push(...(nightRows.results||[]).map(r=>({id:r.id,playerId:r.player_id,clueIndex:r.clue_index,nightId:r.night_id,clueName:JSON.parse(r.clues_json||'[]')[r.clue_index]?.name||'Holiday lights',nightTitle:r.title,shared:!!r.shared,createdAt:r.created_at,nickname:r.nickname})));
       }
-      return json({photos:combined.sort((a,b)=>b.createdAt-a.createdAt).slice(0,300)});
+      return json({photos:combined.sort((a,b)=>b.createdAt-a.createdAt).slice(0,1000)});
     }
     if(action==='file'&&method==='GET'){
       if(!env.MEDIA)return error('Photo storage is unavailable.',503);
@@ -695,6 +750,7 @@ async function handleApi(request,env,url){
       if(!file.size||file.size>2*1024*1024)return error('Photo must be smaller than 2 MB.',413);
       const buffer=await file.arrayBuffer(),magic=new Uint8Array(buffer.slice(0,4));
       if(magic[0]!==255||magic[1]!==216||magic[2]!==255)return error('This is not a valid JPEG photo.',415);
+      if(!night&&clue>=30){try{await ensureDecemberPhotoCapacity(db)}catch(e){console.error('December Mega photo setup:',e);return error('Extended photo storage is not ready. Contact the site administrator.',503)}}
       const previous=night
        ?await db.prepare('SELECT id,object_key FROM hunt_night_photos WHERE hunt_id=? AND night_id=? AND player_id=? AND clue_index=?').bind(huntId,nightId,player.id,clue).first()
        :await db.prepare('SELECT id,object_key FROM hunt_photos WHERE hunt_id=? AND player_id=? AND clue_index=?').bind(huntId,player.id,clue).first();
@@ -822,17 +878,22 @@ async function handleApi(request,env,url){
     const characters=mode==='mega'?(Array.isArray(b.characters)?b.characters:defaultCharacters):[];
     if(mode==='mega'&&(characters.length!==5||characters.some(x=>typeof x!=='string'||!x.trim()||x.trim().length>40||/[<>\x00-\x1f]/.test(x))||new Set(characters.map(x=>x.trim().toLowerCase())).size!==5))return error('Choose five different characters (up to 40 characters each).');
     const huntId=hex(bytes(16)),raw=hex(bytes(16)),now=Date.now();
-    const seed=mode==='mega'?'mega-v2-'+raw+'~'+encodeURIComponent(JSON.stringify({characters,photoMode})):(photoMode?'photo-v1-':'')+raw;
+    if(mode==='mega'&&characters.some(c=>DEC_BASE.filter(Boolean).some(n=>decSlug(c)===decSlug(n))))return error('Choose characters that are not already fixed Mega clues.');
+    if(mode==='mega'&&new Set(characters.map(decSlug)).size!==5)return error('Choose five distinct characters.');
+    if(mode==='mega'&&photoMode){try{await ensureDecemberPhotoCapacity(db)}catch(e){console.error('December Mega photo setup:',e);return error('Photo Hunt setup could not complete safely. Your existing photos were not intentionally changed. Contact the site administrator.',503)}}
+    const seasonYear=new Date(now-6*3600000).getUTCFullYear(),seasonMonth=new Date(now-6*3600000).getUTCMonth();
+    const expiresAt=mode==='mega'&&seasonMonth>=10?Date.UTC(seasonYear+1,0,1,6):now+(mode==='mega'?45:30)*86400000;
+    const seed=mode==='mega'?'mega-v3-'+raw+'~'+encodeURIComponent(JSON.stringify({characters,photoMode})):(photoMode?'photo-v1-':'')+raw;
     const storedMode=mode==='mega'?'family':mode==='standalone'?'easy':mode;
     const clues=mode==='standalone'?themedClues(theme,raw,[]):[];
     const insertHunt=db.prepare('INSERT INTO hunts(id,household_id,mode,seed,created_at,expires_at) VALUES(?,?,?,?,?,?)')
-      .bind(huntId,me.household_id,storedMode,seed,now,now+(mode==='mega'?45:30)*86400000);
+      .bind(huntId,me.household_id,storedMode,seed,now,expiresAt);
     if(mode==='mega'||mode==='standalone'){
       const insertCollection=db.prepare('INSERT INTO hunt_collections(hunt_id,title,kind,theme,play_mode,clues_json,created_at) VALUES(?,?,?,?,?,?,?)')
         .bind(huntId,title,mode,theme,playMode,JSON.stringify(clues),now);
       await db.batch([insertHunt,insertCollection]); // atomic: no orphan hunt if migration missing
     }else await insertHunt.run();
-    return json({ok:true,hunt:{id:huntId,mode,title,theme,playMode,seed,photoMode,characters,clues,expiresAt:now+(mode==='mega'?45:30)*86400000}});
+    return json({ok:true,hunt:{id:huntId,mode,title,theme,playMode,seed,photoMode,characters,clues,expiresAt,clueCount:mode==='mega'?125:mode==='standalone'?8:mode==='family'?16:9,goal:mode==='mega'?100:undefined}});
   }
   const family=me.household_id;
   if(path==='/api/auth/logout'&&method==='POST'){
