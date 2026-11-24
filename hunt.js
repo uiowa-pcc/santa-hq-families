@@ -269,6 +269,48 @@ function card(c,i){
  if(!state.photoMode)return `<button class="find ${state.found.has(i)?'found':''}" data-spot="${i}" aria-pressed="${state.found.has(i)}" type="button">${image}${content}</button>`;
  return `<div class="find photo-find ${state.found.has(i)?'found':''}">${image}${content}<div class="photo-find-actions"><button type="button" class="btn primary" data-photo-for="${i}">${myPhoto?'Replace photo':'Take / add photo'}</button>${myPhoto?`<button type="button" class="photo-small-action" data-photo-share="${safe(myPhoto.id)}">${myPhoto.shared?'Unshare':'Share'}</button><button type="button" class="photo-small-action" data-photo-remove="${safe(myPhoto.id)}">Remove</button>`:''}</div></div>`;
 }
+// Presentation only: group by the actual clue name; never change saved clue indices.
+const DEC_GROUPS=[
+ ['classic','Classic Christmas characters','Santa, snowmen and familiar Christmas friends'],
+ ['disney','Disney characters','Disney, Pixar and Star Wars favorites'],
+ ['stories','Other story & TV characters','Peanuts, Bluey, the Grinch and more'],
+ ['animals','Animals & magical creatures','Woodland friends, pets and imaginative creatures'],
+ ['decor','Christmas decorations','Ornaments, bows, gifts and festive symbols'],
+ ['candy','Candy & gingerbread','Sweet holiday decorations'],
+ ['colors','Light colors & styles','Spot each color and light pattern'],
+ ['home','Houses, trees & yards','Decorated windows, porches, fences and more'],
+ ['scenes','Holiday scenes & big displays','Sleighs, villages and oversized displays'],
+ ['words','Words in lights','Find festive glowing messages'],
+ ['effects','Music, motion & special effects','Animated, musical and spectacular lights']
+];
+const decNamedGroups={
+ classic:['Santa Claus','Snowman','Christmas elf','Gingerbread person','Mrs. Claus','The Nutcracker','Buddy the Elf','The Abominable Snow Monster','Bumble','Frosty the Snowman','Gingerbread Man','Rudolph','Reindeer'],
+ disney:['Mickey Mouse','Minnie Mouse','Donald Duck','Goofy','Pluto','Winnie-the-Pooh','Winnie-the-Pooh and Piglet','Piglet','Tigger','Eeyore','Olaf','Elsa','Anna','Stitch','Jack Skellington','Zero (Nightmare Before Christmas)','Grogu (Baby Yoda)','The Mandalorian','Rapunzel','Simba'],
+ candy:['Candy cane','Candy cane pathway','Gingerbread house','Peppermint swirl','Light-up lollipop','Light-up candy cottage'],
+ home:['Colorful roof','Tree in a window','Lighted front door','Glowing bush','Wrapped tree trunk','Decorated porch','Lighted fence','Lighted driveway','Lights on a balcony','Light-up mailbox','Christmas tree'],
+ words:['Lights spelling a word','JOY in lights','NOEL in lights','Merry Christmas in lights','Happy Holidays in lights']
+};
+const decNamedGroupMap=new Map(Object.entries(decNamedGroups).flatMap(([group,names])=>names.map(name=>[decSlug(name),group])));
+function decGroupFor(c){return decNamedGroupMap.get(decSlug(c.name))||({'Characters':'stories','Animals & creatures':'animals','Christmas decorations':'decor','Colors & styles':'colors','Holiday scenes':'scenes','Words, music & effects':'effects'}[c.category])||'decor'}
+const decOpenGroups=new Set();
+function setDecGroupOpen(section,open){
+ const key=section.dataset.decGroup,button=section.querySelector('[data-dec-toggle]'),body=section.querySelector('.mega-grid');
+ if(open)decOpenGroups.add(key);else decOpenGroups.delete(key);
+ button.setAttribute('aria-expanded',String(open));body.hidden=!open;
+}
+function renderDecemberGroups(){
+ const board=$('huntBoard'),entries=state.picks.map((c,i)=>({c,i}));
+ const groups=DEC_GROUPS.map(([key,title,description])=>({key,title,description,entries:entries.filter(x=>decGroupFor(x.c)===key)})).filter(g=>g.entries.length);
+ const matches=x=>(!state.decRarity||x.c.tier===state.decRarity)&&(!state.decRemaining||!state.found.has(x.i));
+ board.innerHTML=groups.map(g=>{
+  const found=g.entries.filter(x=>state.found.has(x.i)).length,visible=g.entries.filter(matches).length,open=decOpenGroups.has(g.key),filtered=!!state.decRarity||!!state.decRemaining;
+  return `<section class="mega-group dec-group" data-dec-group="${g.key}" ${visible?'':'hidden'}><button type="button" class="dec-group-head" data-dec-toggle aria-expanded="${open}" aria-controls="dec-grid-${g.key}"><span class="dec-group-title"><strong>${safe(g.title)}</strong><small>${safe(g.description)}${filtered?' · '+visible+' shown':''}</small><span class="dec-group-progress" aria-hidden="true"><i style="width:${100*found/g.entries.length}%"></i></span></span><span class="dec-group-count">${found}/${g.entries.length}<small>found</small></span><span class="dec-chevron" aria-hidden="true"></span></button><div class="mega-grid" id="dec-grid-${g.key}" ${open?'':'hidden'}>${g.entries.map(x=>card(x.c,x.i)).join('')}</div></section>`;
+ }).join('');
+ board.querySelectorAll('.find').forEach(el=>{const index=Number(el.dataset.spot??el.querySelector('[data-photo-for]')?.dataset.photoFor);el.classList.toggle('dec-filtered-out',!matches({c:state.picks[index],i:index}))});
+ if(!entries.some(matches))board.insertAdjacentHTML('beforeend','<p class="dec-empty">No clues match these filters. Try another rarity or turn off Still to find.</p>');
+}
+$('huntBoard').addEventListener('click',e=>{const toggle=e.target.closest('[data-dec-toggle]');if(toggle)setDecGroupOpen(toggle.closest('[data-dec-group]'),toggle.getAttribute('aria-expanded')!=='true')});
+
 function renderBoard(){
  const count=state.picks.length,done=state.picks.filter((_,index)=>state.found.has(index)).length;
  const december=!activeNight()&&isDecemberMega(state.hunt?.seed),goal=december?100:count;
@@ -302,23 +344,24 @@ function renderBoard(){
  if(!milestones){milestones=document.createElement('section');milestones.id='decemberMilestones';milestones.style.cssText='margin:14px 0;padding:16px;border:1px solid #d8bda0;background:#fffdf5;color:#294b38;border-radius:18px';$('huntBoard').before(milestones)}
  milestones.hidden=!december;
  if(december){const levels=[[25,'Junior Light Explorer'],[50,'Christmas Light Detective'],[75,'North Pole Scout'],[90,'Master Light Hunter'],[100,'Christmas Lights Legend']];const next=levels.find(x=>x[0]>done);milestones.innerHTML=`<strong style="font-family:Georgia,serif;font-size:1.2rem">Your December adventure</strong><p style="margin:5px 0 10px;font-size:.85rem">${done} of 125 discovered · ${next?`${next[0]-done} until ${next[1]}`:done===125?'Every clue discovered!':'Legend achieved! Keep looking for bonus finds.'}</p><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:8px">${levels.map(([n,label])=>`<div style="padding:9px;border:1px solid ${done>=n?'#39744c':'#ddd3c2'};border-radius:12px;background:${done>=n?'#e7f1df':'#faf7ef'}"><strong>${done>=n?'✓ ':'✦ '}${n}</strong><div style="font-size:.75rem">${label}</div></div>`).join('')}</div>`;}
- if(count===30||december){
-  const groups=december?[['common','Common finds','Start with everyday Christmas magic'],['uncommon','Uncommon finds','Look a little closer'],['rare','Rare finds','Exciting discoveries'],['legendary','Legendary finds','The hardest to spot']]:MEGA_TIERS;
-  $('huntBoard').innerHTML=groups.map(([tier,title,description])=>{
+ $('huntBoard').classList.toggle('december-board',december);
+ if(december)renderDecemberGroups();
+ else if(count===30){
+  $('huntBoard').innerHTML=MEGA_TIERS.map(([tier,title,description])=>{
    const entries=state.picks.map((c,i)=>({c,i})).filter(x=>x.c.tier===tier);
    const spotted=entries.filter(x=>state.found.has(x.i)).length;
    return `<section class="mega-group tier-${tier}" aria-label="${title}"><header class="mega-head"><div><span class="mega-tier">${title}</span><small>${description}</small></div><strong>${spotted}/${entries.length}</strong></header><div class="mega-grid">${entries.map(x=>card(x.c,x.i)).join('')}</div></section>`;
   }).join('');
  }else $('huntBoard').innerHTML=state.picks.map(card).join('');
- // December filters keep every card in the DOM so Print matching hunt still prints all 125.
+ // All 125 cards remain in the DOM for the matching printable, even when collapsed or filtered.
  let filters=$('decemberFilters');
- if(!filters){filters=document.createElement('div');filters.id='decemberFilters';filters.style.cssText='display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:12px 0;padding:10px 12px;background:#fff;border:1px solid #e6d9c5;border-radius:12px';$('huntBoard').before(filters);filters.addEventListener('change',e=>{if(e.target.id==='decCategory')state.decCategory=e.target.value;if(e.target.id==='decRemaining')state.decRemaining=e.target.checked;renderBoard()})}
- filters.hidden=!december;filters.style.display=december?'flex':'none';
- if(december){const categories=[...new Set(state.picks.map(c=>c.category))];filters.innerHTML=`<label style="font-weight:700">Category <select id="decCategory" style="max-width:100%;padding:6px;border:1px solid #d3c6b5;border-radius:8px"><option value="">All categories</option>${categories.map(c=>`<option value="${safe(c)}" ${state.decCategory===c?'selected':''}>${safe(c)}</option>`).join('')}</select></label><label style="display:flex;align-items:center;gap:6px;font-weight:700"><input id="decRemaining" type="checkbox" ${state.decRemaining?'checked':''}> Still to find</label>`;
-  const tierColors={common:['#e7f1df','#2f603d'],uncommon:['#fff4db','#805f24'],rare:['#f0eafb','#60409b'],legendary:['#fce8e5','#9d3540']};
-  $('huntBoard').querySelectorAll('.mega-group').forEach(group=>{const tier=Object.keys(tierColors).find(t=>group.classList.contains('tier-'+t));const header=group.querySelector('.mega-head');if(tier&&header){header.style.background=tierColors[tier][0];header.style.color=tierColors[tier][1]}
-   let visible=0;group.querySelectorAll('.find').forEach(el=>{const index=Number(el.dataset.spot??el.querySelector('[data-photo-for]')?.dataset.photoFor),clue=state.picks[index];const show=(!state.decCategory||clue?.category===state.decCategory)&&(!state.decRemaining||!state.found.has(index));el.style.display=show?'':'none';if(show)visible++});group.style.display=visible?'':'none';});
+ if(!filters){
+  filters=document.createElement('div');filters.id='decemberFilters';$('huntBoard').before(filters);
+  filters.addEventListener('change',e=>{if(e.target.id==='decRarity')state.decRarity=e.target.value;if(e.target.id==='decRemaining')state.decRemaining=e.target.checked;renderBoard()});
+  filters.addEventListener('click',e=>{const action=e.target.closest('[data-dec-all]')?.dataset.decAll;if(action)$('huntBoard').querySelectorAll('[data-dec-group]:not([hidden])').forEach(section=>setDecGroupOpen(section,action==='open'))});
  }
+ filters.hidden=!december;
+ if(december){filters.innerHTML=`<div class="dec-filter-top"><strong>Explore by category</strong><span>Tap a category to reveal its clues.</span></div><div class="dec-filter-controls"><label><input id="decRemaining" type="checkbox" ${state.decRemaining?'checked':''}> Still to find</label><label>Rarity <select id="decRarity"><option value="">All</option>${['common','uncommon','rare','legendary'].map(t=>`<option value="${t}" ${state.decRarity===t?'selected':''}>${t[0].toUpperCase()+t.slice(1)}</option>`).join('')}</select></label></div><div class="dec-filter-actions"><button type="button" data-dec-all="open">Expand all</button><button type="button" data-dec-all="close">Collapse all</button></div>`;}
  // Images are visual examples only; the tappable whole-card behavior stays intact.
  $('huntBoard').querySelectorAll('.custom-hunt-photo').forEach(img=>img.addEventListener('error',()=>img.remove(),{once:true}));
  $('winBanner').textContent=december?(done===125?'All 125 finds! You discovered every clue!':'Christmas Lights Legend! You reached 100 finds. Keep hunting for bonus discoveries.'):activeNight()?'All themed-night finds complete! Great spotting!':count===30?'All 30 clues found! You are a Mega Lights Hunt champion!':'Every clue found! Well done!';

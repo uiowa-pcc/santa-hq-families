@@ -38,6 +38,33 @@
 @media(max-width:780px){.mega-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:520px){.mega-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.board.mega{gap:18px}.mega-grid .find strong{font-size:13px}.mega-grid .find small{font-size:11px}.mega-grid .find .content{padding:9px;gap:5px}.mega-grid .photo{aspect-ratio:1.15}.mega-grid .photo.graphic b{font-size:14px}.mega-head{padding:11px}.mega-tier{font-size:15px}}
 @media print{.board.mega{display:block}.mega-group{break-before:auto;break-inside:avoid;margin-bottom:12px}.mega-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.mega-head{padding:4px 8px;margin-bottom:5px}.mega-grid .photo{aspect-ratio:2.2}.mega-grid .find .content{padding:5px}.mega-grid .find small{display:none}}
+
+/* December Mega category accordion. All cards keep their original IDs. */
+.custom-photo-wrap{background-color:#fff}
+.board.december-board{gap:10px;margin-top:10px}
+.dec-group{border:1px solid #e4ded4;border-radius:16px;overflow:hidden;background:#fff}
+.dec-group[hidden],.dec-group .mega-grid[hidden],.dec-group .dec-filtered-out,#decemberFilters[hidden]{display:none!important}
+.dec-group-head{display:flex;width:100%;align-items:center;gap:12px;text-align:left;background:#fffdf8;color:#254c39;padding:14px 15px;border:0;cursor:pointer;min-height:82px}
+.dec-group-head[aria-expanded=true]{background:#f2f7f1;border-bottom:1px solid #e4ded4}
+.dec-group-title{flex:1;min-width:0;display:grid;gap:4px}
+.dec-group-title>strong{font:800 16px/1.2 'Outfit',sans-serif;overflow-wrap:anywhere}
+.dec-group-title>small{font-size:11px;line-height:1.35;color:#696c67;font-weight:500}
+.dec-group-progress{height:4px;border-radius:8px;background:#e6e9e1;max-width:175px;margin-top:3px;overflow:hidden}
+.dec-group-progress i{height:100%;display:block;background:#488264;border-radius:8px}
+.dec-group-count{font:800 15px/1.2 'Outfit',sans-serif;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.dec-group-count small{display:block;font:500 10px/1.3 'Outfit',sans-serif;color:#686f67}
+.dec-chevron{flex:0 0 9px;width:9px;height:9px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin:0 3px 4px}
+.dec-group-head[aria-expanded=true] .dec-chevron{transform:rotate(225deg);margin-bottom:-4px}
+.dec-group .mega-grid{padding:10px}
+#decemberFilters{display:grid;gap:10px;margin:14px 0 0;padding:12px;border:1px solid #e6d9c5;background:#fff;border-radius:15px}
+.dec-filter-top{display:grid;gap:3px;color:#254c39}.dec-filter-top strong{font:800 16px 'Outfit',sans-serif}.dec-filter-top span{font-size:12px;color:#656b65}
+.dec-filter-controls,.dec-filter-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px}
+.dec-filter-controls label{display:flex;align-items:center;gap:6px;font-weight:700;font-size:12px}.dec-filter-controls input{accent-color:#346f4d;width:17px;height:17px}.dec-filter-controls select{background:#fff;border:1px solid #ddd5c6;border-radius:8px;padding:7px;font:inherit;color:inherit}
+.dec-filter-actions button{border:1px solid #e4ded4;border-radius:8px;background:#fffdf8;color:#355b44;padding:7px 10px;font-size:12px;font-weight:700}
+.dec-empty{font-size:13px;padding:12px;color:#656b65}
+@media(max-width:520px){.board.december-board{gap:8px}.dec-group-head{padding:12px 10px;gap:8px}.dec-group-title>strong{font-size:15px}.dec-group .mega-grid{padding:7px;gap:7px}}
+@media print{#decemberFilters{display:none!important}.dec-group[hidden],.dec-group .mega-grid[hidden]{display:block!important}.dec-group .mega-grid[hidden]{display:grid!important}.dec-group .dec-filtered-out{display:flex!important}.dec-group{break-inside:auto}.dec-chevron{display:none}}
+
 </style><link rel="stylesheet" href="./santa-hq-design.css">
 <style>
 /* New Santa used in Kid View, shown uncropped in the hunt banner. */
