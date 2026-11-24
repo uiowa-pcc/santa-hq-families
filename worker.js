@@ -249,6 +249,23 @@ async function ensureDecemberPhotoCapacity(db){
   return true;
 }
 
+// Repair incomplete installations of the additive Hunt HQ migration.
+// Never drop or replace a table; existing hunts, finds and photos stay intact.
+async function ensureHuntHQTables(db){
+  const expected=['hunt_nights','hunt_night_progress','hunt_direct_progress','hunt_night_photos'];
+  const result=await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('hunt_nights','hunt_night_progress','hunt_direct_progress','hunt_night_photos')").all();
+  const names=new Set((result.results||[]).map(row=>row.name));
+  if(expected.every(name=>names.has(name)))return;
+  await db.batch([
+    "CREATE TABLE IF NOT EXISTS hunt_nights (\n id TEXT PRIMARY KEY,\n hunt_id TEXT NOT NULL REFERENCES hunts(id) ON DELETE CASCADE,\n theme TEXT NOT NULL,\n title TEXT NOT NULL,\n clues_json TEXT NOT NULL,\n created_at INTEGER NOT NULL\n)",
+    "CREATE INDEX IF NOT EXISTS hunt_nights_parent_idx ON hunt_nights(hunt_id,created_at)",
+    "CREATE TABLE IF NOT EXISTS hunt_night_progress (\n night_id TEXT NOT NULL REFERENCES hunt_nights(id) ON DELETE CASCADE,\n player_id TEXT NOT NULL REFERENCES hunt_players(id) ON DELETE CASCADE,\n found_json TEXT NOT NULL DEFAULT '[]',\n updated_at INTEGER NOT NULL,\n PRIMARY KEY(night_id,player_id)\n)",
+    "CREATE TABLE IF NOT EXISTS hunt_direct_progress (\n player_id TEXT PRIMARY KEY REFERENCES hunt_players(id) ON DELETE CASCADE,\n found_json TEXT NOT NULL DEFAULT '[]',\n updated_at INTEGER NOT NULL\n)",
+    "CREATE TABLE IF NOT EXISTS hunt_night_photos (\n id TEXT PRIMARY KEY,\n hunt_id TEXT NOT NULL REFERENCES hunts(id) ON DELETE CASCADE,\n night_id TEXT NOT NULL REFERENCES hunt_nights(id) ON DELETE CASCADE,\n player_id TEXT NOT NULL REFERENCES hunt_players(id) ON DELETE CASCADE,\n clue_index INTEGER NOT NULL,\n object_key TEXT NOT NULL,\n shared INTEGER NOT NULL DEFAULT 0 CHECK(shared IN (0,1)),\n created_at INTEGER NOT NULL,\n UNIQUE(night_id,player_id,clue_index)\n)",
+    "CREATE INDEX IF NOT EXISTS hunt_night_photo_feed_idx ON hunt_night_photos(hunt_id,shared,created_at DESC)"
+  ].map(sql=>db.prepare(sql)));
+}
+
 async function handleApi(request,env,url){
   if(!env.DB||!env.PASSWORD_PEPPER)return error('Server setup is incomplete. Ask the site administrator to configure DB and PASSWORD_PEPPER.',503);
   const db=env.DB,path=url.pathname,method=request.method;
@@ -424,6 +441,7 @@ function decemberCards(characters=[]){
     if(!room||room.expires_at<=now||publicHuntMode(room)!=='mega')return error('This ongoing competition is unavailable.',404);
     const collection=await collectionFor(huntId);
     if(!allowChanges(room,collection,now))return error('This competition is archived and read-only.',409);
+    await ensureHuntHQTables(db);
     if(method==='POST'&&!nightId){
       const current=await session(request,db);
       if(!current||current.household_id!==room.household_id)return error('Only the family hosting this competition can add a themed night.',403);
@@ -585,6 +603,7 @@ function decemberCards(characters=[]){
       let nights=[],nightLeaders={},myProgress=null;
       if(publicHuntMode(room)==='mega'){
         try{
+          await ensureHuntHQTables(db);
           nights=await listNights(huntId);
           const progress=await db.prepare(`SELECT n.id AS night_id,p.player_id,p.found_json,hp.nickname,hp.updated_at FROM hunt_night_progress p JOIN hunt_nights n ON n.id=p.night_id JOIN hunt_players hp ON hp.id=p.player_id WHERE n.hunt_id=?`).bind(huntId).all();
           for(const row of progress.results||[]){(nightLeaders[row.night_id]??=[]).push({id:row.player_id,nickname:row.nickname,score:safeFound(row.found_json,8).length,updatedAt:row.updated_at})}
@@ -632,6 +651,7 @@ function decemberCards(characters=[]){
       if(!player)return error('Your player session expired. Rejoin this hunt.',401);
       const done=found.length===maximum;
       if(publicHuntMode(room)==='mega'){
+        await ensureHuntHQTables(db);
         await db.prepare(`INSERT INTO hunt_direct_progress(player_id,found_json,updated_at) VALUES(?,?,?) ON CONFLICT(player_id) DO UPDATE SET found_json=excluded.found_json,updated_at=excluded.updated_at`).bind(player.id,JSON.stringify(found),now).run();
         const union=await recomputeMegaPlayer(huntId,player.id,now);
         return json({ok:true,score:union.length});
@@ -705,6 +725,7 @@ function decemberCards(characters=[]){
     if(!room||(!allowChanges(room,collection,now)&&!collection?.archived_at))return error('This hunt has expired or is unavailable.',404);
     if(!huntOptions(room).photoMode)return error('This hunt does not allow photo submissions.',403);
     const token=request.headers.get('Authorization')||'',player=await huntPlayer(huntId,token);
+    if(publicHuntMode(room)==='mega'&&player)await ensureHuntHQTables(db);
     if(action==='list'&&method==='GET'){
       const rows=await db.prepare(`SELECT hp.id,hp.player_id,hp.clue_index,hp.shared,hp.created_at,p.nickname
        FROM hunt_photos hp JOIN hunt_players p ON p.id=hp.player_id
@@ -880,6 +901,7 @@ function decemberCards(characters=[]){
     const huntId=hex(bytes(16)),raw=hex(bytes(16)),now=Date.now();
     if(mode==='mega'&&characters.some(c=>DEC_BASE.filter(Boolean).some(n=>decSlug(c)===decSlug(n))))return error('Choose characters that are not already fixed Mega clues.');
     if(mode==='mega'&&new Set(characters.map(decSlug)).size!==5)return error('Choose five distinct characters.');
+    if(mode==='mega')await ensureHuntHQTables(db);
     if(mode==='mega'&&photoMode){try{await ensureDecemberPhotoCapacity(db)}catch(e){console.error('December Mega photo setup:',e);return error('Photo Hunt setup could not complete safely. Your existing photos were not intentionally changed. Contact the site administrator.',503)}}
     const seasonYear=new Date(now-6*3600000).getUTCFullYear(),seasonMonth=new Date(now-6*3600000).getUTCMonth();
     const expiresAt=mode==='mega'&&seasonMonth>=10?Date.UTC(seasonYear+1,0,1,6):now+(mode==='mega'?45:30)*86400000;
@@ -1003,7 +1025,7 @@ export default {
   async fetch(request,env){
     const url=new URL(request.url);
     if(url.pathname.startsWith('/api/')){
-      try{return await handleApi(request,env,url)}catch(e){console.error('Santa HQ API:',e);if(e instanceof SyntaxError)return error('Invalid JSON.',400);if(['Request is too large.','Invalid request body.'].includes(e?.message))return error(e.message,400);return error('An unexpected server error occurred.',500)}
+      try{return await handleApi(request,env,url)}catch(e){console.error('Santa HQ API:',request.method,url.pathname,e);if(e instanceof SyntaxError)return error('Invalid JSON.',400);if(['Request is too large.','Invalid request body.'].includes(e?.message))return error(e.message,400);return error('An unexpected server error occurred.',500)}
     }
     const response=await env.ASSETS.fetch(request);
     const headers=new Headers(response.headers);
