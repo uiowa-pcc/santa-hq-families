@@ -390,34 +390,47 @@ function decemberCards(characters=[],seed=''){
       return {photoMode:payload.photoMode===true,characters:characters.length===5?characters:[],goal:isDecemberMega(seed)?100:30,clueCount:isDecemberMega(seed)?125:30};
     }catch{return {photoMode:false,characters:[]}}
   };
-  const huntPublic=(room,collection)=>({id:room.id,mode:publicMode(room,collection),seed:room.seed,expiresAt:room.expires_at,title:collection?.title|| (publicHuntMode(room)==='mega'?'Mega Lights Hunt':'Christmas Lights Hunt'),theme:collection?.theme||'',playMode:collection?.play_mode||'competition',archived:!!collection?.archived_at,clues:collection?.kind==='standalone'?JSON.parse(collection.clues_json||'[]'):[],...huntOptions(room)});
+  const huntPublic=(room,collection)=>({id:room.id,mode:publicMode(room,collection),seed:room.seed,expiresAt:room.expires_at,title:collection?.title|| (publicHuntMode(room)==='mega'?'Mega Lights Hunt':'Christmas Lights Hunt'),theme:collection?.theme||'',playMode:collection?.play_mode||'competition',archived:!!collection?.archived_at,clues:collection?.kind==='standalone'?JSON.parse(collection.clues_json||'[]'):[],...huntOptions(room),clueCount:collection?.kind==='standalone'?JSON.parse(collection.clues_json||'[]').length:(publicHuntMode(room)==='mega'?(isDecemberMega(room.seed)?125:30):room.mode==='family'?16:9)});
   // Hunt HQ: a Mega room owns all its themed mini hunts. One guest token and
   // one set of private player photos cover the entire linked competition.
   const MEGA_LABELS=['Christmas tree','Glowing star','Candy cane','Santa Claus','Snowman','Reindeer','Holiday wreath','Big light-up gift','Christmas elf','Icicle lights','Colorful roof','Gingerbread person','Penguin','Glowing snowflake','Santa sleigh','Pink or purple lights','Giant inflatable','Giant ornament','Nativity scene','Light-up mailbox','','','','','','Music-synced lights','Holiday projector','Chasing light pattern','Light tunnel or arch','Lights spelling a word'];
-  const NIGHT_THEMES={
-   colors:{title:'Color Quest',entries:[['Red lights','Find a red light display'],['Green lights','Find something glowing green'],['Blue lights','Find a blue light display'],['White lights','Find a glowing white display'],15,['Two colors together','Find two light colors beside each other'],['Rainbow lights','Find a display using many colors'],10]},
-   characters:{title:'Character Quest',entries:[20,21,22,23,24,3,8,4]},
-   disney:{title:'Disney Night',entries:[['Mickey Mouse','A Mickey Mouse light-up decoration'],['Minnie Mouse','Minnie Mouse lights or inflatable'],['Donald Duck','A Donald Duck light-up decoration'],['Goofy','Goofy illuminated outdoors'],['Pluto','Pluto in a festive yard display'],['Winnie-the-Pooh','Pooh lit up for Christmas'],['Stitch','A Stitch Christmas yard decoration'],['Olaf','An Olaf decoration glowing with lights']]},
-   classic:{title:'Christmas Classics',entries:[0,1,2,3,4,5,6,7]},
-   effects:{title:'Light Show Night',entries:[9,10,15,25,26,27,28,29]},
-   winter:{title:'Winter Wonderland',entries:[4,5,11,12,13,9,16,17]},
-   surprise:{title:'Holiday Mix',entries:[8,14,6,22,25,15,19,29]}
-  };
-  function themedClues(theme,seed='',characters=[]){
-    const spec=NIGHT_THEMES[theme];
-    const names=MEGA_LABELS.map((name,i)=>i>=20&&i<=24?(characters[i-20]||['Mickey Mouse','Winnie-the-Pooh','The Grinch','Snoopy','Olaf'][i-20]):name);
-    const make=(entry,kind)=>{if(Number.isInteger(entry)){const name=DEC_REPLACEMENTS[names[entry]]||names[entry];return {name,hint:DEC_UNIQUE_HINTS[name]||'Find this illuminated holiday decoration',megaIndex:entry};}
-      const ix=kind==='disney'?characters.findIndex(x=>x.toLowerCase()===entry[0].toLowerCase()):-1;
-      return {name:entry[0],hint:entry[1],megaIndex:ix>=0?20+ix:null};};
-    if(spec)return spec.entries.map(e=>make(e,theme));
-    if(theme!=='random')return null;
-    const pool=[...MEGA_LABELS.map((name,i)=>make(i,'random')),
-      ...NIGHT_THEMES.colors.entries.filter(Array.isArray).map(e=>make(e,'colors')),
-      ...NIGHT_THEMES.disney.entries.map(e=>make(e,'disney'))];
-    let h=2166136261;for(const c of seed)h=Math.imul(h^c.charCodeAt(0),16777619);
-    const rand=()=>{h+=0x6d2b79f5;let t=h;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296};
-    for(let i=pool.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
-    return [...new Map(pool.map(c=>[c.name.toLowerCase(),c])).values()].slice(0,8);
+const DEC_GROUPS=[
+ ['classic','Classic Christmas characters','Santa, snowmen and familiar Christmas friends'],
+ ['disney','Disney characters','Disney, Pixar and Star Wars favorites'],
+ ['stories','Other story & TV characters','Peanuts, Bluey, the Grinch and more'],
+ ['animals','Animals & magical creatures','Woodland friends, pets and imaginative creatures'],
+ ['decor','Christmas decorations','Ornaments, bows, gifts and festive symbols'],
+ ['candy','Candy & gingerbread','Sweet holiday decorations'],
+ ['colors','Light colors & styles','Spot each color and light pattern'],
+ ['home','Houses, trees & yards','Decorated windows, porches, fences and more'],
+ ['scenes','Holiday scenes & big displays','Sleighs, villages and oversized displays'],
+ ['words','Words in lights','Find festive glowing messages'],
+ ['effects','Music, motion & special effects','Animated, musical and spectacular lights']
+];
+const decNamedGroups={
+ classic:['Santa Claus','Snowman','Christmas elf','Gingerbread person','Mrs. Claus','The Nutcracker','Buddy the Elf','The Abominable Snow Monster','Bumble','Frosty the Snowman','Gingerbread Man','Rudolph','Reindeer'],
+ disney:['Mickey Mouse','Minnie Mouse','Donald Duck','Goofy','Pluto','Winnie-the-Pooh','Winnie-the-Pooh and Piglet','Piglet','Tigger','Eeyore','Olaf','Elsa','Anna','Stitch','Jack Skellington','Zero (Nightmare Before Christmas)','Grogu (Baby Yoda)','The Mandalorian','Rapunzel','Simba'],
+ candy:['Candy cane','Candy cane pathway','Gingerbread house','Peppermint swirl','Light-up lollipop','Light-up candy cottage'],
+ home:['Colorful roof','Tree in a window','Lighted front door','Glowing bush','Wrapped tree trunk','Decorated porch','Lighted fence','Lighted driveway','Lights on a balcony','Light-up mailbox','Christmas tree'],
+ words:['PEACE in lights','Lights spelling a word','JOY in lights','NOEL in lights','Merry Christmas in lights','Happy Holidays in lights']
+};
+const decNamedGroupMap=new Map(Object.entries(decNamedGroups).flatMap(([group,names])=>names.map(name=>[decSlug(name),group])));
+function decGroupFor(c){return decNamedGroupMap.get(decSlug(c.name))||({'Characters':'stories','Animals & creatures':'animals','Christmas decorations':'decor','Colors & styles':'colors','Holiday scenes':'scenes','Words, music & effects':'effects'}[c.category])||'decor'}
+
+const THEME_DEFS=[["disney","Disney Night","disney"],["christmas-friends","Christmas Friends","classic"],["stories","Storybook & TV Favorites","stories"],["animals","Merry Menagerie","animals"],["classic","Christmas Classics","decor"],["candy","Candyland","candy"],["colors","Color Quest","colors"],["home","Neighborhood Glow","home"],["scenes","North Pole Adventure","scenes"],["words","Merry Messages","words"],["effects","Light Show Night","effects"],["random","Surprise Me","*"]];
+function chooseThemeCards(cards,theme,seed,found=[],prior=[]){
+ const def=THEME_DEFS.find(x=>x[0]===theme);if(!def)return [];
+ const pool=cards.map((c,index)=>({...c,megaIndex:index})).filter(c=>def[2]==="*"||decGroupFor(c)===def[2]);
+ let h=2166136261;for(const c of String(seed))h=Math.imul(h^c.charCodeAt(0),16777619);
+ const rand=()=>{h+=0x6d2b79f5;let t=h;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296};
+ for(let i=pool.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
+ const f=new Set(found),p=new Set(prior);pool.sort((a,b)=>Number(f.has(a.megaIndex))-Number(f.has(b.megaIndex))||Number(p.has(a.megaIndex))-Number(p.has(b.megaIndex)));
+ return pool.slice(0,8);
+}
+  const NIGHT_THEMES=Object.fromEntries(THEME_DEFS.map(([key,title])=>[key,{title}]));
+  function themedClues(theme,seed='',characters=[],roomSeed='',found=[],prior=[]){
+    const pool=roomSeed&&!isDecemberMega(roomSeed)?MEGA_LABELS.map((name,i)=>({name:i>=20&&i<=24?(characters[i-20]||['Mickey Mouse','Winnie-the-Pooh','The Grinch','Snoopy','Olaf'][i-20]):name,category:DEC_CATS[i]})):decemberCards(characters,roomSeed||'mega-v4-default');
+    return chooseThemeCards(pool,theme,seed,found,prior).map(c=>({name:c.name,hint:c.hint||'Spot this illuminated decoration',megaIndex:c.megaIndex}));
   }
   const listNights=async huntId=>{
     const rows=await db.prepare('SELECT id,hunt_id,theme,title,clues_json,created_at FROM hunt_nights WHERE hunt_id=? ORDER BY created_at,id').bind(huntId).all();
@@ -455,10 +468,11 @@ function decemberCards(characters=[],seed=''){
       if(!spec)return error('Choose a supported theme.');
       const existing=await db.prepare('SELECT COUNT(*) AS total FROM hunt_nights WHERE hunt_id=?').bind(huntId).first();
       if(existing.total>=45)return error('This competition already has 45 themed nights.',409);
-      const options=huntOptions(room),names=MEGA_LABELS.map((name,i)=>i>=20&&i<=24?(options.characters[i-20]||['Mickey Mouse','Winnie-the-Pooh','The Grinch','Snoopy','Olaf'][i-20]):name);
-      const expanded=isDecemberMega(room.seed)?decemberCards(options.characters,room.seed):null;
-      const clues=spec.entries.map(entry=>{if(Number.isInteger(entry)){const card=expanded?.[entry];return {name:card?.name||names[entry],hint:card?.hint||'Spot this illuminated decoration',megaIndex:entry};}if(expanded){const index=expanded.findIndex(c=>decSlug(c.name)===decSlug(entry[0]));return {name:entry[0],hint:expanded[index]?.hint||entry[1],megaIndex:index>=0?index:null}}const ix=theme==='disney'?options.characters.findIndex(x=>x.toLowerCase()===entry[0].toLowerCase()):-1;return {name:entry[0],hint:entry[1],megaIndex:ix>=0?20+ix:null}});
-      const idNew=hex(bytes(16));
+      const options=huntOptions(room),idNew=hex(bytes(16));
+      const earlier=await listNights(huntId);
+      const prior=earlier.filter(n=>n.theme===theme).flatMap(n=>n.clues.map(c=>c.megaIndex).filter(Number.isInteger));
+      const clues=themedClues(theme,idNew,options.characters,room.seed,safeFound(b.found,isDecemberMega(room.seed)?125:30),prior);
+      if(!clues.length)return error('No clues in this category for this older Mega Hunt. Choose another theme or create a new December Mega.');
       await db.prepare('INSERT INTO hunt_nights(id,hunt_id,theme,title,clues_json,created_at) VALUES(?,?,?,?,?,?)').bind(idNew,huntId,theme,spec.title,JSON.stringify(clues),now).run();
       return json({ok:true,night:{id:idNew,theme,title:spec.title,clues,createdAt:now}});
     }
@@ -485,11 +499,11 @@ function decemberCards(characters=[],seed=''){
       .bind(roomId,await digest(token)).first();
   }
 
-  const huntClueCount = (room,collection) => collection?.kind==='standalone'?8:publicHuntMode(room)==='mega'?(isDecemberMega(room.seed)?125:30):room.mode==='family'?16:9;
+  const huntClueCount = (room,collection) => collection?.kind==='standalone'?JSON.parse(collection.clues_json||'[]').length:publicHuntMode(room)==='mega'?(isDecemberMega(room.seed)?125:30):room.mode==='family'?16:9;
   // Private owner index is authoritative across devices; guest links never expose household IDs.
   if(path==='/api/hunts/mine'&&method==='GET'){
     const owner=await session(request,db);if(!owner)return error('Sign in to see your hunts.',401);
-    const results=await db.prepare(`SELECT h.id,h.mode,h.seed,h.created_at,h.expires_at,c.title,c.kind,c.theme,c.play_mode,c.archived_at
+    const results=await db.prepare(`SELECT h.id,h.mode,h.seed,h.created_at,h.expires_at,c.title,c.kind,c.theme,c.play_mode,c.archived_at,c.clues_json
       FROM hunts h LEFT JOIN hunt_collections c ON c.hunt_id=h.id WHERE h.household_id=? ORDER BY h.created_at DESC LIMIT 100`).bind(owner.household_id).all();
     return json({hunts:(results.results||[]).map(r=>({id:r.id,mode:r.kind&&r.kind!=='legacy'?r.kind:publicHuntMode(r),title:r.title||(publicHuntMode(r)==='mega'?'Mega Lights Hunt':'Classic Lights Hunt'),theme:r.theme||'',playMode:r.play_mode||'competition',archived:!!r.archived_at,createdAt:r.created_at,expiresAt:r.expires_at,photoMode:huntOptions(r).photoMode,clueCount:huntClueCount(r,r),goal:isDecemberMega(r.seed)?100:publicHuntMode(r)==='mega'?30:undefined}))});
   }
@@ -908,13 +922,13 @@ function decemberCards(characters=[],seed=''){
     const huntId=hex(bytes(16)),raw=hex(bytes(16)),now=Date.now();
     if(mode==='mega'&&characters.some(c=>DEC_BASE.filter(Boolean).some(n=>decSlug(c)===decSlug(DEC_REPLACEMENTS[n]||n))||DEC_EXTRA.some(([n,category])=>category!=='Characters'&&n!=='Rudolph'&&decSlug(c)===decSlug(DEC_REPLACEMENTS[n]||n))))return error('Choose characters that are not already fixed Mega clues.');
     if(mode==='mega'&&new Set(characters.map(decSlug)).size!==5)return error('Choose five distinct characters.');
-    if(mode==='mega')await ensureHuntHQTables(db);
+    if(mode==='mega'||mode==='standalone')await ensureHuntHQTables(db);
     if(mode==='mega'&&photoMode){try{await ensureDecemberPhotoCapacity(db)}catch(e){console.error('December Mega photo setup:',e);return error('Photo Hunt setup could not complete safely. Your existing photos were not intentionally changed. Contact the site administrator.',503)}}
     const seasonYear=new Date(now-6*3600000).getUTCFullYear(),seasonMonth=new Date(now-6*3600000).getUTCMonth();
     const expiresAt=mode==='mega'&&seasonMonth>=10?Date.UTC(seasonYear+1,0,1,6):now+(mode==='mega'?45:30)*86400000;
     const seed=mode==='mega'?'mega-v4-'+raw+'~'+encodeURIComponent(JSON.stringify({characters,photoMode})):(photoMode?'photo-v1-':'')+raw;
     const storedMode=mode==='mega'?'family':mode==='standalone'?'easy':mode;
-    const clues=mode==='standalone'?themedClues(theme,raw,[]):[];
+    const clues=mode==='standalone'?themedClues(theme,raw,[]).map(({megaIndex,...c})=>c):[];
     const insertHunt=db.prepare('INSERT INTO hunts(id,household_id,mode,seed,created_at,expires_at) VALUES(?,?,?,?,?,?)')
       .bind(huntId,me.household_id,storedMode,seed,now,expiresAt);
     if(mode==='mega'||mode==='standalone'){
@@ -922,7 +936,7 @@ function decemberCards(characters=[],seed=''){
         .bind(huntId,title,mode,theme,playMode,JSON.stringify(clues),now);
       await db.batch([insertHunt,insertCollection]); // atomic: no orphan hunt if migration missing
     }else await insertHunt.run();
-    return json({ok:true,hunt:{id:huntId,mode,title,theme,playMode,seed,photoMode,characters,clues,expiresAt,clueCount:mode==='mega'?125:mode==='standalone'?8:mode==='family'?16:9,goal:mode==='mega'?100:undefined}});
+    return json({ok:true,hunt:{id:huntId,mode,title,theme,playMode,seed,photoMode,characters,clues,expiresAt,clueCount:mode==='mega'?125:mode==='standalone'?clues.length:mode==='family'?16:9,goal:mode==='mega'?100:undefined}});
   }
   const family=me.household_id;
   if(path==='/api/auth/logout'&&method==='POST'){

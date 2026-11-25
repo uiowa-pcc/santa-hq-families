@@ -58,7 +58,7 @@ const SantaHQIllustrations = (() => {
    Printable library uses worker-matched default theme clue definitions in hunt-print.html. */
 (()=>{'use strict';
 if(window.__santaPrintV3)return;window.__santaPrintV3=true;
-const THEMES=[['colors','Color Quest'],['disney','Disney Night'],['characters','Character Quest'],['classic','Christmas Classics'],['effects','Light Show Night'],['winter','Winter Wonderland'],['surprise','Holiday Mix']];
+const THEMES=[["disney","Disney Night"],["christmas-friends","Christmas Friends"],["stories","Storybook & TV Favorites"],["animals","Merry Menagerie"],["classic","Christmas Classics"],["candy","Candyland"],["colors","Color Quest"],["home","Neighborhood Glow"],["scenes","North Pole Adventure"],["words","Merry Messages"],["effects","Light Show Night"]];
 const NAMES=Object.fromEntries(THEMES);
 const guest=!!document.getElementById('huntBoard');
 const escapeHTML=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -67,7 +67,7 @@ function printLink(theme='classic'){const u=new URL('./hunt-print.html',document
 function showSheet(url){const w=window.open(url.href,'_blank');if(w){try{w.opener=null}catch{}}else{window.location.assign(url.href)} }
 function openTheme(theme){if(theme==='random'){alert('Create the Surprise Me hunt first, then use Print matching hunt inside it so every clue matches.');return}showSheet(printLink(theme))}
 function readActiveClues(){const board=document.getElementById('huntBoard');if(!board)return null;
- const cards=[...board.querySelectorAll('.find')];if(cards.length<8||cards.length>125)return null;
+ const cards=[...board.querySelectorAll('.find')];if(cards.length<1||cards.length>125)return null;
  const clues=cards.map(card=>{
   const content=card.querySelector('.content');
   const name=content?.querySelector('strong')?.textContent?.trim()||'';
@@ -95,7 +95,7 @@ function library(){if(guest)return;
  const area=document.querySelector('.hunt-yearly-themes');
  if(area&&!document.querySelector('#santaPrintableLibrary')){
   const panel=document.createElement('section');panel.id='santaPrintableLibrary';panel.className='santa-print-library';
-  panel.innerHTML=`<div class="santa-print-title"><div><strong>Printable Lights Hunts</strong><small>Illustrated paper missions that match the online themes</small></div><button type="button" data-print-all>Print all 7</button></div><div class="santa-print-themes">${THEMES.map(([id,label])=>`<button type="button" data-print-theme="${id}"><span aria-hidden="true">✦</span> ${escapeHTML(label)}</button>`).join('')}</div><p class="santa-print-explain">For a custom, Surprise Me, or Mega hunt, open that hunt and select <b>Print matching hunt</b> to get its exact clues.</p>`;
+  panel.innerHTML=`<div class="santa-print-title"><div><strong>Printable Lights Hunts</strong><small>Illustrated sample missions from the same Mega Hunt categories</small></div><button type="button" data-print-all>Print all 11</button></div><div class="santa-print-themes">${THEMES.map(([id,label])=>`<button type="button" data-print-theme="${id}"><span aria-hidden="true">✦</span> ${escapeHTML(label)}</button>`).join('')}</div><p class="santa-print-explain">For any actual themed, Surprise Me, or Mega hunt, open that hunt and select <b>Print matching hunt</b> to get its exact clues.</p>`;
   area.insertAdjacentElement('afterend',panel);
  }
  const selected=document.getElementById('huntStandaloneTheme');

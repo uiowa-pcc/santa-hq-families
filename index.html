@@ -3506,9 +3506,9 @@ appState.huntHQSaves={};
 appState.huntHQBusy=new Set();
 appState.huntHQList=null;
 appState.huntStandaloneTheme='colors';
-appState.huntPlayMode='competition';
+appState.huntPlayMode='solo';
 appState.huntCollectionDraft='';
-const HUNT_NIGHT_CHOICES=[['colors','Color Quest'],['disney','Disney Night'],['characters','Character Quest'],['classic','Christmas Classics'],['effects','Light Show Night'],['winter','Winter Wonderland'],['surprise','Holiday Mix']];
+const HUNT_NIGHT_CHOICES=[["disney","Disney Night"],["christmas-friends","Christmas Friends"],["stories","Storybook & TV Favorites"],["animals","Merry Menagerie"],["classic","Christmas Classics"],["candy","Candyland"],["colors","Color Quest"],["home","Neighborhood Glow"],["scenes","North Pole Adventure"],["words","Merry Messages"],["effects","Light Show Night"]];
 function allHolidayHunts(plan){
  if(Array.isArray(appState.huntHQList))return appState.huntHQList;
  const list=Array.isArray(plan.hunts)?plan.hunts.filter(x=>x&&x.id):[];
@@ -3563,7 +3563,8 @@ function completedHuntThemes(plan){
    if(Number.isInteger(recorded))add(theme,recorded);
    else if(huntProgressText(found,total).startsWith('Complete'))add(theme,new Date(createdAt).getFullYear());
   };
-  if(hunt.mode==='standalone')include('standalone',hunt.theme,hunt.createdAt,saved.found,8);
+  if(hunt.mode==='standalone')include('standalone',hunt.theme,hunt.createdAt,saved.found,hunt.clueCount||8);
+  for(const [key,year] of Object.entries(saved.completionYears||{}))if(key.startsWith('personal:'))add(key.slice(9),year);
   for(const night of appState.huntHQSaves[hunt.id]||[]){
    include(night.id,night.theme,night.createdAt,saved.nightFound?.[night.id],night.clues?.length||8);
   }
@@ -3602,31 +3603,31 @@ function huntHQCards(plan){
   const nights=appState.huntHQSaves[h.id]||[],mega=h.mode==='mega',date=new Date(h.createdAt||Date.now()).toLocaleDateString(undefined,{month:'short',day:'numeric'}),active=!h.archived&&(!h.expiresAt||h.expiresAt>Date.now());
   const title=escapeHTML(h.title||(mega?'Mega Lights Hunt':'Christmas Lights Hunt'));
   const progress=savedHuntProgress(h.id);
-  const clueCount=mega?(h.clueCount||30):h.mode==='standalone'?8:h.mode==='family'?16:9;
-  const type=mega?(clueCount===125?'December Mega · goal 100 / 125':'30-clue Mega competition'):h.mode==='standalone'?'8-clue standalone':'Earlier standalone hunt';
+  const clueCount=mega?(h.clueCount||30):h.mode==='standalone'?(h.clueCount||8):h.mode==='family'?16:9;
+  const type=mega?(clueCount===125?'December Mega · goal 100 / 125':'30-clue Mega competition'):h.mode==='standalone'?clueCount+'-clue themed hunt':'Earlier standalone hunt';
   return `<section class="cp-hq-card ${h.archived?'archived':''}"><div class="cp-hq-card-head"><div><strong>${title}</strong><small>${type} · ${h.playMode==='solo'?'Play independently':'Compete'} · ${escapeHTML(date)}${mega?' · '+nights.length+' mini hunts':''}</small></div><span class="cp-hq-tag">${h.archived?'ARCHIVED':!active?'ENDED':mega?'MEGA':'STANDALONE'}</span></div>
   ${progress?`<p class="cp-small-note">On this device · ${clueCount===125?`${new Set(progress.found||[]).size} found · goal ${new Set(progress.found||[]).size>=100?'complete!':'100'}`:huntProgressText(progress.found,clueCount)}</p>`:''}
   <div class="cp-hunt-actions"><button type="button" class="secondary" data-action="holiday-hunt-open" data-hunt="${h.id}">${h.archived?'View memories':'Open hunt'} ↗</button><button type="button" class="secondary" data-action="holiday-hunt-copy" data-hunt="${h.id}">Copy link</button><button type="button" class="secondary" data-action="holiday-hunt-rename" data-hunt="${h.id}">Rename</button><button type="button" class="secondary" data-action="holiday-hunt-${h.archived?'restore':'archive'}" data-hunt="${h.id}">${h.archived?'Restore':'Archive'}</button><button type="button" class="secondary cp-hunt-danger" data-action="holiday-hunt-delete" data-hunt="${h.id}" aria-label="Permanently delete ${title}">Delete</button></div>
-  ${mega&&active?`<div class="cp-hq-create"><label>Add a themed mini hunt<select data-hq-theme="${h.id}">${HUNT_NIGHT_CHOICES.map(([id,name])=>`<option value="${id}">${escapeHTML(name)}</option>`).join('')}</select></label><button type="button" class="primary" data-action="holiday-hunt-night-create" data-hunt="${h.id}">+ Add themed hunt</button></div>`:''}
-  ${mega&&nights.length?`<div class="cp-hq-night-list">${nights.map(n=>`<a href="${escapeHTML(holidayHuntLink(h.id)+'&night='+n.id)}"><strong>${escapeHTML(n.title)}</strong><small>${progress?huntProgressText(progress.nightFound?.[n.id],n.clues?.length||8):'8 clues'} · ${new Date(n.createdAt).toLocaleDateString(undefined,{month:'short',day:'numeric'})}</small></a>`).join('')}</div>`:''}
+  ${mega&&active?`<div class="cp-hq-create"><label>Add a shared themed challenge<select data-hq-theme="${h.id}">${[...HUNT_NIGHT_CHOICES,['random','Surprise Me']].map(([id,name])=>`<option value="${id}">${escapeHTML(name)}</option>`).join('')}</select></label><button type="button" class="primary" data-action="holiday-hunt-night-create" data-hunt="${h.id}">+ Group challenge</button><a class="secondary" href="${escapeHTML(holidayHuntLink(h.id))}">Play a family-only theme inside Mega ↗</a></div>`:''}
+  ${mega&&nights.length?`<div class="cp-hq-night-list">${nights.map(n=>`<a href="${escapeHTML(holidayHuntLink(h.id)+'&night='+n.id)}"><strong>${escapeHTML(n.title)}</strong><small>${progress?huntProgressText(progress.nightFound?.[n.id],n.clues?.length||8):(n.clues?.length||8)+' clues'} · ${new Date(n.createdAt).toLocaleDateString(undefined,{month:'short',day:'numeric'})}</small></a>`).join('')}</div>`:''}
   ${h.archived?'<p class="cp-small-note">Saved as a read-only memory. Existing photos and results remain attached; you can restore while the original hunt is still in its time window.</p>':''}</section>`;
  };
  const active=entries.filter(h=>!h.archived),archived=entries.filter(h=>h.archived);
  return `<section class="cp-panel"><div class="cp-top"><div><h2>Your hunts</h2><p>Every competition has its own group, invite link, leaderboard and pictures. Archived hunts stay separate from active ones. You can archive to keep memories or permanently delete an unwanted hunt.</p></div></div><div class="cp-hq-hunts">${active.map(renderCard).join('')||'<p class="cp-small-note">No active hunts yet.</p>'}</div>${archived.length?`<details class="cp-hq-archived"><summary>Archived hunts (${archived.length})</summary><div class="cp-hq-hunts">${archived.map(renderCard).join('')}</div></details>`:''}</section>`;
 }
 function holidayHuntPage(){
- const plan=holidayPlan(),mode=appState.huntMode==='mega'?'mega':'standalone',selected=huntSelectedCharacters(),photoMode=huntPhotoSelected(),theme=appState.huntStandaloneTheme||'colors',playMode=appState.huntPlayMode||'competition';
+ const plan=holidayPlan(),mode=appState.huntMode==='mega'?'mega':'standalone',selected=huntSelectedCharacters(),photoMode=huntPhotoSelected(),theme=appState.huntStandaloneTheme||'colors',playMode=appState.huntPlayMode||(mode==='mega'?'competition':'solo');
  return `<div class="cp-page">${heading('','Lights Hunt','Start a hunt or pick up where you left off.',false)}
  ${huntYearlyGoal(plan)}
  ${huntHQCards(plan)}
- <section class="cp-panel"><div class="cp-top"><div><h2>Create a hunt</h2><p>Standalone is always 8 clues. December Mega offers 125 unique finds; reach 100 to become a Christmas Lights Legend.</p></div></div>
- <div class="cp-choice" aria-label="Choose a hunt type"><button type="button" data-action="holiday-hunt-mode" data-mode="standalone" aria-pressed="${mode==='standalone'}"><span class="cp-hunt-card-title">Standalone Hunt</span><small>8 clues · themed or randomized · play once</small></button><button type="button" data-action="holiday-hunt-mode" data-mode="mega" aria-pressed="${mode==='mega'}"><span class="cp-hunt-card-title"><span class="cp-mega-label">MEGA</span> Mega Hunt</span><small>125 clues · goal 100 · all December</small></button></div>
+ <section class="cp-panel"><div class="cp-top"><div><h2>Create a hunt</h2><p>Choose a themed adventure just for your family, or invite other teams to compete. Themes use up to eight clues from the Mega collection. December Mega offers 125 unique finds; reach 100 to become a Christmas Lights Legend.</p></div></div>
+ <div class="cp-choice" aria-label="Choose a hunt type"><button type="button" data-action="holiday-hunt-mode" data-mode="standalone" aria-pressed="${mode==='standalone'}"><span class="cp-hunt-card-title">Standalone Hunt</span><small>Up to 8 clues · family-only or group challenge</small></button><button type="button" data-action="holiday-hunt-mode" data-mode="mega" aria-pressed="${mode==='mega'}"><span class="cp-hunt-card-title"><span class="cp-mega-label">MEGA</span> Mega Hunt</span><small>125 clues · goal 100 · all December</small></button></div>
  <div class="cp-hq-creation"><label>Name your hunt<input id="huntCollectionTitle" type="text" maxlength="65" value="${escapeHTML(appState.huntCollectionDraft||'')}" placeholder="e.g. Bailey family lights · Neighborhood challenge"></label>
- <div class="cp-hq-creation-grid">${mode==='standalone'?`<label>Choose a theme<select id="huntStandaloneTheme" data-action="holiday-hunt-theme">${[...HUNT_NIGHT_CHOICES,['random','Surprise me · randomized']].map(([id,name])=>`<option value="${id}" ${theme===id?'selected':''}>${escapeHTML(name)}</option>`).join('')}</select></label>`:''}<label>How will you play?<select id="huntPlayMode" data-action="holiday-hunt-play-mode"><option value="competition" ${playMode==='competition'?'selected':''}>Compete · live leaderboard</option><option value="solo" ${playMode==='solo'?'selected':''}>Independently · no leaderboard</option></select></label></div></div>
+ <div class="cp-hq-creation-grid">${mode==='standalone'?`<label>Choose a theme<select id="huntStandaloneTheme" data-action="holiday-hunt-theme">${[...HUNT_NIGHT_CHOICES,['random','Surprise me · randomized']].map(([id,name])=>`<option value="${id}" ${theme===id?'selected':''}>${escapeHTML(name)}</option>`).join('')}</select></label>`:''}<label>How will you play?<select id="huntPlayMode" data-action="holiday-hunt-play-mode"><option value="competition" ${playMode==='competition'?'selected':''}>Invite other teams · live leaderboard</option><option value="solo" ${playMode==='solo'?'selected':''}>Just our family · no leaderboard</option></select></label></div></div>
  ${mode==='mega'?`<div class="cp-hunt-builder"><div class="cp-top"><div><h3>Choose 5 character finds</h3><p>Pick five favorites for your 125-clue Mega Hunt. These join the fixed holiday characters and decorations.</p></div><strong class="cp-hunt-picked">${selected.length}/5 chosen</strong></div>
  ${huntUploadedCharacters.length?`<div class="cp-uploaded-character-heading"><h4>Characters from your uploaded photos</h4></div><div class="cp-character-photos">${huntUploadedCharacters.map(item=>`<button type="button" data-action="holiday-hunt-character" data-character="${escapeHTML(item.name)}" aria-pressed="${selected.some(n=>huntCharacterSlug(n)===item.slug)}"><img src="${escapeHTML(item.url)}" loading="lazy" alt="Example of ${escapeHTML(item.name)}"><span>${escapeHTML(item.name)}</span></button>`).join('')}</div>`:''}
  <p class="cp-character-list-caption">Character options</p><div class="cp-character-list">${[...new Map([...HUNT_CHARACTER_LIBRARY,...selected].filter(name=>!huntUploadedCharacters.some(item=>item.slug===huntCharacterSlug(name))).map(name=>[huntCharacterSlug(name),name])).values()].map(name=>`<button type="button" data-action="holiday-hunt-character" data-character="${escapeHTML(name)}" aria-pressed="${selected.some(x=>huntCharacterSlug(x)===huntCharacterSlug(name))}">${selected.some(x=>huntCharacterSlug(x)===huntCharacterSlug(name))?'✓ ':''}${escapeHTML(name)}</button>`).join('')}</div><div class="cp-add-custom-character"><input id="huntCustomCharacter" maxlength="40" placeholder="Another light-up character"><button type="button" class="secondary" data-action="holiday-hunt-character-custom">Add</button></div></div>`:''}
- <div class="cp-hunt-builder cp-hunt-photo-mode"><label><input type="checkbox" data-action="holiday-hunt-photo-mode" ${photoMode?'checked':''}><span><strong>Photo Hunt</strong><small>Take pictures to complete clues. Choose whether to share each picture, and optionally also add it to another hunt you've joined.</small></span></label></div>
+ <div class="cp-hunt-builder cp-hunt-photo-mode"><label><input type="checkbox" data-action="holiday-hunt-photo-mode" ${photoMode?'checked':''}><span><strong>Photo Hunt</strong><small>Take pictures or mark clues found without a photo. Choose whether to share each picture, and optionally also add it to another hunt you've joined.</small></span></label></div>
  <div class="cp-hunt-actions"><button type="button" class="primary" data-action="holiday-hunt-generate">Create ${mode==='mega'?'Mega':'Standalone'} Hunt</button></div>
  <p class="cp-small-note">Only players with an invitation link can join. Separate groups have separate scores and photo feeds. Adding a picture to another hunt requires that you already joined that hunt on the same device and that its clue matches.</p>
  </section></div>`;
@@ -3658,7 +3659,7 @@ function holidayAction(action,el){const kind=el.dataset.kind,id=el.dataset.id;
  if(action==='holiday-view'){appState.holidayView=el.dataset.view;render();if(appState.holidayView==='hunt'){void loadUploadedHuntCharacters();void loadHuntHQRounds();}return}
  if(action==='holiday-add'){openHolidayEditor(kind);return}
  if(action==='holiday-edit'){openHolidayEditor(kind,id);return}
- if(action==='holiday-hunt-mode'){appState.huntMode=el.dataset.mode==='mega'?'mega':'standalone';render();return}
+ if(action==='holiday-hunt-mode'){appState.huntMode=el.dataset.mode==='mega'?'mega':'standalone';appState.huntPlayMode=appState.huntMode==='mega'?'competition':'solo';render();return}
  if(action==='holiday-hunt-theme'){appState.huntStandaloneTheme=el.value;return}
  if(action==='holiday-hunt-play-mode'){appState.huntPlayMode=el.value;return}
  if(action==='holiday-hunt-character'){
@@ -3716,10 +3717,10 @@ function holidayAction(action,el){const kind=el.dataset.kind,id=el.dataset.id;
  }
  if(action==='holiday-hunt-night-create'){
   const huntId=String(el.dataset.hunt||'');const choice=document.querySelector(`select[data-hq-theme="${huntId}"]`);const theme=choice?.value;
-  if(!/^[a-f0-9]{32}$/.test(huntId)||!HUNT_NIGHT_CHOICES.some(x=>x[0]===theme))return;
+  if(!/^[a-f0-9]{32}$/.test(huntId)||!([...HUNT_NIGHT_CHOICES,['random','Surprise Me']].some(x=>x[0]===theme)))return;
   el.disabled=true;el.textContent='Adding night…';
   (async()=>{try{
-   const r=await fetch('/api/hunts/'+huntId+'/nights',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({theme})});
+   const r=await fetch('/api/hunts/'+huntId+'/nights',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({theme,found:savedHuntProgress(huntId)?.found||[]})});
    const data=await r.json();if(!r.ok)throw Error(data.error||'Could not create a themed hunt');
    appState.huntHQSaves[huntId]=[...(appState.huntHQSaves[huntId]||[]),data.night];render();
    showToast(data.night.title+' added! Your friends can find it through the same Mega Hunt link.');
@@ -3746,7 +3747,7 @@ boot();
 <script src="./family-hq.js"></script>
 <script src="./kid-view-recording-fix.js?v=20261122"></script>
 <script src="./north-pole-adventure.js?v=20261123-magic-window-v4"></script>
-<script src="./hunt-print.js?v=20261123-december-mega"></script>
+<script src="./hunt-print.js?v=20261125-aligned-themes"></script>
 <script src="./mega-hunt-picker-upgrade.js?v=20261123"></script>
 </body>
 </html>
