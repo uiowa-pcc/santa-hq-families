@@ -10,17 +10,22 @@ const DEC_EXTRA = [["Minnie Mouse","Characters",1],["Donald Duck","Characters",1
 const DEC_TIERS = ["common","common","common","common","common","common","common","common","common","common","common","common","common","common","common","common","common","common","uncommon","uncommon","uncommon","uncommon","uncommon","uncommon","uncommon","rare","uncommon","uncommon","uncommon","uncommon","common","uncommon","uncommon","uncommon","uncommon","uncommon","uncommon","uncommon","uncommon","uncommon","rare","rare","rare","rare","rare","rare","rare","rare","rare","rare","rare","rare","legendary","legendary","legendary","common","common","common","common","common","common","uncommon","uncommon","uncommon","uncommon","uncommon","rare","rare","rare","legendary","common","common","common","common","common","common","common","uncommon","uncommon","uncommon","uncommon","uncommon","uncommon","uncommon","uncommon","rare","rare","rare","rare","legendary","common","common","common","common","common","common","common","common","uncommon","uncommon","common","common","common","common","common","common","uncommon","uncommon","uncommon","uncommon","uncommon","rare","rare","rare","legendary","common","common","common","common","uncommon","uncommon","uncommon","uncommon","rare","rare"];
 const DEC_RESERVE = ["Piglet","Rapunzel","SpongeBob SquarePants","Kermit the Frog","Pikachu","Mario","Yoshi","Peppa Pig","Elmo","Chase (PAW Patrol)"];
 const decSlug = s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
-const isDecemberMega = seed=>String(seed||'').startsWith('mega-v3-');
-function decemberCards(characters=[]){
+const isDecemberMega = seed=>/^mega-v[34]-/.test(String(seed||''));
+const isUniqueMega = seed=>String(seed||'').startsWith('mega-v4-');
+const DEC_REPLACEMENTS = {"Pink or purple lights": "Orange lights", "Lights spelling a word": "PEACE in lights", "Toy soldier": "Light-up rocking horse", "Light-up candy cottage": "Lighted bicycle"};
+const DEC_UNIQUE_HINTS = {"Orange lights": "Find a display glowing orange.", "PEACE in lights": "Find the word PEACE spelled with lights.", "Light-up rocking horse": "Spot an illuminated rocking horse decoration.", "Lighted bicycle": "Find a bicycle decorated with holiday lights.", "Two colors together": "Find a display using exactly two colors, not three or more.", "Rainbow lights": "Find a display with at least three different colors.", "Giant ornament": "Find one oversized glowing ornament, not an ornament cluster.", "Christmas ball cluster": "Find a group of ornaments displayed together.", "Big light-up gift": "Find a single illuminated wrapped present.", "Light-up gift stack": "Find several illuminated presents stacked together.", "Candy cane": "Find a single candy cane decoration.", "Candy cane pathway": "Find multiple candy canes lining a path.", "Snowman": "Find a generic snowman, not a named character.", "Reindeer": "Find an ordinary reindeer without a red nose.", "Santa sleigh": "Find a sleigh displayed without a team of reindeer.", "Reindeer pulling a sleigh": "Find reindeer attached to a sleigh.", "Holiday projector": "Find projected holiday pictures or shapes, rather than just laser dots.", "Laser light dots": "Find a pattern of tiny projected light dots, not pictures.", "Music-synced lights": "Find lights timed to a song.", "Singing Christmas display": "Find a decoration that appears to sing, with a moving mouth or singing figure.", "Dancing light tree": "Find a tree-shaped display with animated patterns.", "Chasing light pattern": "Find lights that travel in sequence.", "Color-changing lights": "Find bulbs changing their colors over time.", "Twinkling lights": "Find lights that sparkle independently, rather than chasing in sequence.", "Light-up lollipop": "Find a candy decoration on a stick.", "Peppermint swirl": "Find a round peppermint decoration without a stick."};
+function decemberCards(characters=[],seed=''){
+ const unique=isUniqueMega(seed);
  const defaults=['Mickey Mouse','Winnie-the-Pooh','The Grinch','Snoopy','Olaf'];
- const names=DEC_BASE.map((name,i)=>i>=20&&i<=24?(characters[i-20]||defaults[i-20]):name);
+ const names=DEC_BASE.map((name,i)=>i>=20&&i<=24?(characters[i-20]||defaults[i-20]):(unique?(DEC_REPLACEMENTS[name]||name):name));
  const used=new Set(names.map(decSlug));
  const cards=names.map((name,i)=>({name,category:DEC_CATS[i],tier:DEC_TIERS[i]}));
  for(const [original,category] of DEC_EXTRA){
-  let name=original;if(used.has(decSlug(name)))name=DEC_RESERVE.find(n=>!used.has(decSlug(n))&&!DEC_EXTRA.some(x=>decSlug(x[0])===decSlug(n)));
+  let name=unique?(DEC_REPLACEMENTS[original]||original):original;if(used.has(decSlug(name)))name=DEC_RESERVE.find(n=>!used.has(decSlug(n))&&!DEC_EXTRA.some(x=>decSlug(x[0])===decSlug(n)));
   if(!name)throw Error('December clue reserve exhausted');
-  used.add(decSlug(name));cards.push({name,category,tier:DEC_TIERS[cards.length]});
+  used.add(decSlug(name));cards.push({name,category:unique&&name!==original&&!DEC_REPLACEMENTS[original]?'Characters':category,tier:DEC_TIERS[cards.length]});
  }
+ if(unique)for(const card of cards)if(DEC_UNIQUE_HINTS[card.name])card.hint=DEC_UNIQUE_HINTS[card.name];
  return cards;
 }
 
@@ -124,7 +129,7 @@ function generate(seed,mode){
  let r=rng(seed);const shuffle=items=>{for(let i=items.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[items[i],items[j]]=[items[j],items[i]]}return items};
  if(mode==='mega'&&isDecemberMega(seed)){
   const old=[...cards,...MEGA_NEW.map((c,i)=>({...c,photo:null,id:16+i}))];
-  return decemberCards(state.hunt?.characters).map((c,i)=>{const original=old[i];return {...original,...c,id:i,photo:i<16?original.photo:null,type:i<16?original.type:c.category==='Characters'?'character':c.category==='Animals & creatures'?'character':c.category==='Colors & styles'?'lights':c.category==='Words, music & effects'?'effect':'decor',hint:i>=20&&i<=24?'Find '+c.name+' in a holiday light display.':original?.hint||'Spot '+c.name.toLowerCase()+' in a holiday display.',icon:original?.icon||'✦'}});
+  return decemberCards(state.hunt?.characters,seed).map((c,i)=>{const original=old[i];return {...original,...c,id:i,photo:i<16&&c.name===original.name?original.photo:null,type:i<16?original.type:c.category==='Characters'?'character':c.category==='Animals & creatures'?'character':c.category==='Colors & styles'?'lights':c.category==='Words, music & effects'?'effect':'decor',hint:c.hint||(i>=20&&i<=24?'Find '+c.name+' in a holiday light display.':original?.hint||'Spot '+c.name.toLowerCase()+' in a holiday display.'),icon:original?.icon||'✦'}});
  }
  if(mode==='mega'){
   const originals=cards.map((c,i)=>({...c,tier:MEGA_ORIGINAL_TIERS[i]}));
@@ -164,14 +169,14 @@ function cardFromClue(c,i){const original=CLUES.find(x=>slugFor(x[0])===slugFor(
 function competitionClues(hunt){
  if(hunt.mode==='standalone')return Array.isArray(hunt.clues)?hunt.clues:[];
  if(hunt.mode==='mega'){
-   if(isDecemberMega(hunt.seed))return decemberCards(hunt.characters);
+   if(isDecemberMega(hunt.seed))return decemberCards(hunt.characters,hunt.seed);
    const names=[...CLUES.map(x=>x[0]),...MEGA_NEW.map(x=>x.name)];
    (hunt.characters||[]).forEach((name,i)=>{if(i<5)names[20+i]=name});
    return names.map(name=>({name}));
  }
  return [];
 }
-function matchedClue(name,targetName){const a=slugFor(name),b=slugFor(targetName);return a===b||(['pink-or-purple-lights','purple-lights'].includes(a)&&['pink-or-purple-lights','purple-lights'].includes(b))}
+function matchedClue(name,targetName){const a=slugFor(name),b=slugFor(targetName);return a===b}
 async function refreshCrossChoices(){
  const container=$('otherHuntChoices');if(!container)return;
  container.hidden=true;container.innerHTML='';state.crossCandidates=[];
@@ -258,7 +263,7 @@ $('nightNav')?.addEventListener('click',event=>{const b=event.target.closest('[d
 function card(c,i){
  const picture=c.photo!==null&&c.photo!==undefined;
  const x=picture?(c.photo%4)*100/3:0,y=picture?Math.floor(c.photo/4)*100/3:0;
- const custom=state.photoOverrides[slugFor(c.name)]||'';
+ const custom=state.photoOverrides[slugFor(c.name)]||(slugFor(c.name)==='the-abominable-snow-monster'?state.photoOverrides.bumble:'')||'';
  const myPhoto=photoForClue(c,i);
  const mySrc=myPhoto&&(state.photoUrls[myPhoto.id]|| (myPhoto.shared?photoUrl(myPhoto.id):''));
  const altSrc=mySrc||custom;
@@ -291,7 +296,7 @@ const decNamedGroups={
  disney:['Mickey Mouse','Minnie Mouse','Donald Duck','Goofy','Pluto','Winnie-the-Pooh','Winnie-the-Pooh and Piglet','Piglet','Tigger','Eeyore','Olaf','Elsa','Anna','Stitch','Jack Skellington','Zero (Nightmare Before Christmas)','Grogu (Baby Yoda)','The Mandalorian','Rapunzel','Simba'],
  candy:['Candy cane','Candy cane pathway','Gingerbread house','Peppermint swirl','Light-up lollipop','Light-up candy cottage'],
  home:['Colorful roof','Tree in a window','Lighted front door','Glowing bush','Wrapped tree trunk','Decorated porch','Lighted fence','Lighted driveway','Lights on a balcony','Light-up mailbox','Christmas tree'],
- words:['Lights spelling a word','JOY in lights','NOEL in lights','Merry Christmas in lights','Happy Holidays in lights']
+ words:['PEACE in lights','Lights spelling a word','JOY in lights','NOEL in lights','Merry Christmas in lights','Happy Holidays in lights']
 };
 const decNamedGroupMap=new Map(Object.entries(decNamedGroups).flatMap(([group,names])=>names.map(name=>[decSlug(name),group])));
 function decGroupFor(c){return decNamedGroupMap.get(decSlug(c.name))||({'Characters':'stories','Animals & creatures':'animals','Christmas decorations':'decor','Colors & styles':'colors','Holiday scenes':'scenes','Words, music & effects':'effects'}[c.category])||'decor'}
