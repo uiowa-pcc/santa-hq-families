@@ -3442,10 +3442,10 @@ const HUNT_CHARACTER_LIBRARY=[
  'Jack Skellington','Zero (Nightmare Before Christmas)','Grogu (Baby Yoda)',
  'The Mandalorian','Minion','Charlie Brown','Woodstock','Sally Brown',
  'Max (The Grinch)','Cindy Lou Who','Scooby-Doo','Elsa','Anna','The Abominable Snow Monster',
- 'Bumble','Buddy the Elf','Pikachu','Peppa Pig','Elmo','Oscar the Grouch',
+ 'Buddy the Elf','Pikachu','Peppa Pig','Elmo','Oscar the Grouch',
  'Kermit the Frog','SpongeBob SquarePants','Patrick Star','Mario','Yoshi',
- 'The Nutcracker','Gingerbread Man','The Polar Express train','Donald Duck',
- 'Goofy','Pluto','Winnie-the-Pooh and Piglet','Chase (PAW Patrol)',
+ 'The Nutcracker','The Polar Express train','Donald Duck',
+ 'Goofy','Pluto','Chase (PAW Patrol)',
  'Marshall (PAW Patrol)','Tigger','Eeyore','Simba'
 ];
 const HUNT_DEFAULT_CHARACTERS=['Mickey Mouse','Winnie-the-Pooh','The Grinch','Snoopy','Olaf'];
@@ -3461,6 +3461,7 @@ const HUNT_FIXED_PHOTO_SLUGS=new Set([
  'light-tunnel-or-arch','lights-spelling-a-word'
 ]);
 ["polar-bear", "fox", "owl", "cardinal", "squirrel", "rabbit", "dog-in-a-santa-hat", "cat-in-a-santa-hat", "dinosaur", "unicorn", "dragon", "giraffe", "elephant", "flamingo", "christmas-stocking", "giant-bow", "light-up-bell", "holly-leaves", "mistletoe", "christmas-candle", "light-up-lantern", "christmas-drum", "toy-soldier", "candy-cane-pathway", "gingerbread-house", "peppermint-swirl", "light-up-lollipop", "christmas-angel", "christmas-crown", "light-up-candy-cottage", "christmas-ball-cluster", "lighted-garland", "light-up-gift-stack", "light-up-snow-globe", "red-lights", "green-lights", "blue-lights", "white-lights", "purple-lights", "pink-lights", "yellow-lights", "two-colors-together", "rainbow-lights", "twinkling-lights", "tree-in-a-window", "lighted-front-door", "glowing-bush", "wrapped-tree-trunk", "decorated-porch", "lighted-fence", "lighted-driveway", "lights-on-a-balcony", "santa-on-a-roof", "reindeer-pulling-a-sleigh", "christmas-train", "santa-workshop", "north-pole-sign", "christmas-village", "lighted-bridge", "joy-in-lights", "noel-in-lights", "merry-christmas-in-lights", "happy-holidays-in-lights", "lights-in-a-spiral", "color-changing-lights", "dancing-light-tree", "laser-light-dots", "animated-santa-waving", "singing-christmas-display"].forEach(slug => HUNT_FIXED_PHOTO_SLUGS.add(slug));
+["orange-lights", "peace-in-lights", "light-up-rocking-horse", "lighted-bicycle", "bumble", "gingerbread-man", "winnie-the-pooh-and-piglet"].forEach(slug=>HUNT_FIXED_PHOTO_SLUGS.add(slug));
 const huntCharacterSlug=name=>String(name||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 const huntCharacterNamesBySlug=new Map(HUNT_CHARACTER_LIBRARY.map(name=>[huntCharacterSlug(name),name]));
 let huntUploadedCharacters=[];
