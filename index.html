@@ -1679,6 +1679,63 @@ body:has(.christmas-gifts) .mobile-add{display:none}
 .app #content .gift-board-grip{display:grid;place-items:center;flex:none;width:27px;min-height:44px;border:0;background:none;padding:0;color:#a98a96;border-radius:8px;cursor:grab;touch-action:none}.app #content .gift-board-grip span{width:10px;height:20px;background:radial-gradient(circle,#ae8a99 1.4px,transparent 1.8px) 0 0/5px 6px}.app #content .gift-board-grip:hover{background:#f4e7ec}.app #content .gift-confirm-toggle{display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:11px;font-weight:750;flex:none;white-space:nowrap;min-height:42px}.app #content .gift-confirm-box{display:grid;place-items:center;width:17px;height:17px;border:1px solid #c592a5;border-radius:5px;background:#fff;flex:none;color:white;font-size:12px}.app #content .gift-confirm-toggle[aria-pressed="true"] .gift-confirm-box{background:#991c43;border-color:#991c43}.app #content .gift-confirm-needs-recipient{font-size:11px;color:#795565}.app #content .gift-morning-pile>header{display:flex;align-items:center;gap:8px}.app #content .gift-morning-pile>header h2{margin:0;flex:1}.app #content .gift-morning-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.app #content .gift-drag{font-size:19px;color:#a98a96;cursor:grab;touch-action:none}.app #content .gift-board-tabs button{display:inline-flex;align-items:center;justify-content:center;font-weight:750}.app #content .gift-drop-dock[aria-hidden="true"]:not(.active){/* retain original drag-dock visibility rules */}
 .app #content .ws-hero+.ws-switch{margin-top:0!important}.app #content .wb-page{gap:0}.app #content .ws-metrics+.gift-simple-board{margin-top:0}.app #content .ws-hero .ws-kicker{margin-bottom:2px}.app #content .cp-page>.ws-hero,.app #content .cp-page>.ws-switch,.app #content .cp-page>.ws-metrics{margin-bottom:0!important}
 @media(max-width:760px){.app #content .ws-hero{padding:15px;min-height:100px}.app #content .ws-hero .christmas-workspace-title{gap:8px}.app #content .ws-hero .ws-sub{max-width:32ch}.app #content .ws-hero .plain-btn{padding:6px 10px;min-height:33px}.app #content .gift-simple-row,.app #content .gift-morning-card{gap:6px}.app #content .gift-board-grip{width:21px}.app #content .gift-confirm-toggle{font-size:10px;padding:6px 7px}.app #content .gift-confirm-box{width:14px;height:14px}.app #content .gift-simple-detail img{width:34px;height:34px}.app #content .gift-simple-detail{gap:6px}.app #content .gift-simple-detail strong{font-size:12px}.app #content .gift-morning-grid .gift-morning-card .gift-simple-detail{flex-direction:column;align-items:flex-start}.app #content .gift-morning-grid .gift-morning-card .gift-drag{font-size:16px}.app #content .gift-morning-grid .gift-morning-pile>header{gap:4px}.app #content .gift-morning-grid .gift-morning-pile>header h2{font-size:16px!important}.app #content .gift-morning-grid .gift-morning-count{padding:2px 5px;margin-left:0}}
+</style>
+<style id="modern-interactions">/* Modern interaction layer: gift tiles, clean tasks and purposeful shopping rows. */
+.app #content .gift-simple-board {gap:16px}
+.app #content .gift-tile-grid,.app #content .gift-morning-cards{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(min(100%,155px),1fr));gap:12px!important;padding:6px 0 9px!important;align-items:stretch;min-height:70px}
+.app #content .gift-tile-grid .gift-pile-empty,.app #content .gift-morning-cards .gift-pile-empty{grid-column:1/-1;text-align:center;padding:19px 10px;border:1px dashed #dfcbd2;border-radius:13px;background:#fffaf8}
+.app #content .gift-simple-row,.app #content .gift-morning-card{position:relative;display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:space-between!important;min-width:0;min-height:0;aspect-ratio:1/.99;gap:6px!important;margin:0!important;padding:8px!important;border:1px solid #e9d8df!important;border-radius:20px!important;background:#fffdfa!important;box-shadow:0 3px 9px #54223908!important;cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:pan-y;transition:box-shadow .15s,transform .15s,border-color .15s}
+.app #content .gift-simple-row[data-confirmed="true"]{border-color:#d9b5c4!important;background:#fbf0f3!important}
+.app #content :is(.gift-simple-row,.gift-morning-card):hover{border-color:#c797ac!important;box-shadow:0 7px 19px #54223913!important}
+.app #content :is(.gift-simple-row,.gift-morning-card).tile-armed{transform:scale(1.025);box-shadow:0 8px 20px #80163527!important;border-color:#a43f63!important}
+.app #content .tile-body{display:flex!important;flex:1 1 auto!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;gap:7px!important;padding:0!important;min-width:0;width:100%;background:none!important;border:0!important;cursor:grab!important;touch-action:pan-y;overflow:hidden}
+.app #content .tile-visual{display:grid!important;place-items:center;width:100%;height:clamp(45px,7.5vw,84px);overflow:hidden;border-radius:13px;background:radial-gradient(ellipse at 40% 20%,#fff8ef,#f2e2eb);flex:none;pointer-events:none}
+.app #content .tile-visual img{width:100%!important;height:100%!important;max-width:none!important;object-fit:contain!important;border:0!important;border-radius:0!important;background:#fff!important;pointer-events:none}
+.app #content .tile-visual svg{width:58px!important;height:58px!important;max-width:90%;max-height:90%;pointer-events:none}
+.app #content .tile-copy{display:grid!important;gap:3px!important;padding:0 2px;text-align:left;min-width:0}
+.app #content .tile-copy strong{font:750 13px/1.25 'DM Sans',sans-serif!important;color:#4d2d40;display:-webkit-box!important;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.app #content .tile-copy small{font:600 11px/1.3 'DM Sans',sans-serif!important;color:#775565;white-space:normal}
+.app #content .gift-confirm-toggle,.app #content .gift-confirm-needs-recipient{width:100%;display:flex!important;justify-content:center;gap:5px;border-radius:11px!important;min-height:34px;padding:6px 5px!important;font-size:11px!important;line-height:1.15;text-align:center;cursor:pointer;flex:none}
+.app #content .gift-confirm-toggle[aria-pressed="true"]{background:#f0dce5!important;color:#792444!important;border:0!important}
+.app #content .gift-confirm-needs-recipient{cursor:default;color:#805f6e;background:#f9eeef}
+.app #content .gift-morning-grid{gap:12px!important;align-items:start}
+.app #content .gift-morning-grid .gift-morning-cards{grid-template-columns:repeat(auto-fill,minmax(min(100%,140px),1fr))}
+.app #content .gift-morning-card{aspect-ratio:1/.9;min-height:110px}
+.app #content .gift-morning-card .tile-visual{height:clamp(55px,8vw,94px)}
+.app #content .gift-pile-heading{cursor:pointer}.app #content .gift-pile-heading>span:last-child{background:transparent!important}
+.app #content .gift-board-tabs{gap:5px!important;padding:5px;background:#f8eef1;border:1px solid #ecdce2;border-radius:16px}
+.app #content .gift-board-tabs button{border:0!important;flex:1 1 auto;background:transparent!important}.app #content .gift-board-tabs button[aria-pressed="true"]{background:#fffdfa!important;box-shadow:0 3px 8px #752b4511!important;color:#8e1b42!important}
+.app #content .gift-simple-row.sq-source,.app #content .gift-morning-card.sq-source{opacity:.28;transform:scale(.96)}
+.app #content .gift-simple-row.sq-before,.app #content .gift-morning-card.sq-before{box-shadow:-4px 0 0 #a7446c!important}
+.app #content .gift-simple-pile.sq-hover,.app #content .gift-morning-pile.sq-hover{outline:2px solid #aa5576;outline-offset:2px;background:#fbeff4!important}
+.gift-drag-preview.sq-ghost{position:fixed!important;z-index:999999!important;pointer-events:none!important;display:grid!important;gap:8px;width:142px;max-width:42vw;padding:9px;background:#fffaf7;color:#5d3147;border:1px solid #cc9cb1;border-radius:19px;box-shadow:0 16px 35px #49233740;transform:rotate(-4deg);font:750 12px/1.25 'DM Sans',sans-serif;text-align:left;overflow:hidden}
+.gift-drag-preview .tile-visual{display:grid;place-items:center;height:68px;background:#f3e1ea;border-radius:11px;overflow:hidden}.gift-drag-preview .tile-visual img{width:100%;height:100%;object-fit:contain;background:white}.gift-drag-preview .tile-visual svg{width:48px;height:48px}
+body.gift-dragging{cursor:grabbing!important;user-select:none;-webkit-user-select:none}
+/* Keep checklist focus on the task, not a wall of buttons. */
+.app #content .cp-list,.app #content .cp-shop-items{display:grid;gap:7px!important}
+.app #content :is(.cp-item,.cp-shop-row){background:#fffaf8!important;border:1px solid #eddee3!important;border-radius:14px!important;padding:10px 12px!important;min-height:57px;align-items:center;gap:10px!important;overflow:visible}
+.app #content .cp-item.is-done{opacity:.85;background:#f9f5f3!important}
+.app #content :is(.cp-check,.tp-checkbox,.cp-shop-row input[type=checkbox]){appearance:none!important;display:grid;place-content:center;flex:none;width:22px!important;height:22px!important;border:1.5px solid #c9a7b6;border-radius:7px;background:#fffdfa;margin:0;cursor:pointer}
+.app #content :is(.cp-check,.tp-checkbox,.cp-shop-row input[type=checkbox]):checked{background:#933352;border-color:#933352}
+.app #content :is(.cp-check,.tp-checkbox,.cp-shop-row input[type=checkbox]):checked:after{content:'✓';font:800 15px/1 sans-serif;color:white}
+.app #content .task-options{position:relative;flex:none;z-index:1;margin:0;min-width:0}.app #content .task-options[open]{z-index:12}
+.app #content .task-options summary{display:grid;place-items:center;list-style:none;cursor:pointer;border-radius:12px;background:#f5e7ec;color:#8f3a58;width:36px;height:36px;padding:0}.app #content .task-options summary::-webkit-details-marker{display:none}.app #content .task-options svg{width:17px;height:17px;flex:none}
+.app #content .task-options-menu{position:absolute;right:0;top:calc(100% + 5px);z-index:12;min-width:175px;width:max-content;max-width:calc(100vw - 48px);background:#fffdfb;border:1px solid #e5d0d9;border-radius:14px;box-shadow:0 12px 32px #5b243323;padding:5px}
+.app #content .task-options-menu button{width:100%;display:flex;align-items:center;gap:9px;text-align:left;border:0;background:none;border-radius:9px;padding:10px;color:#61334a;font:650 12px 'DM Sans',sans-serif}.app #content .task-options-menu button:hover{background:#fae9ef}.app #content .task-options-menu button.danger{color:#a12745}
+.app #content .completed-drawer{border:1px solid #e9d9df;border-radius:14px;background:#faf5f3;padding:8px 11px;margin-top:6px;min-width:0}.app #content .completed-drawer>summary{list-style:none;display:flex;align-items:center;gap:9px;color:#70445b;font-weight:750;font-size:13px;min-height:37px;cursor:pointer}.app #content .completed-drawer>summary::-webkit-details-marker{display:none}.app #content .completed-drawer>summary svg{width:18px;height:18px}.app #content .completed-drawer>summary span{background:#f0e1e7;border-radius:100px;padding:2px 8px;font-size:11px}.app #content .completed-drawer>summary small{font-weight:500;color:#785e68;margin-left:auto}.app #content .completed-drawer>summary:after{content:'+';margin-left:auto;font-size:18px;color:#9a5371}.app #content .completed-drawer[open]>summary:after{content:'−'}.app #content .completed-drawer[open]>div{display:grid;gap:6px;margin-top:7px}
+.app #content .shop-mini-art{width:43px;height:43px;border-radius:10px;display:grid;place-items:center;overflow:hidden;background:#f5e7ed;flex:none}.app #content .shop-mini-art img{width:100%;height:100%;object-fit:contain;background:white}.app #content .shop-mini-art svg{width:29px;height:29px}
+.app #content .cp-shop-price{font-weight:750;color:#6f2947}.app #content .cp-shop-details{min-width:0}
+.app #content .tp-check-card{background:#fffaf8!important;border:1px solid #e9d8df!important;border-radius:15px!important;padding:12px!important;margin:8px 0;box-shadow:none!important}.app #content .tp-check-card.tp-selected{outline:2px solid #b4718c;background:#f8e6ee!important}.app #content .tp-check-actions{justify-content:space-between;align-items:center}.app #content .tp-check-actions>.tp-small{border-radius:10px;background:#f5e4ed;color:#7b3252;padding:9px 12px;min-height:36px}
+.app #content .tp-calendar-panel .tp-day{border-radius:10px!important;transition:background .15s;min-width:0}.app #content .tp-calendar-panel .tp-day:hover{background:#f7e2e9!important}
+/* Compact responsive tiles: two across on phones, comparison stays side-by-side. */
+@media(max-width:760px){.app #content .gift-tile-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px!important}.app #content .gift-morning-grid .gift-morning-cards{grid-template-columns:minmax(0,1fr);gap:8px!important}.app #content .gift-simple-row,.app #content .gift-morning-card{aspect-ratio:auto;min-height:142px;border-radius:16px!important;padding:7px!important}.app #content .tile-visual{height:65px}.app #content .tile-copy strong{font-size:12px!important}.app #content .tile-copy small{font-size:10px!important}.app #content .gift-confirm-toggle{min-height:36px;font-size:10px!important}.app #content .gift-morning-card{min-height:115px}.app #content .gift-morning-card .tile-visual{height:57px}.app #content .cp-item,.app #content .cp-shop-row{padding:9px!important;gap:7px!important}.app #content .shop-mini-art{width:35px;height:35px}.app #content .cp-shop-row .cp-shop-details{flex:1 1 95px}.app #content .cp-shop-row .cp-edit{padding:7px!important}.app #content .completed-drawer>summary small{font-size:10px}.app #content .gift-confirm-hint{font-size:11px!important}}
+@media(prefers-reduced-motion:reduce){.app #content :is(.gift-simple-row,.gift-morning-card,.tp-day){transition:none!important}}
+
+/* Shorter workspace chrome leaves the board in view. */
+.app #content[data-page="gifts"] .ws-hero{min-height:100px;padding:18px 22px;margin-bottom:10px!important}.app #content[data-page="gifts"] .ws-hero h1{font-size:clamp(29px,3.5vw,40px);margin:2px 0 4px}.app #content[data-page="gifts"] .ws-hero .ws-art{width:70px;height:70px}.app #content[data-page="gifts"] .ws-hero .ws-art svg{width:40px;height:40px}.app #content[data-page="gifts"] .ws-switch{margin-bottom:10px!important}.app #content[data-page="gifts"] .ws-metrics{padding:7px 4px;margin-bottom:10px;border-radius:13px}.app #content[data-page="gifts"] .ws-metric{padding:2px 12px;gap:7px;flex:1 1 0}.app #content[data-page="gifts"] .ws-metric b{font-size:19px}.app #content[data-page="gifts"] .ws-metric small{margin-top:1px}.app #content[data-page="gifts"] .gift-inline-add{padding:7px;gap:6px}.app #content[data-page="gifts"] .gift-simple-board{gap:9px}.app #content .gift-tile-grid:has(>.gift-pile-empty){min-height:0;padding:0!important}.app #content .gift-tile-grid .gift-pile-empty{padding:5px 6px;border:0;background:transparent;text-align:left}.app #content .gift-simple-pile:has(.gift-pile-empty) .gift-pile-heading{min-height:42px;margin-bottom:0}.app #content .gift-drop-dock{display:none!important}
+body.gift-dragging .app #content .gift-drop-dock{display:grid!important;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:80;width:min(590px,calc(100vw - 28px));max-height:45vh;overflow:auto;padding:12px;background:#fffaf7;border:1px solid #d6afbf;border-radius:18px;box-shadow:0 12px 40px #58203a33;gap:6px;color:#714457;font-size:11px;font-weight:750;text-align:center}
+body.gift-dragging .gift-drop-dock>div{display:flex;gap:5px;flex-wrap:wrap}body.gift-dragging .gift-drop-dock [data-sq-zone]{flex:1 1 75px;min-height:34px;background:#f4e3eb;border:1px solid #e2c4d2;border-radius:9px;padding:8px 6px;color:#743651}body.gift-dragging .gift-drop-dock [data-sq-zone].sq-hover{background:#9a355c;color:white;outline:2px solid #d7aabd}
+@media(max-width:760px){.app #content[data-page="gifts"] .ws-hero{min-height:74px;padding:10px 13px;gap:4px}.app #content[data-page="gifts"] .ws-hero .ws-sub{display:none}.app #content[data-page="gifts"] .ws-hero .ws-kicker{font-size:9px}.app #content[data-page="gifts"] .ws-hero .ws-art{width:43px;height:43px}.app #content[data-page="gifts"] .ws-hero .ws-art svg{width:25px;height:25px}.app #content[data-page="gifts"] .ws-hero .christmas-workspace-title{gap:3px}.app #content[data-page="gifts"] .ws-hero .plain-btn{font-size:11px;min-height:29px;padding:5px 9px}.app #content[data-page="gifts"] .ws-switch button{min-height:38px!important;padding:7px!important}.app #content[data-page="gifts"] .ws-metric{padding:0 8px}.app #content[data-page="gifts"] .ws-metric svg{display:none}.app #content[data-page="gifts"] .gift-board-tabs button{min-height:38px}.app #content .gift-confirm-hint{line-height:1.3;margin:1px 2px!important}body.gift-dragging .app #content .gift-drop-dock{bottom:calc(78px + env(safe-area-inset-bottom));padding:8px;gap:4px}}
 </style></head>
 <body><section id="familyGate" role="region" aria-label="Family account sign in"></section>
 <div class="app"><aside class="sidebar">
@@ -2228,11 +2285,15 @@ function sqMoveMenu(id){
 
 let sqDragging=null;
 function sqPointerDown(event){
- const handle=event.target.closest?.('[data-sq-grab]');
+ const tile=event.target.closest?.('.gift-simple-row,.gift-morning-card');
+ const control=event.target.closest?.('button,input,a,select,textarea,summary');
+ if(tile&&control&&!control.classList.contains('tile-body'))return;
+ if(tile&&event.pointerType==='touch')return; // touch uses the hold-to-drag handler below
+ const handle=tile||event.target.closest?.('[data-sq-grab]');
  const card=handle?.closest('[data-sq-card]');
  if(!card||sqDragging||appState.page!=='gifts'||event.button!==0||!event.isPrimary)return;
- if(handle.tagName!=='BUTTON')event.preventDefault();
- sqDragging={id:handle.dataset.sqGrab,pointer:event.pointerId,card,handle,x:event.clientX,y:event.clientY,startX:event.clientX,startY:event.clientY};
+ if(!tile&&handle.tagName!=='BUTTON')event.preventDefault();
+ sqDragging={id:card.dataset.sqCard,pointer:event.pointerId,card,handle,x:event.clientX,y:event.clientY,startX:event.clientX,startY:event.clientY};
  document.addEventListener('pointermove',sqPointerMove,{passive:false});
  document.addEventListener('pointerup',sqPointerUp);
  document.addEventListener('pointercancel',sqPointerCancel);
@@ -2259,6 +2320,9 @@ function sqDropTarget(drag){
  );
  const before=cards.find(card=>{
   const rect=card.getBoundingClientRect();
+  if(card.matches('.gift-simple-row,.gift-morning-card')){
+   return drag.y<rect.top || (drag.y<=rect.bottom && drag.x<rect.left+rect.width/2);
+  }
   return drag.y<rect.top+rect.height/2;
  });
  return {zone,kid,place,before};
@@ -2292,7 +2356,9 @@ function sqPointerMove(event){
   if(Math.hypot(drag.x-drag.startX,drag.y-drag.startY)<7)return;
   drag.ghost=document.createElement('div');
   drag.ghost.className='sq-ghost gift-drag-preview';
-  drag.ghost.textContent=drag.card.querySelector('strong')?.textContent||'Gift';
+  const picture=drag.card.querySelector('.tile-visual');
+  if(picture){const visual=picture.cloneNode(true);drag.ghost.append(visual);}
+  const caption=document.createElement('strong');caption.textContent=drag.card.querySelector('strong')?.textContent||'Gift';drag.ghost.append(caption);
   drag.ghost.setAttribute('aria-hidden','true');
   document.body.append(drag.ghost);
   document.body.classList.add('gift-dragging');
@@ -2321,7 +2387,7 @@ function sqPointerEnd(cancel){
  drag.target?.before?.classList.remove('sq-before');
  document.body.classList.remove('gift-dragging');
  if(!drag.ghost)return;
- window.addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();},{capture:true,once:true,signal:AbortSignal.timeout(350)});
+ if(!cancel)window.addEventListener('click',event=>{if(event.target.closest?.('[data-sq-card]')){event.preventDefault();event.stopImmediatePropagation();}},{capture:true,once:true,signal:AbortSignal.timeout(350)});
  if(!target||droppedOnSource)return;
  void moveBoardGift(drag.id,target.kid,target.place,target.before?.dataset.sqCard,appState.giftView!=='compare');
 }
@@ -2335,6 +2401,31 @@ function sqPointerCancel(event){
  if(event.pointerId===sqDragging?.pointer)sqPointerEnd(true);
 }
 
+// Touch can scroll normally; a brief hold on the tile arms a drag.
+let tileTouch=null;
+function cancelTileTouch(){if(tileTouch)clearTimeout(tileTouch.timer);tileTouch=null;}
+document.addEventListener('touchstart',e=>{
+ const tile=e.target.closest?.('.gift-simple-row,.gift-morning-card');
+ const control=e.target.closest?.('button,input,a,select,textarea,summary');
+ if(!tile||appState.page!=='gifts'||e.touches.length!==1||(control&&!control.classList.contains('tile-body')))return;
+ cancelTileTouch();const t=e.changedTouches[0];
+ const pending={tile,target:e.target,id:t.identifier,x:t.clientX,y:t.clientY,ready:false,active:false};tileTouch=pending;
+ pending.timer=setTimeout(()=>{if(tileTouch===pending){pending.ready=true;tile.classList.add('tile-armed');}},280);
+},{passive:true});
+document.addEventListener('touchmove',e=>{
+ const p=tileTouch;if(!p)return;const t=[...e.changedTouches].find(v=>v.identifier===p.id);if(!t)return;
+ const distance=Math.hypot(t.clientX-p.x,t.clientY-p.y);
+ if(!p.ready){if(distance>8){p.tile.classList.remove('tile-armed');cancelTileTouch();}return;}
+ if(!e.cancelable&&!p.active){p.tile.classList.remove('tile-armed');cancelTileTouch();return;}
+ if(distance<7&&!p.active)return;
+ e.preventDefault();
+ if(!p.active){sqPointerDown({target:p.target,button:0,isPrimary:true,pointerType:'hold',pointerId:-1,clientX:p.x,clientY:p.y,preventDefault:()=>{}});p.active=!!sqDragging;}
+ if(p.active)sqPointerMove({pointerId:-1,clientX:t.clientX,clientY:t.clientY,preventDefault:()=>{}});
+},{passive:false});
+function finishTileTouch(e,cancel){const p=tileTouch;if(!p)return;const t=[...e.changedTouches].find(v=>v.identifier===p.id);if(!t)return;p.tile.classList.remove('tile-armed');if(p.active){if(e.cancelable)e.preventDefault();if(sqDragging){sqDragging.x=t.clientX;sqDragging.y=t.clientY;sqPointerEnd(cancel);}}cancelTileTouch();}
+document.addEventListener('touchend',e=>finishTileTouch(e,false),{passive:false});
+document.addEventListener('touchcancel',e=>finishTileTouch(e,true),{passive:false});
+document.addEventListener('contextmenu',e=>{if(e.target.closest?.('.gift-simple-row,.gift-morning-card')&&tileTouch)e.preventDefault();});
 // Unified Gift Workbench. Placements and saved records are unchanged.
 function wbRecipients(){return [...childIds(),'both']}
 function wbGifts(k,place){return appState.gifts.filter(g=>g.kid===k&&giftPlacement(g)===place).sort((a,b)=>(Number(a.planOrder)||0)-(Number(b.planOrder)||0))}
@@ -2439,10 +2530,9 @@ function boardGiftRow(g){
   <span class="gift-confirm-box" aria-hidden="true">${confirmed?'✓':''}</span><span>${confirmed?'Confirmed':'Confirm gift'}</span>
  </button>`:'<span class="gift-confirm-needs-recipient">Assign first</span>';
  return `<article class="gift-simple-row" data-sq-card="${id}" data-confirmed="${confirmed}">
-  <button type="button" class="gift-board-grip" data-sq-grab="${id}" data-action="board-move-menu" data-id="${id}" aria-label="Move ${name}" title="Drag to move"><span aria-hidden="true"></span></button>
-  <button class="gift-simple-detail" type="button" data-action="board-details" data-id="${id}">
-   ${image?`<img src="${escapeHTML(image)}" alt="" loading="lazy">`:''}
-   <span><strong>${name}</strong><small>${giftPriceLabel(g)}${status?' · '+status:''}</small></span>
+  <button class="gift-simple-detail tile-body" type="button" data-action="board-details" data-id="${id}" aria-label="Open ${name}; drag this tile to move it">
+   <span class="tile-visual" aria-hidden="true">${image?`<img src="${escapeHTML(image)}" alt="" loading="lazy" draggable="false">`:sqGiftIllustration()}</span>
+   <span class="tile-copy"><strong>${name}</strong><small>${giftPriceLabel(g)}${status?' · '+status:''}</small></span>
   </button>
   ${control}
  </article>`;
@@ -2455,11 +2545,10 @@ function morningConfirmed(g){
 function morningGiftRow(g){
  const id=escapeHTML(g.id),name=escapeHTML(g.name),image=safeImage(g.image);
  return `<article class="gift-morning-card" data-sq-card="${id}">
-  <button type="button" class="gift-simple-detail" data-action="board-move-menu" data-id="${id}" aria-label="Move ${name}">
-   ${image?`<img src="${escapeHTML(image)}" alt="" loading="lazy">`:''}
-   <span><strong>${name}</strong></span>
+  <button type="button" class="gift-simple-detail tile-body" data-action="board-move-menu" data-id="${id}" aria-label="Move ${name}">
+   <span class="tile-visual" aria-hidden="true">${image?`<img src="${escapeHTML(image)}" alt="" loading="lazy" draggable="false">`:sqGiftIllustration()}</span>
+   <span class="tile-copy"><strong>${name}</strong><small>${giftPriceLabel(g)}</small></span>
   </button>
-  <span class="gift-drag wb-handle" data-sq-grab="${id}" title="Drag to move" aria-hidden="true">⠿</span>
  </article>`;
 }
 
@@ -2476,13 +2565,13 @@ function giftPlannerIdeas(){
    <button type="submit" class="primary">Add</button>
    <button type="button" class="gift-inline-more" data-action="board-add">More options</button>
   </form>
-  <p class="gift-confirm-hint">Drag to arrange. Confirm for Christmas Morning and Shopping.</p>
+  <p class="gift-confirm-hint">Tap for details · Drag to move (hold first on touchscreens). Confirm to add to Christmas Morning and Shopping.</p>
   ${Object.entries(giftPileLabels).map(([place,label])=>{
    const gifts=wbGifts(kid,place).sort((a,b)=>Number(morningConfirmed(b))-Number(morningConfirmed(a)));
    if(place==='stocking'&&kid==='both'&&!gifts.length)return '';
    return `<section class="gift-simple-pile" data-sq-zone="${escapeHTML(kid)}" data-sq-place="${place}">
     <button type="button" class="gift-pile-heading" data-action="board-pile" data-place="${place}" aria-expanded="${boardOpenPiles.has(place)}"><span>${label} <small>${gifts.length}</small></span><span aria-hidden="true">${boardOpenPiles.has(place)?'−':'+'}</span></button>
-    ${boardOpenPiles.has(place)?(gifts.map(g=>boardGiftRow(g)).join('')||'<p class="gift-pile-empty">No gifts here yet.</p>'):''}
+    ${boardOpenPiles.has(place)?`<div class="gift-tile-grid">${gifts.map(g=>boardGiftRow(g)).join('')||'<p class="gift-pile-empty">No gifts here yet.</p>'}</div>`:''}
    </section>`;
   }).join('')}
   <div class="gift-drop-dock" aria-hidden="true">
@@ -2659,7 +2748,7 @@ function giftPlannerCompare(){
  const hasShared=wbGifts('both',morningPile).some(morningConfirmed);
  return `<div class="gift-simple-board gift-morning-board">
   <div class="gift-board-tools"><div class="gift-board-tabs" role="group" aria-label="Piles to compare">${[['tree','Under the Tree'],['stocking','Stockings']].map(([place,label])=>`<button type="button" data-action="board-morning-pile" data-place="${place}" aria-pressed="${place===morningPile}">${label}</button>`).join('')}</div>
-  <p>Drag or tap a gift to move it.</p></div>
+  <p>Drag a tile to move it, or tap to choose a destination. On touchscreens, hold briefly before dragging.</p></div>
   <div class="gift-morning-grid">${childIds().map(pile).join('')}</div>
   ${morningPile==='tree'||hasShared?pile('both'):''}
  </div>`;
@@ -2836,7 +2925,7 @@ function traditionCard(t){
  const priority=Math.max(0,Math.min(2,Number(t.priority??1)));
  return `<article class="tp-card tp-check-card ${t.done?'tp-completed':''} ${selected?'tp-selected':''} tp-p${priority}" draggable="true" data-tradition-drag="${escapeHTML(t.id)}">
  <div class="tp-check-line"><input type="checkbox" class="tp-checkbox" data-action="tradition-toggle" data-id="${escapeHTML(t.id)}" ${t.done?'checked':''} aria-label="${t.done?'Mark not done: ':'Mark done: '}${escapeHTML(t.name)}"><div class="tp-card-main"><div class="tp-title-row"><strong>${escapeHTML(t.name)}</strong></div><div class="tp-metadata"><button type="button" class="tp-priority tp-p${priority}" data-action="tradition-priority" data-id="${escapeHTML(t.id)}" title="Change priority">${escapeHTML(traditionPriorities[priority])} ↻</button>${t.date?`<span class="tp-date">${escapeHTML(traditionDateLabel(t.date))}${t.time?` · ${escapeHTML(traditionTimeLabel(t.time))}`:''}</span>`:'<span>Pick a date when ready</span>'}</div>${t.notes?`<p class="tp-notes">${escapeHTML(t.notes)}</p>`:''}</div></div>
- <div class="tp-actions tp-check-actions"><button type="button" class="tp-small ${selected?'active':''}" data-action="tradition-pick" data-id="${escapeHTML(t.id)}">${selected?'Selected ✓':t.date?'Move date':'Add to calendar'}</button>${t.date?`<button type="button" class="tp-small" data-action="tradition-unschedule" data-id="${escapeHTML(t.id)}">Remove date</button>`:''}<button type="button" class="tp-small" data-action="tradition-edit" data-id="${escapeHTML(t.id)}">Edit</button></div>
+ <div class="tp-actions tp-check-actions"><button type="button" class="tp-small ${selected?'active':''}" data-action="tradition-pick" data-id="${escapeHTML(t.id)}">${selected?'Selected ✓':t.date?'Move date':'Add to calendar'}</button><details class="task-options"><summary aria-label="Options for ${escapeHTML(t.name)}">${ico('settings')}</summary><div class="task-options-menu"><button type="button" data-action="tradition-edit" data-id="${escapeHTML(t.id)}">${ico('edit')} Edit details</button>${t.date?`<button type="button" data-action="tradition-unschedule" data-id="${escapeHTML(t.id)}">${ico('calendar')} Remove date</button>`:''}</div></details></div>
  </article>`;
 }
 
@@ -3312,6 +3401,7 @@ async function cloudSignIn(){if(!settings.firebase||!settings.familyId){navigate
 async function cloudSignOut(){if(appState.cloud){await appState.cloud.authm.signOut(appState.cloud.auth);showToast('Signed out of family sync')}}
 function saveCloudConfig(e){e.preventDefault();const apiKey=document.getElementById('firebaseApi').value.trim(),projectId=document.getElementById('firebaseProject').value.trim(),authDomain=document.getElementById('firebaseDomain').value.trim(),appId=document.getElementById('firebaseApp').value.trim(),familyId=document.getElementById('familyId').value.trim();if(!apiKey||!projectId||!authDomain||!appId||!familyId){showToast('Fill in all connection details first.');return}settings.firebase={apiKey,projectId,authDomain,appId};settings.familyId=familyId;saveSettingsLocal();showToast('Family connection saved. Sign in with Google.');render();if(appState.cloud)location.reload();else initCloud()}
 function copyInvite(){if(!settings.firebase||!settings.familyId)return;if(location.protocol==='file:'){showToast('Host this app online to create a working partner link.');return}const payload=btoa(unescape(encodeURIComponent(JSON.stringify({firebase:settings.firebase,familyId:settings.familyId}))));let u=location.origin+location.pathname+'#invite='+encodeURIComponent(payload);navigator.clipboard?.writeText(u).then(()=>showToast('Partner link copied '),()=>prompt('Copy this partner link:',u))||prompt('Copy this partner link:',u)}
+document.addEventListener('click',e=>{for(const menu of document.querySelectorAll('.task-options[open]'))if(!menu.contains(e.target)||e.target.closest('.task-options-menu button'))menu.open=false;});
 function actionHandler(e){const el=e.target.closest('[data-action]');if(!el)return;const action=el.dataset.action,id=el.dataset.id;if(action.startsWith('tradition-')){traditionAction(action,id,el);return;}if(action.startsWith('holiday-')){holidayAction(action,el);return;}switch(action){
 case 'board-recipient':
  boardRecipient=el.dataset.kid;
@@ -3393,11 +3483,11 @@ function holidayTaskMarkup(task,kind){
  const linked=supplies.length?`<div class="cp-linked-items" aria-label="Shopping items for ${escapeHTML(task.name)}">${supplies.map(item=>`<span class="cp-linked-chip ${item.done?'is-bought':''}">${item.done?'✓ ':''}${escapeHTML(item.name)}</span>`).join('')}</div>`:'';
  return `<div class="cp-item ${done?'is-done':''}">
   <input type="checkbox" class="cp-check" data-action="holiday-toggle" data-kind="${kind}" data-id="${escapeHTML(task.id)}" aria-label="${done?'Reopen':'Complete'} ${escapeHTML(task.name)}" ${done?'checked':''}>
-  <div class="cp-item-main"><div class="cp-task-name">${escapeHTML(task.name)}</div>${details.length?`<div class="cp-detail">${details.map(escapeHTML).join(' · ')}</div>`:''}${linked}<button type="button" class="cp-task-shop-add" data-action="holiday-add-shop" data-kind="${kind}" data-id="${escapeHTML(task.id)}">+ Add shopping item</button></div>
-  <div class="cp-actions"><button type="button" class="cp-edit" data-action="holiday-edit" data-kind="${kind}" data-id="${escapeHTML(task.id)}">Edit</button><button type="button" class="cp-iconbutton" aria-label="Remove ${escapeHTML(task.name)}" data-action="holiday-delete" data-kind="${kind}" data-id="${escapeHTML(task.id)}">×</button></div>
+  <div class="cp-item-main"><div class="cp-task-name">${escapeHTML(task.name)}</div>${details.length?`<div class="cp-detail">${details.map(escapeHTML).join(' · ')}</div>`:''}${linked}</div>
+  <details class="task-options"><summary aria-label="Options for ${escapeHTML(task.name)}" title="Task options">${ico('settings')}</summary><div class="task-options-menu"><button type="button" data-action="holiday-edit" data-kind="${kind}" data-id="${escapeHTML(task.id)}">${ico('edit')} Edit details</button><button type="button" data-action="holiday-add-shop" data-kind="${kind}" data-id="${escapeHTML(task.id)}">${ico('bag')} Add shopping item</button><button type="button" class="danger" data-action="holiday-delete" data-kind="${kind}" data-id="${escapeHTML(task.id)}">${ico('trash')} Remove task</button></div></details>
  </div>`;
 }
-function holidayListHTML(items,kind){const sorted=[...items].sort((a,b)=>Number(!!a.done)-Number(!!b.done)||String(a.date||'9999-12-31').localeCompare(String(b.date||'9999-12-31')));return sorted.length?`<div class="cp-list">${sorted.map(t=>holidayTaskMarkup(t,kind)).join('')}</div>`:'<div class="cp-empty">Nothing here yet. Add something when it comes to mind.</div>';}
+function holidayListHTML(items,kind){const sorted=[...items].sort((a,b)=>Number(!!a.done)-Number(!!b.done)||String(a.date||'9999-12-31').localeCompare(String(b.date||'9999-12-31')));const open=sorted.filter(t=>!t.done),done=sorted.filter(t=>t.done);return sorted.length?`<div class="cp-list">${open.map(t=>holidayTaskMarkup(t,kind)).join('')}${done.length?`<details class="completed-drawer"><summary>${ico('check')} Completed <span>${done.length}</span></summary><div>${done.map(t=>holidayTaskMarkup(t,kind)).join('')}</div></details>`:''}</div>`:'<div class="cp-empty">Nothing here yet. Add something when it comes to mind.</div>';}
 function holidayTodosPage(){const plan=holidayPlan(),items=plan.todos,done=items.filter(t=>t.done).length;return `<div class="cp-page">${heading('THE LITTLE THINGS','Holiday to-dos','One lightweight checklist for everything beyond gifts and traditions.',false)}<section class="cp-panel"><div class="cp-top"><div><h2>Your holiday checklist</h2><p>${done} of ${items.length} done · Everyone in your family account can update it.</p></div><button type="button" class="primary" data-action="holiday-add" data-kind="todos">+ Add to-do</button></div><div class="cp-progress-head"><span>Holiday tasks</span><strong>${items.length?Math.round(done/items.length*100):0}% complete</strong></div><div class="cp-track"><span style="width:${items.length?done/items.length*100:0}%"></span></div>${holidayListHTML(items,'todos')}</section><p class="cp-small-note">Add an optional due date or owner. Check something off when it's finished; it stays visible on the list.</p></div>`;}
 function holidayEvePage(){const plan=holidayPlan(),items=plan.eve,completed=items.filter(t=>t.done).length,percent=items.length?100*completed/items.length:0;return `<div class="cp-page">${heading('SANTA’S FINAL CHECKLIST','Christmas Eve & morning','A calm, shared list for all those last little details.',false)}<section class="cp-panel"><div class="cp-top"><div><h2>Ready for the magic</h2><p>${items.length-completed} things left to do</p></div><button type="button" class="secondary" data-action="holiday-add" data-kind="eve">+ Add a step</button></div><div class="cp-progress-head"><span>Christmas prep</span><strong>${completed}/${items.length} done</strong></div><div class="cp-track"><span style="width:${percent}%"></span></div></section><div class="cp-grid"><section class="cp-panel"><span class="cp-task-phase">The night before</span><h2>Christmas Eve</h2>${holidayListHTML(items.filter(x=>x.phase!=='morning'),'eve')}</section><section class="cp-panel"><span class="cp-task-phase">The big day</span><h2>Christmas morning</h2>${holidayListHTML(items.filter(x=>x.phase==='morning'),'eve')}</section></div><button type="button" class="plain-btn" data-action="holiday-reset">Start fresh for another Christmas</button><p class="cp-small-note">Starting fresh unchecks the steps but keeps your custom list.</p></div>`;}
 function holidaySupplySource(item,plan){
@@ -3487,12 +3577,12 @@ function holidayShoppingPage(){
  const toBuy=appState.gifts.filter(g=>g.status==='To buy').sort((a,b)=>kidName(a.kid).localeCompare(kidName(b.kid))||a.name.localeCompare(b.name));
  const purchased=appState.gifts.filter(bought).sort((a,b)=>kidName(a.kid).localeCompare(kidName(b.kid))||a.name.localeCompare(b.name));
  const total=toBuy.reduce((n,g)=>n+giftTotal(g),0),spent=purchased.reduce((n,g)=>n+giftTotal(g),0);
- const row=(g,checked)=>`<div class="cp-shop-row"><input type="checkbox" ${checked?'checked':''}  data-action="${checked?'shop-undo':'shop-check'}" data-id="${escapeHTML(g.id)}" aria-label="${checked?'Return to shopping list':'Mark purchased'}: ${escapeHTML(g.name)}"><div class="cp-shop-details"><strong>${escapeHTML(g.name)}</strong><small>${escapeHTML(kidName(g.kid))} · ${escapeHTML(giftPlacement(g)==='stocking'?'Stocking':giftPlacement(g)==='undecided'?'Undecided':'Under the tree')}</small></div><span class="cp-shop-price">${giftPriceLabel(g)}${g.link?`<a href="${escapeHTML(safeLink(g.link))}" target="_blank" rel="noopener noreferrer" style="display:block;font-size:10px;color:#6055ac">View store</a>`:''}</span><button type="button" class="cp-edit" data-action="edit" data-id="${escapeHTML(g.id)}" aria-label="Edit ${escapeHTML(g.name)}">Edit</button></div>`;
+ const row=(g,checked)=>`<div class="cp-shop-row"><input type="checkbox" ${checked?'checked':''}  data-action="${checked?'shop-undo':'shop-check'}" data-id="${escapeHTML(g.id)}" aria-label="${checked?'Return to shopping list':'Mark purchased'}: ${escapeHTML(g.name)}"><span class="shop-mini-art" aria-hidden="true">${safeImage(g.image)?`<img src="${escapeHTML(safeImage(g.image))}" alt="" loading="lazy">`:sqGiftIllustration()}</span><div class="cp-shop-details"><strong>${escapeHTML(g.name)}</strong><small>${escapeHTML(kidName(g.kid))}${g.store?' · '+escapeHTML(g.store):''}</small></div><span class="cp-shop-price">${giftPriceLabel(g)}${g.link?`<a href="${escapeHTML(safeLink(g.link))}" target="_blank" rel="noopener noreferrer" style="display:block;font-size:10px;color:#6055ac">View store</a>`:''}</span><button type="button" class="cp-edit" data-action="edit" data-id="${escapeHTML(g.id)}" aria-label="Edit ${escapeHTML(g.name)}">Edit</button></div>`;
  return `<div class="cp-page">${heading('','Shopping List',`${toBuy.length+toPickUp.length} to pick up · ${money(total)} estimated for gifts`,false)}
  <section class="cp-panel"><div class="cp-top"><div><h2>For your holiday plans <span class="cp-count">${toPickUp.length}</span></h2><p>Need a gingerbread kit, batteries, or cocoa? Add it directly from the related to-do. Buying the item never checks off the activity.</p></div><button type="button" class="secondary" data-action="holiday-view" data-view="overview">To-dos</button></div>${toPickUp.length?`<div class="cp-shop-items">${toPickUp.map(item=>holidaySupplyRow(item,plan)).join('')}</div>`:'<p class="cp-empty">No holiday supplies to pick up. Use “+ Add shopping item” under any to-do.</p>'}</section>
  <section class="cp-panel"><div class="cp-top"><div><h2>Gifts to buy <span class="cp-count">${toBuy.length}</span></h2><p>Confirm a gift on the Gift Board, then check it off here when purchased. Estimated gift cost: ${money(total)}.</p></div><button type="button" class="secondary" data-action="nav" data-page="gifts">Gift Board</button></div>${toBuy.length?`<div class="cp-shop-items">${toBuy.map(g=>row(g,false)).join('')}</div>`:'<p class="cp-empty">No gifts waiting to buy.</p>'}</section>
  ${dealWatchSection()}
- <section class="cp-panel cp-purchased"><div class="cp-top"><div><h2>Purchased <span class="cp-count">${purchased.length+pickedUp.length}</span></h2><p>Everything checked off stays here, including gifts and supplies. Uncheck to return it to shopping. Gift spending: ${money(spent)}.</p></div></div>${pickedUp.length?`<h3 class="cp-purchased-subtitle">Holiday items</h3><div class="cp-shop-items">${pickedUp.map(i=>holidaySupplyRow(i,plan)).join('')}</div>`:''}${purchased.length?`<h3 class="cp-purchased-subtitle">Gifts</h3><div class="cp-shop-items">${purchased.map(g=>row(g,true)).join('')}</div>`:''}${!pickedUp.length&&!purchased.length?'<p class="cp-empty">Purchased gifts and picked-up supplies will appear here.</p>':''}</section></div>`;
+ <details class="cp-panel cp-purchased completed-drawer"><summary>${ico('check')} Purchased <span>${purchased.length+pickedUp.length}</span><small>${money(spent)} gift spending</small></summary><p class="cp-small-note">Uncheck any item to return it to shopping.</p>${pickedUp.length?`<h3 class="cp-purchased-subtitle">Holiday items</h3><div class="cp-shop-items">${pickedUp.map(i=>holidaySupplyRow(i,plan)).join('')}</div>`:''}${purchased.length?`<h3 class="cp-purchased-subtitle">Gifts</h3><div class="cp-shop-items">${purchased.map(g=>row(g,true)).join('')}</div>`:''}${!pickedUp.length&&!purchased.length?'<p class="cp-empty">Purchased gifts and picked-up supplies will appear here.</p>':''}</details></div>`;
 }
 function holidayOverviewPage(){
  const plan=holidayPlan(),eveDone=plan.eve.filter(t=>t.done).length;
