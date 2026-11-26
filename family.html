@@ -62,8 +62,10 @@ function groupGifts(gifts,claims,allowClaims){
 }
 function profileFor(child,list){
  const profile=(Array.isArray(list.profiles)?list.profiles:[]).find(p=>p&&(String(p.id)===String(child.id)||p.name===child.name));
- if(!profile||(!profile.interests&&!profile.favorites))return '';
- return `<div class="child-profile">${profile.interests?`<div><b>Interests & activities</b><p>${esc(profile.interests)}</p></div>`:''}${profile.favorites?`<div><b>Favorites</b><p>${esc(profile.favorites)}</p></div>`:''}</div>`;
+ if(!profile)return '';
+ const rows=[['Favorite colors',profile.favoriteColors],['Favorite characters',profile.favoriteCharacters],['Favorite activities',profile.favoriteActivities],['Favorite things',profile.favoriteThings],['Previous interests',profile.interests],['Previous favorites',profile.favorites]].filter(([,v])=>String(v||'').trim());
+ if(!rows.length)return '';
+ return `<div class="child-profile">${rows.map(([label,value])=>`<div><b>${esc(label)}</b><p>${esc(value)}</p></div>`).join('')}</div>`;
 }
 function childList(child,ideas,bag,claims,list){
  const displayIcon=childIcons[child.icon]||'✦';

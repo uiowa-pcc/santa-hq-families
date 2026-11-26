@@ -1632,7 +1632,7 @@ body:has(.christmas-gifts) .mobile-add{display:none}
 .hunt-yearly-themes input:checked+span{color:#821839;font-weight:750}
 @media(max-width:360px){.hunt-yearly-themes{grid-template-columns:1fr}}
 </style>
-</head>
+<style>.cp-hunt-manage{border-top:1px solid #e5e5dc;padding-top:7px}.cp-hunt-manage>summary{cursor:pointer;font-size:13px;font-weight:750;color:inherit;padding:8px 0;min-height:40px}.cp-hunt-manage[open]>summary{margin-bottom:8px}.cp-hunt-manage .cp-hunt-actions{gap:7px}.cp-hq-card>.cp-hunt-actions>button:first-child{background:#28543c!important;color:#fff!important;border-color:#28543c!important;font-weight:800}</style></head>
 <body><section id="familyGate" role="region" aria-label="Family account sign in"></section>
 <div class="app"><aside class="sidebar">
  <div class="logo"><div class="logo-mark"><img src="./icon-192.png" alt=""></div><div><strong>Santa HQ</strong></div></div>
@@ -1662,7 +1662,7 @@ const CHILD_ICON_NAMES=[...Object.keys(ELF_ICONS),...Object.keys(CHILD_ICONS)];
 function configuredChildren(){
  const raw=Array.isArray(settings.children)&&settings.children.length?settings.children:null;
  if(!raw)return [{id:'1',name:String(settings.child1||'Child 1'),icon:'star',budget:cents(settings.budget1)},{id:'2',name:String(settings.child2||'Child 2'),icon:'heart',budget:cents(settings.budget2)}];
- const ids=new Set();return raw.filter(x=>x&&/^([1-6])$/.test(String(x.id))&&!ids.has(String(x.id))&&ids.add(String(x.id))).slice(0,6).map((c,i)=>({id:String(c.id),name:String(c.name||'Child '+(i+1)).slice(0,50),icon:(CHILD_ICONS[c.icon]||ELF_ICONS[c.icon])?c.icon:CHILD_ICON_NAMES[i%CHILD_ICON_NAMES.length],budget:cents(c.budget),interests:String(c.interests||'').slice(0,350),favorites:String(c.favorites||'').slice(0,350),shareFavorites:c.shareFavorites===true}));
+ const ids=new Set();return raw.filter(x=>x&&/^([1-6])$/.test(String(x.id))&&!ids.has(String(x.id))&&ids.add(String(x.id))).slice(0,6).map((c,i)=>({id:String(c.id),name:String(c.name||'Child '+(i+1)).slice(0,50),icon:(CHILD_ICONS[c.icon]||ELF_ICONS[c.icon])?c.icon:CHILD_ICON_NAMES[i%CHILD_ICON_NAMES.length],budget:cents(c.budget),interests:String(c.interests||'').slice(0,350),favorites:String(c.favorites||'').slice(0,350),favoriteColors:String(c.favoriteColors||'').slice(0,120),favoriteCharacters:String(c.favoriteCharacters||'').slice(0,120),favoriteActivities:String(c.favoriteActivities||'').slice(0,120),favoriteThings:String(c.favoriteThings||'').slice(0,120),shareFavorites:c.shareFavorites===true}));
 }
 function childIds(){return configuredChildren().map(c=>c.id)}
 function validRecipient(k){return childIds().includes(String(k))||k==='both'||k==='unassigned'}
@@ -3201,14 +3201,14 @@ async function saveFamily(e){
  e.preventDefault();
  const cards=[...document.querySelectorAll('#familyChildCards [data-family-child]')];
  if(!cards.length||cards.length>6)return;
- const children=cards.map(card=>{const id=card.dataset.familyChild;return {id,name:card.querySelector(`[name="kidName-${id}"]`)?.value.trim().slice(0,50),budget:cents(card.querySelector(`[name="kidBudget-${id}"]`)?.value),icon:card.querySelector(`[name="kidIcon-${id}"]:checked`)?.value||'star',interests:childFor(id)?.interests||'',favorites:childFor(id)?.favorites||'',shareFavorites:childFor(id)?.shareFavorites===true}});
+ const children=cards.map(card=>{const id=card.dataset.familyChild;return {id,name:card.querySelector(`[name="kidName-${id}"]`)?.value.trim().slice(0,50),budget:cents(card.querySelector(`[name="kidBudget-${id}"]`)?.value),icon:card.querySelector(`[name="kidIcon-${id}"]:checked`)?.value||'star',interests:childFor(id)?.interests||'',favorites:childFor(id)?.favorites||'',favoriteColors:childFor(id)?.favoriteColors||'',favoriteCharacters:childFor(id)?.favoriteCharacters||'',favoriteActivities:childFor(id)?.favoriteActivities||'',favoriteThings:childFor(id)?.favoriteThings||'',shareFavorites:childFor(id)?.shareFavorites===true}});
  if(children.some(c=>!c.name||(!CHILD_ICONS[c.icon]&&!ELF_ICONS[c.icon]))){showToast('Give each child a name and an icon.');return;}
  settings.familyName=document.getElementById('familyName').value.trim()||DEFAULT.familyName;
  settings.children=children;syncLegacyChildren();saveSettingsLocal();render();showToast('Family settings saved');await cloudPutProfile();
 }
 function addChildSettings(){
  const cards=[...document.querySelectorAll('#familyChildCards [data-family-child]')];if(cards.length>=6)return;
- const current=cards.map(card=>{const k=card.dataset.familyChild;return {id:k,name:card.querySelector(`[name="kidName-${k}"]`)?.value||'',budget:card.querySelector(`[name="kidBudget-${k}"]`)?.value||0,icon:card.querySelector(`[name="kidIcon-${k}"]:checked`)?.value||'star',interests:childFor(k)?.interests||'',favorites:childFor(k)?.favorites||'',shareFavorites:childFor(k)?.shareFavorites===true}});
+ const current=cards.map(card=>{const k=card.dataset.familyChild;return {id:k,name:card.querySelector(`[name="kidName-${k}"]`)?.value||'',budget:card.querySelector(`[name="kidBudget-${k}"]`)?.value||0,icon:card.querySelector(`[name="kidIcon-${k}"]:checked`)?.value||'star',interests:childFor(k)?.interests||'',favorites:childFor(k)?.favorites||'',favoriteColors:childFor(k)?.favoriteColors||'',favoriteCharacters:childFor(k)?.favoriteCharacters||'',favoriteActivities:childFor(k)?.favoriteActivities||'',favoriteThings:childFor(k)?.favoriteThings||'',shareFavorites:childFor(k)?.shareFavorites===true}});
  const next=String([1,2,3,4,5,6].find(n=>!current.some(c=>c.id===String(n))));if(next==='undefined')return;
  const name=document.getElementById('familyName')?.value||settings.familyName;
  settings={...settings,familyName:name,children:[...current,{id:next,name:'Child '+next,icon:Object.keys(ELF_ICONS)[(Number(next)-1)%Object.keys(ELF_ICONS).length],budget:250}]};render();
@@ -3216,7 +3216,7 @@ function addChildSettings(){
 function removeChildSettings(id){
  if(appState.gifts.some(g=>g.kid===id)||appState.messages.some(m=>m.kid===id)){showToast('Reassign this child’s gifts and Santa letters before removing them.');return;}
  const cards=[...document.querySelectorAll('#familyChildCards [data-family-child]')];if(cards.length<=1)return;
- const current=cards.filter(card=>card.dataset.familyChild!==id).map(card=>{const k=card.dataset.familyChild;return {id:k,name:card.querySelector(`[name="kidName-${k}"]`)?.value||'Child '+k,budget:cents(card.querySelector(`[name="kidBudget-${k}"]`)?.value),icon:card.querySelector(`[name="kidIcon-${k}"]:checked`)?.value||'star',interests:childFor(k)?.interests||'',favorites:childFor(k)?.favorites||'',shareFavorites:childFor(k)?.shareFavorites===true}});
+ const current=cards.filter(card=>card.dataset.familyChild!==id).map(card=>{const k=card.dataset.familyChild;return {id:k,name:card.querySelector(`[name="kidName-${k}"]`)?.value||'Child '+k,budget:cents(card.querySelector(`[name="kidBudget-${k}"]`)?.value),icon:card.querySelector(`[name="kidIcon-${k}"]:checked`)?.value||'star',interests:childFor(k)?.interests||'',favorites:childFor(k)?.favorites||'',favoriteColors:childFor(k)?.favoriteColors||'',favoriteCharacters:childFor(k)?.favoriteCharacters||'',favoriteActivities:childFor(k)?.favoriteActivities||'',favoriteThings:childFor(k)?.favoriteThings||'',shareFavorites:childFor(k)?.shareFavorites===true}});
  settings={...settings,familyName:document.getElementById('familyName')?.value||settings.familyName,children:current};render();
 }
 function processIncoming(){
@@ -3610,20 +3610,21 @@ function huntHQCards(plan){
   const type=mega?(clueCount===125?'December Mega · goal 100 / 125':'30-clue Mega competition'):h.mode==='standalone'?clueCount+'-clue themed hunt':'Earlier standalone hunt';
   return `<section class="cp-hq-card ${h.archived?'archived':''}"><div class="cp-hq-card-head"><div><strong>${title}</strong><small>${type} · ${h.playMode==='solo'?'Play independently':'Compete'} · ${escapeHTML(date)}${mega?' · '+nights.length+' mini hunts':''}</small></div><span class="cp-hq-tag">${h.ended||(!active&&!h.archived)?'ENDED':h.archived?'ARCHIVED':mega?'MEGA':'STANDALONE'}</span></div>
   ${progress?`<p class="cp-small-note">On this device · ${clueCount===125?`${new Set(progress.found||[]).size} found · goal ${new Set(progress.found||[]).size>=100?'complete!':'100'}`:huntProgressText(progress.found,clueCount)}</p>`:''}
-  <div class="cp-hunt-actions"><button type="button" class="secondary" data-action="holiday-hunt-open" data-hunt="${h.id}">${h.ended?'View awards & results':h.archived?'View memories':'Open hunt'} ↗</button><button type="button" class="secondary" data-action="holiday-hunt-copy" data-hunt="${h.id}">Copy link</button><button type="button" class="secondary" data-action="holiday-hunt-rename" data-hunt="${h.id}">Rename</button><button type="button" class="secondary" data-action="holiday-hunt-${h.archived?'restore':'archive'}" data-hunt="${h.id}">${h.archived?'Restore':'Archive'}</button><button type="button" class="secondary cp-hunt-danger" data-action="holiday-hunt-delete" data-hunt="${h.id}" aria-label="Permanently delete ${title}">Delete</button></div>
+  <div class="cp-hunt-actions"><button type="button" class="secondary" data-action="holiday-hunt-open" data-hunt="${h.id}">${h.ended?'View awards & results':h.archived?'View memories':'Open hunt'} ↗</button><button type="button" class="secondary" data-action="holiday-hunt-copy" data-hunt="${h.id}">Copy link</button></div>
+  <details class="cp-hunt-manage"><summary>Manage hunt</summary><div class="cp-hunt-actions"><button type="button" class="secondary" data-action="holiday-hunt-rename" data-hunt="${h.id}">Rename</button><button type="button" class="secondary" data-action="holiday-hunt-${h.archived?'restore':'archive'}" data-hunt="${h.id}">${h.archived?'Restore':'Archive'}</button><button type="button" class="secondary cp-hunt-danger" data-action="holiday-hunt-delete" data-hunt="${h.id}" aria-label="Permanently delete ${title}">Delete</button></div>
   ${mega?`<div style="margin:12px 0;padding:12px;border:1px solid #ddd8c8;border-radius:12px;background:#faf8f0"><strong>${h.ended?'The hunt is over':active?'Hunt finale':'Hunt is read-only'}</strong><p class="cp-small-note">${h.ended?'Final scores and awards are available through the hunt link.':h.endAt?'Ends at midnight after '+escapeHTML(huntLocalDate(h.endAt))+' (your local time).':'No scheduled end date.'}</p>${active?`<div class="cp-hq-creation"><label>End date (optional)<input type="date" data-hunt-deadline="${h.id}" value="${escapeHTML(huntLocalDate(h.endAt))}"></label></div><div class="cp-hunt-actions"><button class="secondary" data-action="holiday-hunt-deadline" data-hunt="${h.id}">Save end date</button><button class="secondary cp-hunt-danger" data-action="holiday-hunt-end" data-hunt="${h.id}">End Mega Hunt</button></div>`:''}</div>`:''}
   ${mega&&active?`<div class="cp-hq-create"><label>Add a shared themed challenge<select data-hq-theme="${h.id}">${[...HUNT_NIGHT_CHOICES,['random','Surprise Me']].map(([id,name])=>`<option value="${id}">${escapeHTML(name)}</option>`).join('')}</select></label><button type="button" class="primary" data-action="holiday-hunt-night-create" data-hunt="${h.id}">+ Group challenge</button><a class="secondary" href="${escapeHTML(holidayHuntLink(h.id))}">Play a personal theme inside Mega ↗</a></div>`:''}
   ${mega&&nights.length?`<div class="cp-hq-night-list">${nights.map(n=>`<a href="${escapeHTML(holidayHuntLink(h.id)+'&night='+n.id)}"><strong>${escapeHTML(n.title)}</strong><small>${progress?huntProgressText(progress.nightFound?.[n.id],n.clues?.length||8):(n.clues?.length||8)+' clues'} · ${new Date(n.createdAt).toLocaleDateString(undefined,{month:'short',day:'numeric'})}</small></a>`).join('')}</div>`:''}
-  ${h.archived?'<p class="cp-small-note">Saved as a read-only memory. Existing photos and results remain attached; you can restore while the original hunt is still in its time window.</p>':''}</section>`;
+  </details>${h.archived?'<p class="cp-small-note">Saved as a read-only memory. Existing photos and results remain attached; you can restore while the original hunt is still in its time window.</p>':''}</section>`;
  };
  const active=entries.filter(h=>!h.archived),archived=entries.filter(h=>h.archived);
- return `<section class="cp-panel"><div class="cp-top"><div><h2>Your hunts</h2><p>Every competition has its own group, invite link, leaderboard and pictures. Archived hunts stay separate from active ones. You can archive to keep memories or permanently delete an unwanted hunt.</p></div></div><div class="cp-hq-hunts">${active.map(renderCard).join('')||'<p class="cp-small-note">No active hunts yet.</p>'}</div>${archived.length?`<details class="cp-hq-archived"><summary>Archived hunts (${archived.length})</summary><div class="cp-hq-hunts">${archived.map(renderCard).join('')}</div></details>`:''}</section>`;
+ return `<section class="cp-panel"><div class="cp-top"><div><h2>Your hunts</h2><p>Open a hunt to play, or use Manage hunt for settings and shared challenges.</p></div></div><div class="cp-hq-hunts">${active.map(renderCard).join('')||'<p class="cp-small-note">No active hunts yet.</p>'}</div>${archived.length?`<details class="cp-hq-archived"><summary>Archived hunts (${archived.length})</summary><div class="cp-hq-hunts">${archived.map(renderCard).join('')}</div></details>`:''}</section>`;
 }
 function holidayHuntPage(){
  const plan=holidayPlan(),mode=appState.huntMode==='mega'?'mega':'standalone',selected=huntSelectedCharacters(),photoMode=huntPhotoSelected(),theme=appState.huntStandaloneTheme||'colors',playMode=appState.huntPlayMode||(mode==='mega'?'competition':'solo');
  return `<div class="cp-page">${heading('','Lights Hunt','Start a hunt or pick up where you left off.',false)}
- ${huntYearlyGoal(plan)}
  ${huntHQCards(plan)}
+ ${huntYearlyGoal(plan)}
  <section class="cp-panel"><div class="cp-top"><div><h2>Create a hunt</h2><p>Choose a themed adventure just for your team, or invite other teams to compete. Themes use up to eight clues from the Mega collection. December Mega offers 125 unique finds; reach 100 to become a Christmas Lights Legend.</p></div></div>
  <div class="cp-choice" aria-label="Choose a hunt type"><button type="button" data-action="holiday-hunt-mode" data-mode="standalone" aria-pressed="${mode==='standalone'}"><span class="cp-hunt-card-title">Standalone Hunt</span><small>Up to 8 clues · independent or group challenge</small></button><button type="button" data-action="holiday-hunt-mode" data-mode="mega" aria-pressed="${mode==='mega'}"><span class="cp-hunt-card-title"><span class="cp-mega-label">MEGA</span> Mega Hunt</span><small>125 clues · goal 100 · all December</small></button></div>
  <div class="cp-hq-creation"><label>Name your hunt<input id="huntCollectionTitle" type="text" maxlength="65" value="${escapeHTML(appState.huntCollectionDraft||'')}" placeholder="e.g. December lights · Neighborhood challenge"></label>
@@ -3758,7 +3759,7 @@ function holidayAction(action,el){const kind=el.dataset.kind,id=el.dataset.id;
 boot();
 </script>
 <script src="./family-sync.js"></script>
-<script src="./family-hq.js"></script>
+<script src="./family-hq.js?v=20261126-profiles"></script>
 <script src="./kid-view-recording-fix.js?v=20261122"></script>
 <script src="./north-pole-adventure.js?v=20261123-magic-window-v4"></script>
 <script src="./hunt-print.js?v=20261125-hunt-navigation"></script>
