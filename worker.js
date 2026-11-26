@@ -334,7 +334,8 @@ async function handleApi(request,env,url){
     const r=await db.prepare('SELECT data,household_id FROM public_lists WHERE share_id=?').bind(share).first();
     if(!r)return error('This family list is not available.',404);
     const claims=await db.prepare('SELECT gift_id,name FROM public_claims WHERE household_id=?').bind(r.household_id).all();
-    return json({list:JSON.parse(r.data),claims:claims.results||[]});
+    const list=JSON.parse(r.data);for(const key of ['ideas','bag'])if(Array.isArray(list[key]))list[key]=list[key].map(({category,...gift})=>gift);
+    return json({list,claims:claims.results||[]});
   }
   if(path==='/api/public/claim'&&method==='POST'){
     if(!await guardLimit(db,'claim',ip,20,3600000))return error('Too many requests. Try again later.',429);
@@ -1124,9 +1125,8 @@ function chooseThemeCards(cards,theme,seed,found=[],prior=[]){
     if(ideas.length+bag.length>250)return error('Too many gifts.');
     const current=await db.prepare("SELECT id,data FROM records WHERE household_id=? AND kind='gift' AND deleted=0").bind(family).all();
     const gifts=new Map((current.results||[]).map(r=>[r.id,JSON.parse(r.data)]));
-    const CATEGORY=['Big gift','Regular gift','Stocking','Experience','Shared / family'];
     const p=await profile(db,family);
-    const make=(ids,stages)=>Array.from(new Set(ids.filter(x=>typeof x==='string'))).map(x=>gifts.get(x)).filter(g=>g&&stages.includes(g.status)).map(g=>({id:String(g.id).slice(0,160),name:String(g.name||'Gift').slice(0,160),recipient:(Array.isArray(p.children)?p.children.map(c=>String(c.id)):['1','2']).includes(String(g.kid))?String(g.kid):g.kid==='both'?'both':'unassigned',category:CATEGORY.includes(g.category)?g.category:'Regular gift'}));
+    const make=(ids,stages)=>Array.from(new Set(ids.filter(x=>typeof x==='string'))).map(x=>gifts.get(x)).filter(g=>g&&stages.includes(g.status)).map(g=>({id:String(g.id).slice(0,160),name:String(g.name||'Gift').slice(0,160),recipient:(Array.isArray(p.children)?p.children.map(c=>String(c.id)):['1','2']).includes(String(g.kid))?String(g.kid):g.kid==='both'?'both':'unassigned'}));
     const visibleIdeas=make(ideas,['Idea','To buy']);
     const visibleBag=make(bag,['Bought','Ordered','Arrived','Wrapped']);
     const data={familyName:String(p.familyName||'A Santa HQ family').slice(0,70),child1:String(p.child1||'Child 1').slice(0,50),child2:String(p.child2||'Child 2').slice(0,50),children:Array.isArray(p.children)?p.children.map(c=>({id:String(c.id).slice(0,2),name:String(c.name||'Child').slice(0,50),icon:['star','heart','flower','moon','sparkle','snow','elf-purple-girl','elf-pink-girl','elf-red-girl','elf-lilac-girl','elf-green-boy','elf-blue-boy','elf-teal-boy','elf-navy-boy','elf-gold','elf-mint','elf-coral','elf-classic'].includes(c.icon)?c.icon:'star'})):undefined,profiles:(Array.isArray(p.children)?p.children:[]).filter(c=>c&&c.shareFavorites===true).map(c=>({id:String(c.id||'').slice(0,2),name:String(c.name||'Child').slice(0,50),interests:String(c.interests||'').slice(0,350),favorites:String(c.favorites||'').slice(0,350),favoriteColors:String(c.favoriteColors||'').trim().slice(0,120),favoriteCharacters:String(c.favoriteCharacters||'').trim().slice(0,120),favoriteActivities:String(c.favoriteActivities||'').trim().slice(0,120),favoriteThings:String(c.favoriteThings||'').trim().slice(0,120)})).filter(c=>c.name&&(c.interests||c.favorites||c.favoriteColors||c.favoriteCharacters||c.favoriteActivities||c.favoriteThings)).slice(0,6),ideas:visibleIdeas,bag:visibleBag,updatedAt:new Date().toISOString()};

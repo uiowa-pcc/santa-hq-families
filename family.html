@@ -32,6 +32,7 @@
 .elf-avatar[data-elf="elf-classic"]{background-position:100.00000% 100.00000%!important}
 .child-list-icon.elf-avatar{width:47px!important;height:47px!important;border-radius:15px}
 @media(max-width:650px){.child-list-icon.elf-avatar{width:42px!important;height:42px!important}}
+ .gift-list{display:grid;gap:0}.gift-list .gift:first-child{border-top:0}.gift-list .gift{min-height:44px;padding:11px 0}
 </style><link rel="stylesheet" href="./santa-hq-design.css"><link rel="stylesheet" href="./santa-hq-details.css">
 </head>
 <body class="santa-family-list"><main class="shell"><header class="top"><div class="brand">santa hq<span>.</span></div><a href="./">Make your own Santa HQ</a></header><div id="area">Opening this family's gift list…</div><p class="status">Only gifts approved by the family are shown here. Private Santa HQ plans stay private.</p></main>
@@ -43,22 +44,16 @@ function childrenFor(list){
  const saved=Array.isArray(list.children)?list.children.filter(c=>c&&c.name):[];
  return saved.length?saved:[{id:'1',name:list.child1||'Child 1',icon:'star'},{id:'2',name:list.child2||'Child 2',icon:'heart'}];
 }
-function placement(category){return ({Stocking:'Stocking','Regular gift':'Under the tree','Big gift':'Big gift',Experience:'Experience','Shared / family':'Shared / family'})[category]||'Under the tree'}
-const categories=['Stocking','Big gift','Regular gift','Experience','Shared / family'];
 const childIcons={star:'★',heart:'♥',flower:'✿',moon:'☾',sparkle:'✦',snow:'❄'};
 const elfIcons={'elf-purple-girl':'Purple girl elf','elf-pink-girl':'Pink girl elf','elf-red-girl':'Red girl elf','elf-lilac-girl':'Lilac girl elf','elf-green-boy':'Green boy elf','elf-blue-boy':'Blue boy elf','elf-teal-boy':'Teal boy elf','elf-navy-boy':'Navy boy elf','elf-gold':'Golden elf','elf-mint':'Mint elf','elf-coral':'Coral elf','elf-classic':'Classic elf'};
 
 function groupGifts(gifts,claims,allowClaims){
  if(!gifts.length)return `<p class="empty">${allowClaims?'No gift ideas shared yet.':"Nothing in Santa’s Bag yet."}</p>`;
- return categories.map(cat=>{
-  const subset=gifts.filter(g=>(g.category||'Regular gift')===cat);
-  if(!subset.length)return '';
-  return `<section class="gift-category"><h4>${esc(placement(cat))}</h4>${subset.map(g=>{
+ return `<div class="gift-list">${gifts.map(g=>{
    const claim=claims.get(g.id);
    const controls=!allowClaims?'':claim?`<small class="claim-state">Claimed by ${esc(claim)}</small>`:`<button type="button" data-claim="${esc(g.id)}">I can get this</button>`;
    return `<div class="gift"><strong>${esc(g.name)}</strong>${controls}</div>`;
-  }).join('')}</section>`;
- }).join('');
+ }).join('')}</div>`;
 }
 function profileFor(child,list){
  const profile=(Array.isArray(list.profiles)?list.profiles:[]).find(p=>p&&(String(p.id)===String(child.id)||p.name===child.name));
