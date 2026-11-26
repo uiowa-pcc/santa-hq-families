@@ -245,7 +245,7 @@ function switchNight(id,updateURL=true){
 }
 function applyRoomData(data){
  if(!data||!state.hunt)return;
- state.leaders=data.leaders||[];state.nights=Array.isArray(data.nights)?data.nights:[];state.nightLeaders=data.nightLeaders||{};
+ state.hunt=data.hunt||state.hunt;state.awards=data.awards||[];state.leaders=data.leaders||[];state.nights=Array.isArray(data.nights)?data.nights:[];state.nightLeaders=data.nightLeaders||{};
  if(data.myProgress){
    state.megaFound=new Set(data.myProgress.found||[]);
    state.directFound=new Set(data.myProgress.direct||[]);
@@ -273,7 +273,7 @@ function card(c,i){
   picture?`<span class="photo" role="img" aria-label="Example photograph of ${safe(c.name)}" style="background-position:${x}% ${y}%"></span>`:
   `<span class="photo graphic ${safe(c.type)}" role="img" aria-label="Illustrated clue: ${safe(c.name)}"><span class="graphic-icon" aria-hidden="true">${safe(c.icon||'✨')}</span></span>`;
  const content=`<span class="content"><strong>${safe(c.name)}</strong><span class="found-label">${state.found.has(i)?'✓ Found':state.photoMode?'':'Tap when found'}</span></span>`;
- if(!state.photoMode)return `<button class="find ${state.found.has(i)?'found':''}" data-spot="${i}" aria-pressed="${state.found.has(i)}" type="button">${image}${content}</button>`;
+ if(!state.photoMode)return `<button class="find ${state.found.has(i)?'found':''}" data-spot="${i}" aria-pressed="${state.found.has(i)}" ${state.hunt?.archived?'disabled':''} type="button">${image}${content}</button>`;
  const found=state.found.has(i),locked=!!state.hunt?.archived;
  const canUndo=found&&(activeNight()||state.hunt?.mode!=='mega'||state.directFound.has(i));
  const manualAction=!myPhoto&&(!found||canUndo)?`<button type="button" class="photo-manual-action" data-manual-spot="${i}" ${locked?'disabled':''}>${found?'Undo find':'Mark found (no photo)'}</button>`:'';
@@ -344,6 +344,19 @@ function renderDecemberGroups(){
 }
 $('huntBoard').addEventListener('click',e=>{const toggle=e.target.closest('[data-dec-toggle]');if(toggle)setDecGroupOpen(toggle.closest('[data-dec-group]'),toggle.getAttribute('aria-expanded')!=='true')});
 
+function renderFinale(){
+ const el=$('huntFinale'),h=state.hunt;if(!el)return;
+ el.hidden=h?.mode!=='mega'||!h.ended;
+ const note=$('huntEndedNote');
+ note.hidden=!(h?.archived||h?.endAt);
+ if(h?.ended)note.textContent='The Mega Hunt is over! Final scores are locked. You can still revisit your finds and photos.';
+ else if(h?.archived)note.textContent='This hunt is archived. Scores and pictures are read-only.';
+ else if(h?.endAt)note.textContent='Hunt ends '+new Date(h.endAt).toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'})+' (local time).';
+ if(el.hidden)return;
+ const icons={champion:'🏆',treasure:'💎',explorer:'🌟'};
+ const awards=state.awards||[];
+ el.innerHTML=`<div style="font-size:12px;letter-spacing:.16em;font-weight:800;color:#a32b37">THE CHRISTMAS LIGHTS FINALE</div><h2>And the awards go to…</h2><p>Every twinkle made this season a little more magical.</p>${awards.length?`<div class="finale-grid">${awards.map(a=>`<article class="finale-award"><span class="award-icon" aria-hidden="true">${icons[a.id]||'✦'}</span><h3>${safe(a.title)}</h3><p>${safe(a.description)}</p><span class="award-winner">${a.winners.map(safe).join(' &amp; ')}</span><span class="award-score">${a.score} ${safe(a.unit)}</span></article>`).join('')}</div>`:'<p>Thank you for exploring! No competitive awards were earned in this hunt.</p>'}`;
+}
 function renderBoard(){
  const personal=personalBoard(),indices=personalIndices(),count=indices.length,done=indices.filter(index=>state.found.has(index)).length;
  const december=!personal&&!activeNight()&&isDecemberMega(state.hunt?.seed),goal=december?100:count;
@@ -365,9 +378,9 @@ function renderBoard(){
  $('boardTitle').textContent=personal?(THEME_DEFS.find(x=>x[0]===personal.theme)?.[1]||'Personal adventure'):activeNight()?activeNight().title:(state.hunt?.title||'Christmas lights hunt');
  $('boardSubtitle').textContent=personal?`${count} clues · personal adventure · counts toward Mega`:activeNight()?`${count} clues · ${activeNight().title} · linked to your Mega competition`:state.hunt?.mode==='standalone'?`${count} clues · ${THEME_DEFS.find(x=>x[0]===state.hunt.theme)?.[1]||state.hunt.theme} · ${state.hunt.playMode==='solo'?'play independently':'play together'}`:december?'125 clues · find any 100 · December Mega Hunt':count===30?'30 clues · ongoing Mega lights hunt':count===16?'16 photo clues · group challenge':'9 photo clues · little lights hunt';
  $('leaderPanel').hidden=!!personal||state.hunt?.playMode==='solo';$('resetBtn').hidden=!!personal;$('shareBtn').hidden=!!personal;
- $('huntEndedNote').hidden=!state.hunt?.archived;
+ renderFinale();
  $('joinPanel').hidden=!!state.playerId||!!state.hunt?.archived;
- if(state.hunt?.archived){$('photoTakeBtn').disabled=true;$('resetBtn').disabled=true;}
+ $('photoTakeBtn').disabled=!!state.hunt?.archived;$('resetBtn').disabled=!!state.hunt?.archived;
  $('progressCount').textContent=december?Math.min(done,100)+' / 100':done+' / '+count;
  $('progressLabel').textContent=december?(done>=100?`Goal complete! ${done-100} bonus finds · ${125-done} still to discover`:`${100-done} more to reach your December goal`):done===count?'Every clue spotted!':`${count-done} more to find`;
  $('progressPct').textContent=percentage+'%';
@@ -414,14 +427,15 @@ function renderLeaders(){
  const leaders=activeNight()?(state.nightLeaders[state.activeNightId]||[]):state.leaders,maximum=state.picks.length;
  if(!leaders.length){$('leaderText').textContent=state.legacy?'This older hunt keeps scores on each device. Start a new hunt for a live leaderboard.':'Nobody has joined yet. Share this link and invite your teams!';$('leaderboard').innerHTML='';return;}
  const goal=!activeNight()&&isDecemberMega(state.hunt?.seed)?100:maximum;
+ if(state.hunt?.ended)$('liveStatus').textContent='Final scores';
  const high=leaders[0].score,winners=leaders.filter(p=>p.score===high),leaderNames=winners.map(p=>p.nickname);
- $('leaderText').textContent=high>=goal&&goal===100?`🏆 ${leaderNames.join(' & ')} reached Legend status · ${high} finds!`:high>=goal?`🏆 ${leaderNames.join(' & ')} finished!`:winners.length===1?`🏆 ${leaderNames[0]} is leading with ${high} finds!`:`🏆 It's a tie at ${high} finds: ${leaderNames.join(' & ')}`;
+ $('leaderText').textContent=state.hunt?.ended?`Final standings · ${leaderNames.join(' & ')} · ${high} finds`:high>=goal&&goal===100?`🏆 ${leaderNames.join(' & ')} reached Legend status · ${high} finds!`:high>=goal?`🏆 ${leaderNames.join(' & ')} finished!`:winners.length===1?`🏆 ${leaderNames[0]} is leading with ${high} finds!`:`🏆 It's a tie at ${high} finds: ${leaderNames.join(' & ')}`;
  $('leaderboard').innerHTML=leaders.map((p,i)=>`<div class="rank ${p.id===state.playerId?'me':''}"><span class="place">${i+1}</span><div><div class="name">${safe(p.nickname)} ${p.id===state.playerId?'(you)':''}</div><div class="mini"><i style="width:${100*p.score/maximum}%"></i></div></div><strong class="score">${p.score}/${maximum}</strong></div>`).join('');
 }
 async function api(path,body){const response=await fetch(path,{method:body?'POST':'GET',credentials:'omit',headers:body?{'Content-Type':'application/json'}:{},...(body?{body:JSON.stringify(body)}:{})});let data={};try{data=await response.json()}catch{}if(!response.ok)throw Error(data.error||'Could not connect to the hunt');return data}
-async function refresh(){if(!room||document.hidden||state.saving)return;try{const result=await fetchRoom();applyRoomData(result);$('liveStatus').textContent='● Live';state.offline=false;if(state.error==='Scores could not update. Check your connection.')errors('');if(state.photoMode&&state.playerId)await loadGallery()}catch(e){state.offline=true;$('liveStatus').textContent='Offline';errors('Scores could not update. Check your connection.')}}
+async function refresh(){if(!room||document.hidden||state.saving)return;try{const result=await fetchRoom();applyRoomData(result);$('liveStatus').textContent=state.hunt?.ended?'Final scores':'● Live';state.offline=false;if(state.error==='Scores could not update. Check your connection.')errors('');if(state.photoMode&&state.playerId)await loadGallery()}catch(e){state.offline=true;$('liveStatus').textContent='Offline';errors('Scores could not update. Check your connection.')}}
 async function sendProgress(){
- if(!room||!state.token)return;
+ if(!room||!state.token||state.hunt?.archived)return;
  if(state.saving){state.resend=true;return}
  state.saving=true;
  try{
@@ -496,6 +510,7 @@ async function resizeForHunt(file){
  }finally{URL.revokeObjectURL(object)}
 }
 async function uploadPhoto(){
+ if(state.hunt?.archived){errors('This hunt has ended. New finds are closed.');return;}
  if(state.photoBusy||!state.pendingFile)return;
  const index=Number($('photoClueSelect').value);
  if(!Number.isInteger(index)||index<0||index>=state.picks.length){errors('Select the clue you photographed.');return}
@@ -513,11 +528,11 @@ async function uploadPhoto(){
 }
 async function changePhoto(id,operation){
  const row=state.photos.find(p=>p.id===id&&p.playerId===state.playerId);if(!row)return;
- if(operation==='delete'&&!confirm('Remove this photo and its hunt find? This also removes it from the hunt photo feed if shared.'))return;
+ if(operation==='delete'&&!confirm(state.hunt?.ended?'Remove this photo? Final scores will stay unchanged.':'Remove this photo and its hunt find? This also removes it from the hunt photo feed if shared.'))return;
  try{
   const r=await fetch('/api/hunts/'+room+'/photos/'+operation+'/'+id,{method:'POST',headers:{...photoAuth(),'Content-Type':'application/json'},body:JSON.stringify(operation==='visibility'?{shared:!row.shared}:{})});
   const data=await r.json();if(!r.ok)throw Error(data.error||'Could not update photo');
-  if(operation==='delete'){const index=state.picks.findIndex((c,i)=>row.nightId?(activeNight()?.id===row.nightId&&i===row.clueIndex):activeNight()?c.megaIndex===row.clueIndex:i===row.clueIndex);if(index>=0){state.found.delete(index);if(!activeNight())state.directFound.delete(index);state.nightFound[state.activeNightId]=[...state.found];store();await sendProgress()}}
+  if(operation==='delete'&&!state.hunt?.archived){const index=state.picks.findIndex((c,i)=>row.nightId?(activeNight()?.id===row.nightId&&i===row.clueIndex):activeNight()?c.megaIndex===row.clueIndex:i===row.clueIndex);if(index>=0){state.found.delete(index);if(!activeNight())state.directFound.delete(index);state.nightFound[state.activeNightId]=[...state.found];store();await sendProgress()}}
   if(state.photoUrls[id]&&operation==='delete'){URL.revokeObjectURL(state.photoUrls[id]);delete state.photoUrls[id]}
   state.photoSignature='';await loadGallery();
  }catch(e){errors(e.message)}
@@ -550,7 +565,7 @@ $('familyPhotoFeed').addEventListener('click',e=>{
 $('photoViewerClose').addEventListener('click',()=>{$('photoViewer').hidden=true;$('photoViewerImg').removeAttribute('src')});
 async function init(){
  if(!room&&!legacy){errors('This is not a valid hunt link. Ask the hunt host for a fresh link.');$('joinPanel').hidden=true;return;}
- try{if(room){const data=await api('/api/hunts/'+room);state.hunt=data.hunt;state.leaders=data.leaders||[];state.nights=data.nights||[];state.nightLeaders=data.nightLeaders||{};}else{state.hunt={mode:legacy.startsWith('f_')?'family':'easy',seed:legacy};state.leaders=[];$('liveStatus').textContent='Solo scoring';}}
+ try{if(room){const data=await api('/api/hunts/'+room);state.hunt=data.hunt;state.awards=data.awards||[];state.leaders=data.leaders||[];state.nights=data.nights||[];state.nightLeaders=data.nightLeaders||{};}else{state.hunt={mode:legacy.startsWith('f_')?'family':'easy',seed:legacy};state.leaders=[];$('liveStatus').textContent='Solo scoring';}}
  catch(e){errors(e.message);$('joinPanel').hidden=true;return}
  await loadPhotoOverrides();state.photoMode=!!state.hunt.photoMode;state.picks=legacy?legacyCards(legacy):state.hunt.mode==='standalone'?state.hunt.clues.map(cardFromClue):generate(state.hunt.seed,state.hunt.mode);state.megaPicks=state.picks.slice();loadLocal();rememberJoined();$('playerName').value=state.nickname;switchNight(requestedNight&&state.nights.some(n=>n.id===requestedNight)?requestedNight:'',false);if(room){if(state.playerId&&state.token)await refresh();if(state.photoMode&&state.playerId)await loadGallery();setInterval(refresh,8000)}
 }

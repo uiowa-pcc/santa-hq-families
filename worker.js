@@ -380,6 +380,11 @@ function decemberCards(characters=[],seed=''){
   const publicHuntMode = room => String(room.seed||'').startsWith('mega-v')?'mega':room.mode;
   const collectionFor=async huntId=>await db.prepare('SELECT title,kind,theme,play_mode,clues_json,archived_at FROM hunt_collections WHERE hunt_id=?').bind(huntId).first();
   const publicMode=(room,collection)=>collection?.kind==='standalone'?'standalone':publicHuntMode(room);
+  // Reuse the existing expiry column; a sentinel means the host will end it manually.
+  const NO_MEGA_DEADLINE=253402300799999;
+  const megaEnded=(room,now=Date.now())=>publicHuntMode(room)==='mega'&&room.expires_at<=now;
+  const megaEndAt=room=>publicHuntMode(room)==='mega'&&room.expires_at<NO_MEGA_DEADLINE?room.expires_at:null;
+  const validMegaDeadline=(value,now)=>value===null||value===''?NO_MEGA_DEADLINE:Number.isSafeInteger(value)&&value>now&&value<NO_MEGA_DEADLINE?value:null;
   const allowChanges=(room,collection,now)=>room.expires_at>now&&!collection?.archived_at;
   const huntOptions = room => {
     const seed=String(room.seed||''),photoMode=seed.startsWith('photo-v1-');
@@ -390,7 +395,13 @@ function decemberCards(characters=[],seed=''){
       return {photoMode:payload.photoMode===true,characters:characters.length===5?characters:[],goal:isDecemberMega(seed)?100:30,clueCount:isDecemberMega(seed)?125:30};
     }catch{return {photoMode:false,characters:[]}}
   };
-  const huntPublic=(room,collection)=>({id:room.id,mode:publicMode(room,collection),seed:room.seed,expiresAt:room.expires_at,title:collection?.title|| (publicHuntMode(room)==='mega'?'Mega Lights Hunt':'Christmas Lights Hunt'),theme:collection?.theme||'',playMode:collection?.play_mode||'competition',archived:!!collection?.archived_at,clues:collection?.kind==='standalone'?JSON.parse(collection.clues_json||'[]'):[],...huntOptions(room),clueCount:collection?.kind==='standalone'?JSON.parse(collection.clues_json||'[]').length:(publicHuntMode(room)==='mega'?(isDecemberMega(room.seed)?125:30):room.mode==='family'?16:9)});
+  const huntPublic=(room,collection)=>({id:room.id,mode:publicMode(room,collection),seed:room.seed,expiresAt:room.expires_at,title:collection?.title|| (publicHuntMode(room)==='mega'?'Mega Lights Hunt':'Christmas Lights Hunt'),theme:collection?.theme||'',playMode:collection?.play_mode||'competition',archived:!!collection?.archived_at||megaEnded(room),ended:megaEnded(room),endAt:megaEndAt(room),clues:collection?.kind==='standalone'?JSON.parse(collection.clues_json||'[]'):[],...huntOptions(room),clueCount:collection?.kind==='standalone'?JSON.parse(collection.clues_json||'[]').length:(publicHuntMode(room)==='mega'?(isDecemberMega(room.seed)?125:30):room.mode==='family'?16:9)});
+  function finaleAwards(room,rows){
+    const modern=isDecemberMega(room.seed),cards=modern?decemberCards(huntOptions(room).characters,room.seed):[];
+    const scores=rows.map(p=>{const found=safeFound(p.found_json,modern?125:30);return {nickname:p.nickname,total:found.length,rare:found.filter(i=>['rare','legendary'].includes(cards[i]?.tier)).length,variety:new Set(found.map(i=>cards[i]).filter(Boolean).map(decGroupFor)).size}});
+    const specs=[['champion','Twinkle Trail Champion','Most unique finds','finds','total'],...(modern?[['treasure','North Pole Treasure Hunter','Most rare & legendary finds','rare & legendary finds','rare'],['explorer','Christmas Magic Explorer','Most clue categories explored','categories','variety']]:[])];
+    return specs.flatMap(([id,title,description,unit,key])=>{const score=Math.max(0,...scores.map(p=>p[key]));return score?[{id,title,description,unit,score,winners:scores.filter(p=>p[key]===score).map(p=>p.nickname)}]:[]});
+  }
   // Hunt HQ: a Mega room owns all its themed mini hunts. One guest token and
   // one set of private player photos cover the entire linked competition.
   const MEGA_LABELS=['Christmas tree','Glowing star','Candy cane','Santa Claus','Snowman','Reindeer','Holiday wreath','Big light-up gift','Christmas elf','Icicle lights','Colorful roof','Gingerbread person','Penguin','Glowing snowflake','Santa sleigh','Pink or purple lights','Giant inflatable','Giant ornament','Nativity scene','Light-up mailbox','','','','','','Music-synced lights','Holiday projector','Chasing light pattern','Light tunnel or arch','Lights spelling a word'];
@@ -505,7 +516,7 @@ function chooseThemeCards(cards,theme,seed,found=[],prior=[]){
     const owner=await session(request,db);if(!owner)return error('Sign in to see your hunts.',401);
     const results=await db.prepare(`SELECT h.id,h.mode,h.seed,h.created_at,h.expires_at,c.title,c.kind,c.theme,c.play_mode,c.archived_at,c.clues_json
       FROM hunts h LEFT JOIN hunt_collections c ON c.hunt_id=h.id WHERE h.household_id=? ORDER BY h.created_at DESC LIMIT 100`).bind(owner.household_id).all();
-    return json({hunts:(results.results||[]).map(r=>({id:r.id,mode:r.kind&&r.kind!=='legacy'?r.kind:publicHuntMode(r),title:r.title||(publicHuntMode(r)==='mega'?'Mega Lights Hunt':'Classic Lights Hunt'),theme:r.theme||'',playMode:r.play_mode||'competition',archived:!!r.archived_at,createdAt:r.created_at,expiresAt:r.expires_at,photoMode:huntOptions(r).photoMode,clueCount:huntClueCount(r,r),goal:isDecemberMega(r.seed)?100:publicHuntMode(r)==='mega'?30:undefined}))});
+    return json({hunts:(results.results||[]).map(r=>({id:r.id,mode:r.kind&&r.kind!=='legacy'?r.kind:publicHuntMode(r),title:r.title||(publicHuntMode(r)==='mega'?'Mega Lights Hunt':'Classic Lights Hunt'),theme:r.theme||'',playMode:r.play_mode||'competition',archived:!!r.archived_at,ended:megaEnded(r),endAt:megaEndAt(r),createdAt:r.created_at,expiresAt:r.expires_at,photoMode:huntOptions(r).photoMode,clueCount:huntClueCount(r,r),goal:isDecemberMega(r.seed)?100:publicHuntMode(r)==='mega'?30:undefined}))});
   }
   const manageRoute=path.match(/^\/api\/hunts\/([a-f0-9]{32})\/manage$/);
   if(manageRoute&&method==='POST'){
@@ -517,6 +528,17 @@ function chooseThemeCards(cards,theme,seed,found=[],prior=[]){
       await db.prepare('INSERT OR IGNORE INTO hunt_collections(hunt_id,title,kind,theme,play_mode,clues_json,created_at) VALUES(?,?,?,?,?,?,?)')
         .bind(huntId,defaultTitle,'legacy','', 'competition','[]',room.created_at||Date.now()).run();
       collection=await collectionFor(huntId);}
+    if(body.action==='end'||body.action==='deadline'){
+      if(publicHuntMode(room)!=='mega')return error('Only Mega Hunts have a finale.',400);
+      const now=Date.now();
+      if(room.expires_at<=now)return error('This Mega Hunt has already ended.',409);
+      if(collection?.archived_at)return error('Restore the hunt before changing its end date.',409);
+      const deadline=body.action==='end'?now:validMegaDeadline(body.endAt,now);
+      if(deadline===null)return error('Choose an end date in the future.',400);
+      const result=await db.prepare('UPDATE hunts SET expires_at=? WHERE id=? AND expires_at>?').bind(deadline,huntId,now).run();
+      if(!result.meta?.changes)return error('This hunt has already ended.',409);
+      return json({ok:true,expiresAt:deadline,endAt:deadline===NO_MEGA_DEADLINE?null:deadline,ended:body.action==='end'});
+    }
     if(body.action==='rename'){
       const title=String(body.title||'').trim().replace(/[<>\x00-\x1f]/g,'').slice(0,65);
       if(!title)return error('Enter a competition name.');
@@ -610,7 +632,7 @@ function chooseThemeCards(cards,theme,seed,found=[],prior=[]){
     const huntId=huntMatch[1],action=huntMatch[2]||'',now=Date.now();
     const room=await db.prepare('SELECT id,mode,seed,created_at,expires_at FROM hunts WHERE id=?').bind(huntId).first();
     const collection=room?await collectionFor(huntId):null;
-    if(!room||(!allowChanges(room,collection,now)&&!collection?.archived_at))return error('This hunt is unavailable or has expired.',404);
+    if(!room||(!allowChanges(room,collection,now)&&!collection?.archived_at&&!megaEnded(room,now)))return error('This hunt is unavailable or has expired.',404);
     if(method==='GET'&&!action){
       const rows=await db.prepare('SELECT id,nickname,found_json,finished_at,updated_at FROM hunt_players WHERE hunt_id=?').bind(huntId).all();
       const maximum=huntClueCount(room,collection);
@@ -643,7 +665,7 @@ function chooseThemeCards(cards,theme,seed,found=[],prior=[]){
         }
         myProgress={found:safeFound(own?.found_json||'[]',huntClueCount(room,collection)),direct:safeFound(direct,huntClueCount(room,collection)),nights:nightFound};
       }
-      return json({hunt:huntPublic(room,collection),leaders:collection?.play_mode==='solo'?[]:leaders,nights,nightLeaders:collection?.play_mode==='solo'?{}:nightLeaders,myProgress});
+      return json({hunt:huntPublic(room,collection),awards:megaEnded(room,now)&&collection?.play_mode!=='solo'?finaleAwards(room,rows.results||[]):[],leaders:collection?.play_mode==='solo'?[]:leaders,nights,nightLeaders:collection?.play_mode==='solo'?{}:nightLeaders,myProgress});
     }
     if(method==='POST'&&action==='join'){
       if(!allowChanges(room,collection,now))return error('This hunt is archived or has ended.',409);
@@ -741,10 +763,10 @@ function chooseThemeCards(cards,theme,seed,found=[],prior=[]){
     const huntId=pMatch[1],action=pMatch[2]||'list',photoId=pMatch[3]||'',now=Date.now();
     const room=await db.prepare('SELECT id,household_id,mode,seed,expires_at FROM hunts WHERE id=?').bind(huntId).first();
     const collection=room?await collectionFor(huntId):null;
-    if(!room||(!allowChanges(room,collection,now)&&!collection?.archived_at))return error('This hunt has expired or is unavailable.',404);
+    if(!room||(!allowChanges(room,collection,now)&&!collection?.archived_at&&!megaEnded(room,now)))return error('This hunt has expired or is unavailable.',404);
     if(!huntOptions(room).photoMode)return error('This hunt does not allow photo submissions.',403);
     const token=request.headers.get('Authorization')||'',player=await huntPlayer(huntId,token);
-    if(publicHuntMode(room)==='mega'&&player)await ensureHuntHQTables(db);
+    if(publicHuntMode(room)==='mega')await ensureHuntHQTables(db);
     if(action==='list'&&method==='GET'){
       const rows=await db.prepare(`SELECT hp.id,hp.player_id,hp.clue_index,hp.shared,hp.created_at,p.nickname
        FROM hunt_photos hp JOIN hunt_players p ON p.id=hp.player_id
@@ -925,7 +947,8 @@ function chooseThemeCards(cards,theme,seed,found=[],prior=[]){
     if(mode==='mega'||mode==='standalone')await ensureHuntHQTables(db);
     if(mode==='mega'&&photoMode){try{await ensureDecemberPhotoCapacity(db)}catch(e){console.error('December Mega photo setup:',e);return error('Photo Hunt setup could not complete safely. Your existing photos were not intentionally changed. Contact the site administrator.',503)}}
     const seasonYear=new Date(now-6*3600000).getUTCFullYear(),seasonMonth=new Date(now-6*3600000).getUTCMonth();
-    const expiresAt=mode==='mega'&&seasonMonth>=10?Date.UTC(seasonYear+1,0,1,6):now+(mode==='mega'?45:30)*86400000;
+    const expiresAt=mode==='mega'?validMegaDeadline(b.endAt??null,now):now+30*86400000;
+    if(expiresAt===null)return error('Choose an end date in the future.',400);
     const seed=mode==='mega'?'mega-v4-'+raw+'~'+encodeURIComponent(JSON.stringify({characters,photoMode})):(photoMode?'photo-v1-':'')+raw;
     const storedMode=mode==='mega'?'family':mode==='standalone'?'easy':mode;
     const clues=mode==='standalone'?themedClues(theme,raw,[]).map(({megaIndex,...c})=>c):[];
@@ -936,7 +959,7 @@ function chooseThemeCards(cards,theme,seed,found=[],prior=[]){
         .bind(huntId,title,mode,theme,playMode,JSON.stringify(clues),now);
       await db.batch([insertHunt,insertCollection]); // atomic: no orphan hunt if migration missing
     }else await insertHunt.run();
-    return json({ok:true,hunt:{id:huntId,mode,title,theme,playMode,seed,photoMode,characters,clues,expiresAt,clueCount:mode==='mega'?125:mode==='standalone'?clues.length:mode==='family'?16:9,goal:mode==='mega'?100:undefined}});
+    return json({ok:true,hunt:{id:huntId,mode,title,theme,playMode,seed,photoMode,characters,clues,expiresAt,endAt:mode==='mega'&&expiresAt!==NO_MEGA_DEADLINE?expiresAt:null,ended:false,clueCount:mode==='mega'?125:mode==='standalone'?clues.length:mode==='family'?16:9,goal:mode==='mega'?100:undefined}});
   }
   const family=me.household_id;
   if(path==='/api/auth/logout'&&method==='POST'){
