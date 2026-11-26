@@ -449,20 +449,17 @@ function chooseThemeCards(cards,theme,seed,found=[],prior=[]){
   };
   function safeFound(value,max){let items=[];try{items=typeof value==='string'?JSON.parse(value||'[]'):value||[]}catch{}return Array.isArray(items)?[...new Set(items.filter(n=>Number.isInteger(n)&&n>=0&&n<max))]:[]}
   async function recomputeMegaPlayer(huntId,playerId,now){
-    const original=await db.prepare('SELECT found_json,finished_at FROM hunt_players WHERE id=? AND hunt_id=?').bind(playerId,huntId).first();
-    if(!original)return [];
-    let base=await db.prepare('SELECT found_json FROM hunt_direct_progress WHERE player_id=?').bind(playerId).first();
-    if(!base){await db.prepare('INSERT OR IGNORE INTO hunt_direct_progress(player_id,found_json,updated_at) VALUES(?,?,?)').bind(playerId,original.found_json||'[]',now).run();base={found_json:original.found_json||'[]'}}
     const version=await db.prepare('SELECT seed FROM hunts WHERE id=?').bind(huntId).first();
     const maximum=isDecemberMega(version?.seed)?125:30,goal=maximum===125?100:30;
-    const score=new Set(safeFound(base.found_json,maximum));
-    const mini=await db.prepare(`SELECT p.found_json,n.clues_json FROM hunt_night_progress p JOIN hunt_nights n ON n.id=p.night_id WHERE n.hunt_id=? AND p.player_id=?`).bind(huntId,playerId).all();
-    for(const row of mini.results||[]){const clues=JSON.parse(row.clues_json||'[]');for(const index of safeFound(row.found_json,clues.length)){const mapped=clues[index]?.megaIndex;if(Number.isInteger(mapped)&&mapped>=0&&mapped<maximum)score.add(mapped)}}
-    const values=[...score].sort((a,b)=>a-b);
-    await db.prepare('UPDATE hunt_players SET found_json=?,finished_at=?,updated_at=? WHERE id=? AND hunt_id=?')
-      .bind(JSON.stringify(values),values.length>=goal?(original.finished_at||now):null,now,playerId,huntId).run();
-    return values;
+    await db.batch([
+      db.prepare('INSERT OR IGNORE INTO hunt_direct_progress(player_id,found_json,updated_at) SELECT id,found_json,? FROM hunt_players WHERE id=? AND hunt_id=?').bind(now,playerId,huntId),
+      db.prepare(`UPDATE hunt_players SET found_json=(SELECT json_group_array(v) FROM (SELECT CAST(j.value AS INTEGER) AS v FROM hunt_direct_progress d,json_each(d.found_json) j WHERE d.player_id=hunt_players.id AND j.value>=0 AND j.value<? UNION SELECT CAST(json_extract(c.value,'$.megaIndex') AS INTEGER) FROM hunt_night_progress p JOIN hunt_nights n ON n.id=p.night_id,json_each(p.found_json) j JOIN json_each(n.clues_json) c ON c.key=j.value WHERE p.player_id=hunt_players.id AND n.hunt_id=hunt_players.hunt_id AND json_type(c.value,'$.megaIndex')='integer' AND json_extract(c.value,'$.megaIndex')>=0 AND json_extract(c.value,'$.megaIndex')<? ORDER BY v)),updated_at=? WHERE id=? AND hunt_id=?`).bind(maximum,maximum,now,playerId,huntId),
+      db.prepare('UPDATE hunt_players SET finished_at=CASE WHEN json_array_length(found_json)>=? THEN COALESCE(finished_at,?) ELSE NULL END WHERE id=? AND hunt_id=?').bind(goal,now,playerId,huntId)
+    ]);
+    const row=await db.prepare('SELECT found_json FROM hunt_players WHERE id=? AND hunt_id=?').bind(playerId,huntId).first();
+    return safeFound(row?.found_json,maximum);
   }
+
   const nightRoute=path.match(/^\/api\/hunts\/([a-f0-9]{32})\/nights(?:\/([a-f0-9]{32})\/progress)?$/);
   if(nightRoute){
     const huntId=nightRoute[1],nightId=nightRoute[2],now=Date.now();
@@ -491,23 +488,52 @@ function chooseThemeCards(cards,theme,seed,found=[],prior=[]){
       if(!await guardLimit(db,'hunt-night-progress',ip+':'+huntId,240,3600000))return error('Too many updates. Try shortly.',429);
       const night=await db.prepare('SELECT clues_json FROM hunt_nights WHERE id=? AND hunt_id=?').bind(nightId,huntId).first();if(!night)return error('Themed night not found.',404);
       const b=await bodyJSON(request),clues=JSON.parse(night.clues_json||'[]');
-      if(!Array.isArray(b.found)||b.found.length>clues.length||b.found.some(n=>!Number.isInteger(n)||n<0||n>=clues.length))return error('Invalid nightly progress.');
+      const delta=progressDelta(b,clues.length);if(!delta)return error('Refresh your hunt to install the latest progress update.',409);
       const token=String(b.playerToken||''),player=await huntPlayer(huntId,token);if(!player)return error('Join the ongoing competition first.',401);
       // Protect existing Mega progress when this player first switches to themed nights.
       await recomputeMegaPlayer(huntId,player.id,now);
-      const found=[...new Set(b.found)];
-      await db.prepare(`INSERT INTO hunt_night_progress(night_id,player_id,found_json,updated_at) VALUES(?,?,?,?) ON CONFLICT(night_id,player_id) DO UPDATE SET found_json=excluded.found_json,updated_at=excluded.updated_at`).bind(nightId,player.id,JSON.stringify(found),now).run();
+      await db.prepare(`INSERT INTO hunt_night_progress(night_id,player_id,found_json,updated_at) VALUES(?,?,?,?) ON CONFLICT(night_id,player_id) DO UPDATE SET found_json=${deltaSQL('hunt_night_progress.found_json')},updated_at=excluded.updated_at`).bind(nightId,player.id,delta[1],now,...delta).run();
+      const saved=await db.prepare('SELECT found_json FROM hunt_night_progress WHERE night_id=? AND player_id=?').bind(nightId,player.id).first(),found=safeFound(saved?.found_json,clues.length);
       const megaFound=await recomputeMegaPlayer(huntId,player.id,now);
       return json({ok:true,score:found.length,megaScore:megaFound.length});
     }
     return error('Not found.',404);
   }
 
+  async function ensureHuntAccess(){
+    await db.batch([
+      db.prepare(`CREATE TABLE IF NOT EXISTS hunt_access (player_id TEXT PRIMARY KEY REFERENCES hunt_players(id) ON DELETE CASCADE,hunt_id TEXT NOT NULL REFERENCES hunts(id) ON DELETE CASCADE,name_key TEXT NOT NULL,salt TEXT NOT NULL,pin_hash TEXT NOT NULL,user_id TEXT,adventure_json TEXT,completion_json TEXT NOT NULL DEFAULT '{}',UNIQUE(hunt_id,name_key),UNIQUE(hunt_id,user_id))`),
+      db.prepare(`CREATE TABLE IF NOT EXISTS hunt_access_tokens (token_hash TEXT PRIMARY KEY,player_id TEXT NOT NULL REFERENCES hunt_players(id) ON DELETE CASCADE,expires_at INTEGER NOT NULL)`),
+      db.prepare(`CREATE INDEX IF NOT EXISTS hunt_access_tokens_player_idx ON hunt_access_tokens(player_id)`)
+    ]);
+  }
+  async function issueHuntToken(player){
+    const token=hex(bytes(32));
+    await db.prepare('INSERT INTO hunt_access_tokens(token_hash,player_id,expires_at) VALUES(?,?,?)').bind(await digest(token),player.id,Date.now()+180*86400000).run();
+    return json({playerId:player.id,playerToken:token,nickname:player.nickname});
+  }
+  function nameKey(n){return String(n).normalize('NFKC').trim().replace(/\s+/g,' ').toLowerCase()}
+  // Atomic rate-limit increment, scoped to both the player name and source IP.
+  async function pinAttempt(kind,key,max){
+    const k=await digest(kind+':'+key),now=Date.now();
+    const row=await db.prepare(`INSERT INTO auth_limits(key,attempts,window_started) VALUES(?,1,?) ON CONFLICT(key) DO UPDATE SET attempts=CASE WHEN window_started<=? THEN 1 ELSE attempts+1 END,window_started=CASE WHEN window_started<=? THEN excluded.window_started ELSE window_started END RETURNING attempts`).bind(k,now,now-3600000,now-3600000).first();
+    return row.attempts<=max;
+  }
+  function pinOK(pin){return typeof pin==='string'&&/^\d{4}$/.test(pin)}
+  // An atomic JSON set delta prevents stale snapshots from removing another device's finds.
+  function deltaSQL(column){return `(SELECT json_group_array(v) FROM (SELECT DISTINCT CAST(value AS INTEGER) AS v FROM json_each(${column}) WHERE value NOT IN (SELECT value FROM json_each(?)) UNION SELECT CAST(value AS INTEGER) FROM json_each(?) ORDER BY v))`}
+  function progressDelta(b,max){
+    if(!Array.isArray(b.add)||!Array.isArray(b.remove)||b.add.length>max||b.remove.length>max||[...b.add,...b.remove].some(n=>!Number.isInteger(n)||n<0||n>=max))return null;
+    return [JSON.stringify([...new Set(b.remove)]),JSON.stringify([...new Set(b.add)])];
+  }
   async function huntPlayer(roomId,auth){
     const token=String(auth||'').replace(/^Bearer\s+/i,'');
     if(!/^[a-f0-9]{64}$/.test(token))return null;
-    return await db.prepare('SELECT id,nickname FROM hunt_players WHERE hunt_id=? AND token_hash=?')
-      .bind(roomId,await digest(token)).first();
+    const hash=await digest(token);
+    const original=await db.prepare('SELECT id,nickname FROM hunt_players WHERE hunt_id=? AND token_hash=?').bind(roomId,hash).first();
+    if(original)return original;
+    await ensureHuntAccess();
+    return db.prepare('SELECT p.id,p.nickname FROM hunt_access_tokens t JOIN hunt_players p ON p.id=t.player_id WHERE p.hunt_id=? AND t.token_hash=? AND t.expires_at>?').bind(roomId,hash,Date.now()).first();
   }
 
   const huntClueCount = (room,collection) => collection?.kind==='standalone'?JSON.parse(collection.clues_json||'[]').length:publicHuntMode(room)==='mega'?(isDecemberMega(room.seed)?125:30):room.mode==='family'?16:9;
@@ -559,7 +585,7 @@ function chooseThemeCards(cards,theme,seed,found=[],prior=[]){
       let existingTables;
       try{
         const schema=await db.prepare(`SELECT name FROM sqlite_master WHERE type=? AND name IN
-          ('hunt_photos','hunt_night_photos','hunt_night_progress','hunt_direct_progress','hunt_nights','hunt_players','hunt_collections')`).bind('table').all();
+          ('hunt_photos','hunt_night_photos','hunt_night_progress','hunt_direct_progress','hunt_nights','hunt_players','hunt_collections','hunt_access','hunt_access_tokens')`).bind('table').all();
         existingTables=new Set((schema.results||[]).map(x=>x.name));
       }catch(e){console.error('Hunt deletion schema lookup failed:',e);
         return error('Could not check the hunt database. The hunt has not been deleted. Please try again.',503)}
@@ -613,6 +639,8 @@ function chooseThemeCards(cards,theme,seed,found=[],prior=[]){
       add('hunt_direct_progress','DELETE FROM hunt_direct_progress WHERE player_id IN (SELECT id FROM hunt_players WHERE hunt_id=?)',huntId);
       add('hunt_photos','DELETE FROM hunt_photos WHERE hunt_id=?',huntId);
       add('hunt_nights','DELETE FROM hunt_nights WHERE hunt_id=?',huntId);
+      add('hunt_access_tokens','DELETE FROM hunt_access_tokens WHERE player_id IN (SELECT id FROM hunt_players WHERE hunt_id=?)',huntId);
+      add('hunt_access','DELETE FROM hunt_access WHERE hunt_id=?',huntId);
       add('hunt_players','DELETE FROM hunt_players WHERE hunt_id=?',huntId);
       add('hunt_collections','DELETE FROM hunt_collections WHERE hunt_id=?',huntId);
       statements.push(db.prepare('DELETE FROM hunts WHERE id=? AND household_id=?').bind(huntId,owner.household_id));
@@ -627,7 +655,7 @@ function chooseThemeCards(cards,theme,seed,found=[],prior=[]){
     return error('Choose rename, archive, restore, or delete.');
   }
   // Shared lights hunts are capability links. No parent account data is exposed here.
-  const huntMatch=path.match(/^\/api\/hunts\/([a-f0-9]{32})(?:\/(join|progress))?$/);
+  const huntMatch=path.match(/^\/api\/hunts\/([a-f0-9]{32})(?:\/(join|progress|resume|access|adventure|account))?$/);
   if(huntMatch){
     const huntId=huntMatch[1],action=huntMatch[2]||'',now=Date.now();
     const room=await db.prepare('SELECT id,mode,seed,created_at,expires_at FROM hunts WHERE id=?').bind(huntId).first();
@@ -641,7 +669,7 @@ function chooseThemeCards(cards,theme,seed,found=[],prior=[]){
         const score=Array.isArray(found)?new Set(found.filter(n=>Number.isInteger(n)&&n>=0&&n<maximum)).size:0;
         return {id:p.id,nickname:p.nickname,score,finishedAt:p.finished_at||null,updatedAt:p.updated_at};
       }).sort((a,b)=>b.score-a.score||(a.finishedAt||Infinity)-(b.finishedAt||Infinity)||a.updatedAt-b.updatedAt);
-      let nights=[],nightLeaders={},myProgress=null;
+      let nights=[],nightLeaders={},myProgress=null,access=null;
       if(publicHuntMode(room)==='mega'){
         try{
           await ensureHuntHQTables(db);
@@ -663,9 +691,57 @@ function chooseThemeCards(cards,theme,seed,found=[],prior=[]){
             for(const row of mini.results||[])nightFound[row.night_id]=safeFound(row.found_json,8);
           }catch{}
         }
+        await ensureHuntAccess();
+        const profile=await db.prepare('SELECT user_id,adventure_json,completion_json FROM hunt_access WHERE player_id=?').bind(authPlayer.id).first();
+        access={pinSet:!!profile,accountLinked:!!profile?.user_id,adventure:profile?.adventure_json?JSON.parse(profile.adventure_json):null,completions:profile?JSON.parse(profile.completion_json||'{}'):{}};
         myProgress={found:safeFound(own?.found_json||'[]',huntClueCount(room,collection)),direct:safeFound(direct,huntClueCount(room,collection)),nights:nightFound};
       }
-      return json({hunt:huntPublic(room,collection),awards:megaEnded(room,now)&&collection?.play_mode!=='solo'?finaleAwards(room,rows.results||[]):[],leaders:collection?.play_mode==='solo'?[]:leaders,nights,nightLeaders:collection?.play_mode==='solo'?{}:nightLeaders,myProgress});
+      return json({hunt:huntPublic(room,collection),awards:megaEnded(room,now)&&collection?.play_mode!=='solo'?finaleAwards(room,rows.results||[]):[],leaders:collection?.play_mode==='solo'?[]:leaders,nights,nightLeaders:collection?.play_mode==='solo'?{}:nightLeaders,myProgress,access});
+    }
+    if(method==='POST'&&['resume','account','access','adventure'].includes(action)){
+      await ensureHuntAccess();
+      const b=await bodyJSON(request);
+      if(action==='resume'){
+        const key=nameKey(String(b.nickname||'').slice(0,24));
+        if(!key||!pinOK(b.pin))return error('Enter your team name and four-digit PIN.');
+        if(!await pinAttempt('hunt-pin-ip',ip+':'+huntId,20)||!await pinAttempt('hunt-pin-name',huntId+':'+key,5))return error('Too many sign-in attempts. Try again in an hour.',429);
+        const row=await db.prepare('SELECT a.salt,a.pin_hash,p.id,p.nickname FROM hunt_access a JOIN hunt_players p ON p.id=a.player_id WHERE a.hunt_id=? AND a.name_key=?').bind(huntId,key).first();
+        const check=await hashPassword(b.pin,row?.salt||'invalid',env.PASSWORD_PEPPER);
+        if(!row||!equal(check,row.pin_hash))return error('That name and PIN do not match. If you started before PIN access, set up your PIN on your original device.',401);
+        return issueHuntToken(row);
+      }
+      if(action==='account'){
+        const user=await session(request,db);if(!user)return error('Sign in to Santa HQ first, or use your team PIN.',401);
+        const player=await db.prepare('SELECT p.id,p.nickname FROM hunt_access a JOIN hunt_players p ON p.id=a.player_id WHERE a.hunt_id=? AND a.user_id=?').bind(huntId,user.user_id).first();
+        if(!player)return error('No team is linked to this Santa HQ account in this hunt. Join or resume using a PIN first.',404);
+        return issueHuntToken(player);
+      }
+      const player=await huntPlayer(huntId,b.playerToken);if(!player)return error('Resume your hunt before making changes.',401);
+      const prior=await db.prepare('SELECT * FROM hunt_access WHERE player_id=?').bind(player.id).first();
+      if(action==='access'){
+        if(b.linkAccount){
+          const user=await session(request,db);if(!user)return error('Sign in to Santa HQ first.',401);
+          if(!prior)return error('Set up your PIN first.');
+          if(prior.user_id&&prior.user_id!==user.user_id)return error('This team is already linked to another account.',409);
+          try{await db.prepare('UPDATE hunt_access SET user_id=? WHERE player_id=? AND (user_id IS NULL OR user_id=?)').bind(user.user_id,player.id,user.user_id).run()}catch{return error('This account is already linked to another team in this hunt.',409)}
+          return json({ok:true});
+        }
+        if(prior)return error('This team already has a PIN. Use it to resume on another device.',409);
+        if(!pinOK(b.pin))return error('Choose a four-digit PIN.');
+        const nickname=String(b.nickname||player.nickname).trim().replace(/[<>\x00-\x1f]/g,'').slice(0,24),key=nameKey(nickname);
+        if(!key)return error('Choose a team name.');
+        const names=await db.prepare('SELECT id,nickname FROM hunt_players WHERE hunt_id=?').bind(huntId).all();
+        if((names.results||[]).some(p=>p.id!==player.id&&nameKey(p.nickname)===key))return error('That team name is already used. Choose a different name to keep your existing finds.',409);
+        const salt=hex(bytes(16)),hash=await hashPassword(b.pin,salt,env.PASSWORD_PEPPER);
+        try{await db.batch([db.prepare('INSERT INTO hunt_access(player_id,hunt_id,name_key,salt,pin_hash) VALUES(?,?,?,?,?)').bind(player.id,huntId,key,salt,hash),db.prepare('UPDATE hunt_players SET nickname=? WHERE id=?').bind(nickname,player.id)])}catch{return error('That name is already used or a PIN has already been set.',409)}
+        return json({ok:true,nickname});
+      }
+      if(!prior)return json({ok:true});
+      const a=b.adventure,completions=b.completions||{};
+      if(a&&(!THEME_DEFS.some(t=>t[0]===a.theme)||!Array.isArray(a.indices)||a.indices.length>8||!a.indices.length||a.indices.some(i=>!Number.isInteger(i)||i<0||i>=huntClueCount(room,collection))))return error('Invalid adventure.');
+      const clean=Object.fromEntries(Object.entries(completions).filter(([k,v])=>/^(personal:[a-z-]+|[a-f0-9]{32}|standalone)$/.test(k)&&Number.isInteger(v)&&v>=2020&&v<=2100).slice(0,100));
+      await db.prepare('UPDATE hunt_access SET adventure_json=CASE WHEN ? THEN ? ELSE adventure_json END,completion_json=json_patch(completion_json,?) WHERE player_id=?').bind(b.setAdventure?1:0,a?JSON.stringify({theme:a.theme,indices:[...new Set(a.indices)]}):null,JSON.stringify(clean),player.id).run();
+      return json({ok:true});
     }
     if(method==='POST'&&action==='join'){
       if(!allowChanges(room,collection,now))return error('This hunt is archived or has ended.',409);
@@ -673,33 +749,37 @@ function chooseThemeCards(cards,theme,seed,found=[],prior=[]){
       const b=await bodyJSON(request);
       const name=String(b.nickname||'').trim().replace(/[<>\x00-\x1f]/g,'').slice(0,24);
       if(name.length<1)return error('Choose a short team nickname (up to 24 characters).');
+      if(!pinOK(b.pin))return error('Choose a four-digit PIN.');
+      await ensureHuntAccess();
+      const names=await db.prepare('SELECT id,nickname FROM hunt_players WHERE hunt_id=?').bind(huntId).all(),key=nameKey(name);
+      if((names.results||[]).some(p=>nameKey(p.nickname)===key))return error('That team name is already in use. Resume your hunt or choose a different name.',409);
       const count=await db.prepare('SELECT count(*) AS total FROM hunt_players WHERE hunt_id=?').bind(huntId).first();
       if(count.total>=40)return error('This hunt is full (40 players).',409);
       const token=hex(bytes(32)),playerId=id();
-      await db.prepare('INSERT INTO hunt_players(id,hunt_id,token_hash,nickname,found_json,updated_at) VALUES(?,?,?,?,?,?)')
-        .bind(playerId,huntId,await digest(token),name,'[]',now).run();
+      const salt=hex(bytes(16)),hash=await hashPassword(b.pin,salt,env.PASSWORD_PEPPER);
+      try{await db.batch([
+        db.prepare('INSERT INTO hunt_players(id,hunt_id,token_hash,nickname,found_json,updated_at) VALUES(?,?,?,?,?,?)').bind(playerId,huntId,await digest(token),name,'[]',now),
+        db.prepare('INSERT INTO hunt_access(player_id,hunt_id,name_key,salt,pin_hash) VALUES(?,?,?,?,?)').bind(playerId,huntId,key,salt,hash)
+      ])}catch{return error('That team name is already in use. Try resuming instead.',409)}
       return json({playerId,playerToken:token,nickname:name});
     }
     if(method==='POST'&&action==='progress'){
       if(!allowChanges(room,collection,now))return error('This hunt is archived or has ended.',409);
       if(!await guardLimit(db,'hunt-progress',ip+':'+huntId,240,3600000))return error('Too many updates. Try again in a moment.',429);
       const b=await bodyJSON(request),token=String(b.playerToken||''),maximum=huntClueCount(room,collection);
-      if(!/^[0-9a-f]{64}$/.test(token)||!Array.isArray(b.found)||b.found.length>maximum)return error('Invalid hunt progress.');
-      const found=[...new Set(b.found)];
-      if(found.some(n=>!Number.isInteger(n)||n<0||n>=maximum))return error('Invalid hunt clues.');
-      const player=await db.prepare('SELECT id,finished_at FROM hunt_players WHERE hunt_id=? AND token_hash=?')
-        .bind(huntId,await digest(token)).first();
-      if(!player)return error('Your player session expired. Rejoin this hunt.',401);
-      const done=found.length===maximum;
+      const delta=progressDelta(b,maximum);if(!delta)return error('Refresh your hunt to install the latest progress update.',409);
+      const player=await huntPlayer(huntId,token);
+      if(!player)return error('Resume this hunt using your team PIN.',401);
       if(publicHuntMode(room)==='mega'){
         await ensureHuntHQTables(db);
-        await db.prepare(`INSERT INTO hunt_direct_progress(player_id,found_json,updated_at) VALUES(?,?,?) ON CONFLICT(player_id) DO UPDATE SET found_json=excluded.found_json,updated_at=excluded.updated_at`).bind(player.id,JSON.stringify(found),now).run();
+        await db.prepare('INSERT OR IGNORE INTO hunt_direct_progress(player_id,found_json,updated_at) SELECT id,found_json,? FROM hunt_players WHERE id=? AND hunt_id=?').bind(now,player.id,huntId).run();
+        await db.prepare(`UPDATE hunt_direct_progress SET found_json=${deltaSQL('found_json')},updated_at=? WHERE player_id=?`).bind(...delta,now,player.id).run();
         const union=await recomputeMegaPlayer(huntId,player.id,now);
         return json({ok:true,score:union.length});
       }
-      await db.prepare('UPDATE hunt_players SET found_json=?,finished_at=?,updated_at=? WHERE id=? AND hunt_id=?')
-        .bind(JSON.stringify(found),done?(player.finished_at||now):null,now,player.id,huntId).run();
-      return json({ok:true,score:found.length});
+      await db.batch([db.prepare(`UPDATE hunt_players SET found_json=${deltaSQL('found_json')},updated_at=? WHERE id=? AND hunt_id=?`).bind(...delta,now,player.id,huntId),db.prepare('UPDATE hunt_players SET finished_at=CASE WHEN json_array_length(found_json)>=? THEN COALESCE(finished_at,?) ELSE NULL END WHERE id=? AND hunt_id=?').bind(maximum,now,player.id,huntId)]);
+      const saved=await db.prepare('SELECT found_json FROM hunt_players WHERE id=?').bind(player.id).first();
+      return json({ok:true,score:safeFound(saved?.found_json,maximum).length});
     }
     return error('Not found.',404);
   }

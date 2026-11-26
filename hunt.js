@@ -148,7 +148,7 @@ function errors(message){state.error=message||'';const el=$('errorBox');el.textC
 function loadLocal(){try{
  const saved=JSON.parse(localStorage.getItem(key)||'{}');state.playerId=saved.playerId||'';state.token=saved.token||'';state.nickname=saved.nickname||'';
  if(legacy&&!state.nickname){state.nickname=localStorage.getItem('santa_hq_guest_lights_v1_'+legacy+':name')||'';if(state.nickname)state.playerId='local'}
- state.personalAdventure=saved.personalAdventure&&Array.isArray(saved.personalAdventure.indices)?{theme:String(saved.personalAdventure.theme),indices:[...new Set(saved.personalAdventure.indices.filter(x=>Number.isInteger(x)&&x>=0&&x<state.picks.length))]}:null;state.personalActive=!!saved.personalActive;
+ state.pendingOps=Array.isArray(saved.pendingOps)?saved.pendingOps:[];state.personalAdventure=saved.personalAdventure&&Array.isArray(saved.personalAdventure.indices)?{theme:String(saved.personalAdventure.theme),indices:[...new Set(saved.personalAdventure.indices.filter(x=>Number.isInteger(x)&&x>=0&&x<state.picks.length))]}:null;state.personalActive=!!saved.personalActive;
  state.completionYears=saved.completionYears&&typeof saved.completionYears==='object'&&!Array.isArray(saved.completionYears)?saved.completionYears:{};
  let found=saved.found||[];
  if(legacy&&state.nickname&&!saved.found){found=JSON.parse(localStorage.getItem('santa_hq_guest_lights_v1_'+legacy+':checks:'+state.nickname.toLowerCase())||'[]')}
@@ -156,7 +156,7 @@ function loadLocal(){try{
  state.megaFound=new Set(state.found);state.directFound=new Set((saved.directFound||found).filter(n=>Number.isInteger(n)&&n>=0&&n<state.picks.length));
  if(saved.nightFound&&typeof saved.nightFound==='object')state.nightFound=Object.fromEntries(Object.entries(saved.nightFound).map(([id,n])=>[id,Array.isArray(n)?n.filter(Number.isInteger):[]]));
  }catch{}}
-function store(){try{localStorage.setItem(key,JSON.stringify({playerId:state.playerId,token:state.token,nickname:state.nickname,found:[...(state.megaPicks.length?state.megaFound:state.found)],directFound:[...state.directFound],nightFound:state.nightFound,completionYears:state.completionYears,personalAdventure:state.personalAdventure,personalActive:!!state.personalActive}));if(legacy){const b='santa_hq_guest_lights_v1_'+legacy;localStorage.setItem(b+':name',state.nickname);localStorage.setItem(b+':checks:'+state.nickname.toLowerCase(),JSON.stringify([...state.found]))}}catch{}}
+function store(){try{localStorage.setItem(key,JSON.stringify({playerId:state.playerId,token:state.token,nickname:state.nickname,found:[...(state.megaPicks.length?state.megaFound:state.found)],directFound:[...state.directFound],nightFound:state.nightFound,completionYears:state.completionYears,personalAdventure:state.personalAdventure,personalActive:!!state.personalActive,pendingOps:state.pendingOps||[]}));if(legacy){const b='santa_hq_guest_lights_v1_'+legacy;localStorage.setItem(b+':name',state.nickname);localStorage.setItem(b+':checks:'+state.nickname.toLowerCase(),JSON.stringify([...state.found]))}}catch{}}
 function activeNight(){return state.nights.find(n=>n.id===state.activeNightId)||null}
 function nightClueIndex(card,index){return Number.isInteger(card.megaIndex)?card.megaIndex:index}
 function photoForClue(card,index){
@@ -214,13 +214,13 @@ async function uploadToOtherHunt(item,blob,shared){
  if(main.length){
   const found=new Set(data.myProgress.direct||data.myProgress.found||[]);
   found.add(main[0].index);
-  const result=await api('/api/hunts/'+record.id+'/progress',{playerToken:record.token,found:[...found]});
+  const result=await api('/api/hunts/'+record.id+'/progress',{playerToken:record.token,add:[main[0].index],remove:[]});
   if(!result.ok)throw Error('Could not count the other hunt');
  }
  // A matching mini hunt in a different Mega competition also earns its nightly point.
  for(const night of nights){
   const found=new Set(data.myProgress.nights?.[night.nightId]||[]);found.add(night.index);
-  await api('/api/hunts/'+record.id+'/nights/'+night.nightId+'/progress',{playerToken:record.token,found:[...found]});
+  await api('/api/hunts/'+record.id+'/nights/'+night.nightId+'/progress',{playerToken:record.token,add:[night.index],remove:[]});
  }
 }
 function renderHuntNav(){
@@ -246,7 +246,11 @@ function switchNight(id,updateURL=true){
 function applyRoomData(data){
  if(!data||!state.hunt)return;
  state.hunt=data.hunt||state.hunt;state.awards=data.awards||[];state.leaders=data.leaders||[];state.nights=Array.isArray(data.nights)?data.nights:[];state.nightLeaders=data.nightLeaders||{};
+ if(state.token&&!data.myProgress){clearPlayer();errors('Resume your hunt using your team name and PIN.');}
  if(data.myProgress){
+   state.access=data.access||{};
+   if(state.access.pinSet&&!state.adventureSaving){state.personalAdventure=state.access.adventure||null;state.completionYears={...state.completionYears,...state.access.completions};if(!state.personalAdventure)state.personalActive=false;}
+
    state.megaFound=new Set(data.myProgress.found||[]);
    state.directFound=new Set(data.myProgress.direct||[]);
    for(const [id,found] of Object.entries(data.myProgress.nights||{}))state.nightFound[id]=found;
@@ -323,7 +327,7 @@ function startPersonal(theme){
  const prior=previous?.theme===theme?previous.indices:[];
  const chosen=chooseThemeCards(state.megaPicks,theme,Date.now()+Math.random(),[...state.megaFound],prior);
  if(!chosen.length)return;
- state.personalAdventure={theme,indices:chosen.map(c=>c.megaIndex)};state.personalActive=true;store();switchNight('');
+ state.personalAdventure={theme,indices:chosen.map(c=>c.megaIndex)};state.personalActive=true;store();switchNight('');void syncAdventure(true);
 }
 
 function setDecGroupOpen(section,open){
@@ -366,7 +370,7 @@ function renderBoard(){
  const boardId=personal?'personal:'+personal.theme:night?.id||'standalone';
  if(state.playerId&&theme&&theme!=='random'&&count&&done===count&&!state.completionYears[boardId]){
   state.completionYears[boardId]=new Date().getFullYear();
-  store();
+  store();void syncAdventure(false);
  }
  $('joinPanel').hidden=!!state.playerId;
  $('gamePanel').hidden=!state.playerId;
@@ -379,7 +383,15 @@ function renderBoard(){
  $('boardSubtitle').textContent=personal?`${count} clues · personal adventure · counts toward Mega`:activeNight()?`${count} clues · ${activeNight().title} · linked to your Mega competition`:state.hunt?.mode==='standalone'?`${count} clues · ${THEME_DEFS.find(x=>x[0]===state.hunt.theme)?.[1]||state.hunt.theme} · ${state.hunt.playMode==='solo'?'play independently':'play together'}`:december?'125 clues · find any 100 · December Mega Hunt':count===30?'30 clues · ongoing Mega lights hunt':count===16?'16 photo clues · group challenge':'9 photo clues · little lights hunt';
  $('leaderPanel').hidden=!!personal||state.hunt?.playMode==='solo';$('resetBtn').hidden=!!personal;$('shareBtn').hidden=!!personal;
  renderFinale();
- $('joinPanel').hidden=!!state.playerId||!!state.hunt?.archived;
+ $('joinPanel').hidden=!!state.playerId;
+ $('startBtn').hidden=!!state.hunt?.archived;
+ $('playerPin').hidden=!room;$('pinLabel').hidden=!room;$('resumeBtn').hidden=!room;$('accountResume').hidden=!room;
+ $('teamAccess').hidden=!room||!state.playerId;
+ $('teamNameDisplay').textContent=state.nickname;
+ $('setupPinBtn').hidden=!!state.access?.pinSet;
+ $('linkAccountBtn').hidden=!state.access?.pinSet||!!state.access?.accountLinked;
+ $('accessStatus').textContent=state.access?.pinSet?'Cross-device access enabled. Use your team name and PIN on another device.':'Set up a PIN to keep this team accessible on another device.';
+
  $('photoTakeBtn').disabled=!!state.hunt?.archived;$('resetBtn').disabled=!!state.hunt?.archived;
  $('progressCount').textContent=december?Math.min(done,100)+' / 100':done+' / '+count;
  $('progressLabel').textContent=december?(done>=100?`Goal complete! ${done-100} bonus finds · ${125-done} still to discover`:`${100-done} more to reach your December goal`):done===count?'Every clue spotted!':`${count-done} more to find`;
@@ -432,24 +444,52 @@ function renderLeaders(){
  $('leaderText').textContent=state.hunt?.ended?`Final standings · ${leaderNames.join(' & ')} · ${high} finds`:high>=goal&&goal===100?`🏆 ${leaderNames.join(' & ')} reached Legend status · ${high} finds!`:high>=goal?`🏆 ${leaderNames.join(' & ')} finished!`:winners.length===1?`🏆 ${leaderNames[0]} is leading with ${high} finds!`:`🏆 It's a tie at ${high} finds: ${leaderNames.join(' & ')}`;
  $('leaderboard').innerHTML=leaders.map((p,i)=>`<div class="rank ${p.id===state.playerId?'me':''}"><span class="place">${i+1}</span><div><div class="name">${safe(p.nickname)} ${p.id===state.playerId?'(you)':''}</div><div class="mini"><i style="width:${100*p.score/maximum}%"></i></div></div><strong class="score">${p.score}/${maximum}</strong></div>`).join('');
 }
-async function api(path,body){const response=await fetch(path,{method:body?'POST':'GET',credentials:'omit',headers:body?{'Content-Type':'application/json'}:{},...(body?{body:JSON.stringify(body)}:{})});let data={};try{data=await response.json()}catch{}if(!response.ok)throw Error(data.error||'Could not connect to the hunt');return data}
-async function refresh(){if(!room||document.hidden||state.saving)return;try{const result=await fetchRoom();applyRoomData(result);$('liveStatus').textContent=state.hunt?.ended?'Final scores':'● Live';state.offline=false;if(state.error==='Scores could not update. Check your connection.')errors('');if(state.photoMode&&state.playerId)await loadGallery()}catch(e){state.offline=true;$('liveStatus').textContent='Offline';errors('Scores could not update. Check your connection.')}}
-async function sendProgress(){
- if(!room||!state.token||state.hunt?.archived)return;
- if(state.saving){state.resend=true;return}
- state.saving=true;
- try{
-  do{
-   state.resend=false;
-   const night=activeNight();const body={playerToken:state.token,found:night?[...state.found]:state.hunt.mode==='mega'?[...state.directFound]:[...state.found]};
-   const target=night?'/api/hunts/'+room+'/nights/'+night.id+'/progress':'/api/hunts/'+room+'/progress';
-   await api(target,body);errors('');
-  }while(state.resend);
- }catch(e){errors(e.message+' Your checkmarks are saved on this device; tap another clue when connected to retry.')}
- finally{state.saving=false}
- await refresh();
+async function api(path,body){const response=await fetch(path,{method:body?'POST':'GET',credentials:'same-origin',headers:body?{'Content-Type':'application/json'}:{},...(body?{body:JSON.stringify(body)}:{})});let data={};try{data=await response.json()}catch{}if(!response.ok)throw Error(data.error||'Could not connect to the hunt');return data}
+function clearPlayer(){
+ state.playerId='';state.token='';state.nickname='';state.access=null;state.pendingOps=[];state.found=new Set();state.megaFound=new Set();state.directFound=new Set();state.nightFound={};state.personalAdventure=null;state.personalActive=false;state.completionYears={};state.photos=[];state.photoSignature='';for(const v of Object.values(state.photoUrls))URL.revokeObjectURL(v);state.photoUrls={};$('setupPinForm').hidden=true;$('newTeamPin').value='';$('confirmTeamPin').value='';store();
 }
-async function start(){const nickname=$('playerName').value.trim().slice(0,24);if(!nickname){errors('Choose a nickname or team name first.');$('playerName').focus();return}try{if(room){const result=await api('/api/hunts/'+room+'/join',{nickname});state.playerId=result.playerId;state.token=result.playerToken;}else{state.playerId='local';state.token='';}state.nickname=nickname;state.found=new Set();state.megaFound=new Set();state.directFound=new Set();state.nightFound={};if(legacy){try{state.found=new Set(JSON.parse(localStorage.getItem('santa_hq_guest_lights_v1_'+legacy+':checks:'+nickname.toLowerCase())||'[]'))}catch{}}store();rememberJoined();errors('');renderBoard();await refresh();if(state.photoMode)await loadGallery()}catch(e){errors(e.message)}}
+async function syncAdventure(setAdventure){
+ if(!room||!state.token||!state.access?.pinSet)return;
+ state.adventureSaving=(state.adventureSaving||0)+1;try{await api('/api/hunts/'+room+'/adventure',{playerToken:state.token,setAdventure,adventure:state.personalAdventure,completions:state.completionYears})}catch(e){errors('Adventure settings could not sync: '+e.message)}finally{state.adventureSaving--}
+}
+function queueProgress(add,remove,nightId=state.activeNightId||''){
+ if(!room||!state.token)return;
+ (state.pendingOps??=[]).push({nightId,add,remove});store();
+}
+async function refresh(){
+ if(!room||document.hidden||state.saving||state.refreshing||state.photoBusy)return;
+ if(state.pendingOps?.length){await sendProgress();return;}
+ state.refreshing=true;const token=state.token;
+ try{const result=await fetchRoom();if(token!==state.token||state.saving||state.pendingOps?.length)return;applyRoomData(result);$('liveStatus').textContent=state.hunt?.ended?'Final scores':'● Live';state.offline=false;if(state.error==='Scores could not update. Check your connection.')errors('');if(state.photoMode&&state.playerId)await loadGallery()}catch(e){state.offline=true;$('liveStatus').textContent='Offline';errors('Scores could not update. Check your connection.')}finally{state.refreshing=false}
+}
+async function sendProgress(){
+ if(!room||!state.token||state.saving||!state.pendingOps?.length)return;
+ state.saving=true;let ok=true;
+ try{while(state.pendingOps.length){
+   const op=state.pendingOps[0];const target=op.nightId?'/api/hunts/'+room+'/nights/'+op.nightId+'/progress':'/api/hunts/'+room+'/progress';
+   await api(target,{playerToken:state.token,add:op.add,remove:op.remove});state.pendingOps.shift();store();errors('');
+ }}catch(e){ok=false;errors(e.message+' Your pending finds will retry when connected.');if(state.hunt?.archived||/has ended|archived|unavailable/.test(e.message)){state.pendingOps=[];store();ok=true}}
+ finally{state.saving=false}
+ if(ok)await refresh();
+}
+async function start(mode='join'){
+ const nickname=$('playerName').value.trim().slice(0,24),pin=$('playerPin').value;
+ if(mode!=='account'&&!nickname){errors('Choose a nickname or team name first.');$('playerName').focus();return}
+ if(room&&mode!=='account'&&!/^\d{4}$/.test(pin)){errors('Enter a four-digit PIN.');$('playerPin').focus();return}
+ if(state.joinBusy)return;state.joinBusy=true;
+ try{let result;if(room){result=await api('/api/hunts/'+room+'/'+mode,{nickname,pin});}else{result={playerId:'local',playerToken:'',nickname}};
+ clearPlayer();state.playerId=result.playerId;state.token=result.playerToken;state.nickname=result.nickname||nickname;state.access={pinSet:!!room};$('playerPin').value='';
+ if(legacy){try{state.found=new Set(JSON.parse(localStorage.getItem('santa_hq_guest_lights_v1_'+legacy+':checks:'+nickname.toLowerCase())||'[]'));state.megaFound=new Set(state.found)}catch{}}
+ store();rememberJoined();errors('');await refresh();renderBoard();if(state.photoMode)await loadGallery();
+ }catch(e){errors(e.message)}finally{state.joinBusy=false}
+}
+async function saveAccess(linkAccount=false){
+ if(!room||!state.token)return;
+ try{let body={playerToken:state.token,linkAccount};if(!linkAccount){const nickname=$('setupTeamName').value.trim(),pin=$('newTeamPin').value;if(!nickname){errors('Choose a team name.');return}if(!/^\d{4}$/.test(pin)){errors('Enter exactly four digits.');return}if($('confirmTeamPin').value!==pin){errors('PINs did not match.');return}body={...body,nickname,pin};}
+ const result=await api('/api/hunts/'+room+'/access',body);if(result.nickname)state.nickname=result.nickname;state.access={...state.access,pinSet:true,accountLinked:linkAccount||state.access?.accountLinked};store();rememberJoined();if(!linkAccount)await syncAdventure(true);$('setupPinForm').hidden=true;$('newTeamPin').value='';$('confirmTeamPin').value='';await refresh();renderBoard();errors('');
+ }catch(e){errors(e.message)}
+}
+
 // Guest photo hunt: private R2 originals with D1 metadata; only opted-in photos appear in the feed.
 const photoUrl=id=>'/api/hunts/'+room+'/photos/file/'+id;
 const photoAuth=()=>({'Authorization':'Bearer '+state.token});
@@ -521,7 +561,7 @@ async function uploadPhoto(){
   const sharedWithOther=$('photoShare').checked;
   const form=new FormData();form.append('photo',blob,'hunt-photo.jpg');const night=activeNight(),megaIndex=night?state.picks[index]?.megaIndex:null;form.append('clueIndex',String(Number.isInteger(megaIndex)?megaIndex:index));if(night&&!Number.isInteger(megaIndex))form.append('nightId',night.id);form.append('shared',$('photoShare').checked?'1':'0');
   const r=await fetch('/api/hunts/'+room+'/photos/upload',{method:'POST',headers:photoAuth(),body:form});const data=await r.json();if(!r.ok)throw Error(data.error||'Could not upload photo');
-  state.found.add(index);if(activeNight())state.nightFound[state.activeNightId]=[...state.found];else{state.directFound.add(index);state.megaFound.add(index)}store();photoEditorClose();renderBoard();await sendProgress();await loadGallery();
+  queueProgress([index],[]);state.found.add(index);if(activeNight())state.nightFound[state.activeNightId]=[...state.found];else{state.directFound.add(index);state.megaFound.add(index)}store();photoEditorClose();renderBoard();await sendProgress();await loadGallery();
   const unsuccessful=[];for(const item of also){try{await uploadToOtherHunt(item,blob,sharedWithOther)}catch(e){unsuccessful.push(item.target.title+': '+e.message)}}
   errors(unsuccessful.length?'Saved in this hunt, but '+unsuccessful.join(' · '):'');
  }catch(e){errors(e.message)}finally{state.photoBusy=false;$('photoSave').disabled=false;$('photoSave').textContent='Save this find'}
@@ -532,7 +572,7 @@ async function changePhoto(id,operation){
  try{
   const r=await fetch('/api/hunts/'+room+'/photos/'+operation+'/'+id,{method:'POST',headers:{...photoAuth(),'Content-Type':'application/json'},body:JSON.stringify(operation==='visibility'?{shared:!row.shared}:{})});
   const data=await r.json();if(!r.ok)throw Error(data.error||'Could not update photo');
-  if(operation==='delete'&&!state.hunt?.archived){const index=state.picks.findIndex((c,i)=>row.nightId?(activeNight()?.id===row.nightId&&i===row.clueIndex):activeNight()?c.megaIndex===row.clueIndex:i===row.clueIndex);if(index>=0){state.found.delete(index);if(!activeNight())state.directFound.delete(index);state.nightFound[state.activeNightId]=[...state.found];store();await sendProgress()}}
+  if(operation==='delete'&&!state.hunt?.archived){const index=state.picks.findIndex((c,i)=>row.nightId?(activeNight()?.id===row.nightId&&i===row.clueIndex):activeNight()?c.megaIndex===row.clueIndex:i===row.clueIndex);if(index>=0){queueProgress([],[index]);state.found.delete(index);if(!activeNight())state.directFound.delete(index);state.nightFound[state.activeNightId]=[...state.found];store();await sendProgress()}}
   if(state.photoUrls[id]&&operation==='delete'){URL.revokeObjectURL(state.photoUrls[id]);delete state.photoUrls[id]}
   state.photoSignature='';await loadGallery();
  }catch(e){errors(e.message)}
@@ -570,15 +610,22 @@ async function init(){
  await loadPhotoOverrides();state.photoMode=!!state.hunt.photoMode;state.picks=legacy?legacyCards(legacy):state.hunt.mode==='standalone'?state.hunt.clues.map(cardFromClue):generate(state.hunt.seed,state.hunt.mode);state.megaPicks=state.picks.slice();loadLocal();rememberJoined();$('playerName').value=state.nickname;switchNight(requestedNight&&state.nights.some(n=>n.id===requestedNight)?requestedNight:'',false);if(room){if(state.playerId&&state.token)await refresh();if(state.photoMode&&state.playerId)await loadGallery();setInterval(refresh,8000)}
 }
 $('backToMega').addEventListener('click',()=>{state.personalActive=false;store();switchNight('');$('boardTitle').scrollIntoView({block:'start'});});
-$('startBtn').addEventListener('click',start);
-$('playerName').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();start()}});
+$('startBtn').addEventListener('click',()=>start('join'));
+$('resumeBtn').addEventListener('click',()=>start('resume'));
+$('accountResume').addEventListener('click',()=>start('account'));
+$('setupPinBtn').addEventListener('click',()=>{$('setupTeamName').value=state.nickname;$('setupPinForm').hidden=false;$('newTeamPin').focus()});
+$('saveTeamPin').addEventListener('click',()=>saveAccess(false));
+$('cancelTeamPin').addEventListener('click',()=>{$('setupPinForm').hidden=true;$('newTeamPin').value='';$('confirmTeamPin').value=''});
+$('linkAccountBtn').addEventListener('click',()=>saveAccess(true));
+$('switchTeamBtn').addEventListener('click',()=>{if(state.saving||state.refreshing||state.photoBusy||state.adventureSaving||state.pendingOps?.length){errors('Wait for your finds to sync before switching teams.');return}if(!state.access?.pinSet&&!confirm('This team has no PIN. Signing out may lose access to its saved finds. Continue?'))return;const old=state.nickname;clearPlayer();try{localStorage.setItem(joinedKey,JSON.stringify(joinedHunts().filter(x=>x.id!==room)))}catch{}$('playerName').value=old;switchNight('');errors('');});
+$('playerName').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();if(room)$('playerPin').focus();else start('join')}});
 function toggleFind(i,manual=false){
  if(state.hunt?.archived||!state.playerId||!Number.isInteger(i)||i<0||i>=state.picks.length)return;
  if(manual!==state.photoMode)return;
  const night=activeNight(),next=!state.found.has(i);
  // Do not clear an existing photo or a find earned only through a linked themed hunt.
  if((manual&&photoForClue(state.picks[i],i))||(!next&&!night&&state.hunt?.mode==='mega'&&!state.directFound.has(i)))return;
- if(next)state.found.add(i);else state.found.delete(i);
+ queueProgress(next?[i]:[],next?[]:[i]);if(next)state.found.add(i);else state.found.delete(i);
  if(night)state.nightFound[state.activeNightId]=[...state.found];
  else{if(next)state.directFound.add(i);else state.directFound.delete(i);state.megaFound=new Set(state.found)}
  store();renderBoard();sendProgress();
@@ -587,7 +634,7 @@ $('huntBoard').addEventListener('click',e=>{
  const b=e.target.closest(state.photoMode?'[data-manual-spot]':'[data-spot]');
  if(b)toggleFind(Number(state.photoMode?b.dataset.manualSpot:b.dataset.spot),state.photoMode);
 });
-$('resetBtn').addEventListener('click',()=>{if(state.hunt?.archived||personalBoard())return;if(!confirm('Clear finds for this board? Mega keeps points earned in other themed nights.'))return;state.found.clear();if(activeNight())state.nightFound[state.activeNightId]=[];else{state.directFound.clear();state.megaFound.clear()}store();renderBoard();sendProgress()});
+$('resetBtn').addEventListener('click',()=>{if(state.hunt?.archived||personalBoard())return;if(!confirm('Clear finds for this board? Mega keeps points earned in other themed nights.'))return;queueProgress([],activeNight()?[...state.found]:[...state.directFound]);state.found.clear();if(activeNight())state.nightFound[state.activeNightId]=[];else{state.directFound.clear();state.megaFound.clear()}store();renderBoard();sendProgress()});
 $('printBtn').addEventListener('click',()=>window.print());
 $('shareBtn').addEventListener('click',async()=>{const url=room?location.origin+location.pathname+'#room='+room:location.href;try{if(navigator.share){await navigator.share({title:'Santa HQ Christmas lights hunt',url,text:'Join our Christmas lights hunt!'});return}await navigator.clipboard.writeText(url);$('shareBtn').textContent='Link copied!';setTimeout(()=>$('shareBtn').textContent='Share hunt',2200)}catch(e){if(e.name!=='AbortError')prompt('Copy the hunt link:',url)}});
 window.addEventListener('online',()=>{if(room){sendProgress();refresh()}});
