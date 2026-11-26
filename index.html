@@ -3511,7 +3511,10 @@ appState.huntCollectionDraft='';
 appState.huntDeadlineDraft='';
 function huntLocalDate(ms){if(!ms||ms>=253402300799999)return '';const d=new Date(ms-1);return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
 function huntDeadlineValue(date){if(!date)return null;const [y,m,d]=date.split('-').map(Number);return new Date(y,m-1,d+1).getTime()}
-const HUNT_NIGHT_CHOICES=[["disney","Disney Night"],["christmas-friends","Christmas Friends"],["stories","Storybook & TV Favorites"],["animals","Merry Menagerie"],["classic","Christmas Classics"],["candy","Candyland"],["colors","Color Quest"],["home","Neighborhood Glow"],["scenes","North Pole Adventure"],["words","Merry Messages"],["effects","Light Show Night"]];
+const HUNT_NIGHT_CHOICES=[["workshop","Santa’s Workshop"],["disney","Disney Night"],["stories","Storybook & TV Favorites"],["animals","Christmas Critters"],["festive-decor","Christmas Classics & Candy"],["neighborhood","Neighborhood Glow"],["colors","Color Quest"],["light-show","Light Show & Messages"]];
+// Credit previously completed themes to their new equivalent; retain old stored records.
+const HUNT_THEME_ALIASES={'christmas-friends':'workshop','classic':'festive-decor','candy':'festive-decor','home':'neighborhood','scenes':'neighborhood','words':'light-show','effects':'light-show'};
+const currentHuntTheme=theme=>HUNT_THEME_ALIASES[theme]||theme;
 function allHolidayHunts(plan){
  if(Array.isArray(appState.huntHQList))return appState.huntHQList;
  const list=Array.isArray(plan.hunts)?plan.hunts.filter(x=>x&&x.id):[];
@@ -3554,6 +3557,7 @@ function savedHuntProgress(id){
 function completedHuntThemes(plan){
  const years=new Map();
  const add=(theme,year)=>{
+  theme=currentHuntTheme(theme);
   if(!Number.isInteger(year)||year<2000||year>new Date().getFullYear()||!HUNT_NIGHT_CHOICES.some(([id])=>id===theme))return;
   if(!years.has(year))years.set(year,new Set());
   years.get(year).add(theme);
@@ -3579,7 +3583,7 @@ function huntYearlyGoal(plan){
  const current=new Date().getFullYear(),year=appState.huntGoalYear||current;
  const completed=completedHuntThemes(plan),automatic=completed.get(year)||new Set();
  const overrides=plan.huntThemeGoals?.[year]||{};
- const checked=id=>overrides[id]??automatic.has(id);
+ const checked=id=>overrides[id]??(Object.keys(HUNT_THEME_ALIASES).some(old=>HUNT_THEME_ALIASES[old]===id&&overrides[old]===true)||automatic.has(id));
  const count=HUNT_NIGHT_CHOICES.filter(([id])=>checked(id)).length;
  const years=[...new Set([current,current-1,year,...completed.keys(),...Object.keys(plan.huntThemeGoals||{}).map(Number)])]
   .filter(value=>Number.isInteger(value)&&value>=2000&&value<=current).sort((a,b)=>b-a);
@@ -3588,7 +3592,7 @@ function huntYearlyGoal(plan){
   <label>Year <select id="huntGoalYear">${years.map(value=>`<option ${value===year?'selected':''}>${value}</option>`).join('')}</select></label></div>
   <progress max="${HUNT_NIGHT_CHOICES.length}" value="${count}" aria-label="${count} of ${HUNT_NIGHT_CHOICES.length} themes complete"></progress>
   <div class="hunt-yearly-themes">${HUNT_NIGHT_CHOICES.map(([id,title])=>`<label><input type="checkbox" data-hunt-goal-theme="${id}" ${checked(id)?'checked':''}><span>${escapeHTML(title)}</span></label>`).join('')}</div>
-  <p class="cp-small-note">Finish all clues in a themed hunt to check it off automatically on this device. You can also check off a theme played elsewhere.</p>
+  <p class="cp-small-note">Finish all clues in a themed hunt to check it off automatically on this device. Previously completed themes count toward their new equivalent. You can also check off a theme played elsewhere.</p>
  </section>`;
 }
 
@@ -3621,7 +3625,7 @@ function huntHQCards(plan){
  return `<section class="cp-panel"><div class="cp-top"><div><h2>Your hunts</h2><p>Open a hunt to play, or use Manage hunt for settings and shared challenges.</p></div></div><div class="cp-hq-hunts">${active.map(renderCard).join('')||'<p class="cp-small-note">No active hunts yet.</p>'}</div>${archived.length?`<details class="cp-hq-archived"><summary>Archived hunts (${archived.length})</summary><div class="cp-hq-hunts">${archived.map(renderCard).join('')}</div></details>`:''}</section>`;
 }
 function holidayHuntPage(){
- const plan=holidayPlan(),mode=appState.huntMode==='mega'?'mega':'standalone',selected=huntSelectedCharacters(),photoMode=huntPhotoSelected(),theme=appState.huntStandaloneTheme||'colors',playMode=appState.huntPlayMode||(mode==='mega'?'competition':'solo');
+ const plan=holidayPlan(),mode=appState.huntMode==='mega'?'mega':'standalone',selected=huntSelectedCharacters(),photoMode=huntPhotoSelected(),theme=currentHuntTheme(appState.huntStandaloneTheme||'colors'),playMode=appState.huntPlayMode||(mode==='mega'?'competition':'solo');
  return `<div class="cp-page">${heading('','Lights Hunt','Start a hunt or pick up where you left off.',false)}
  ${huntHQCards(plan)}
  ${huntYearlyGoal(plan)}
@@ -3762,7 +3766,7 @@ boot();
 <script src="./family-hq.js?v=20261126-edit-list"></script>
 <script src="./kid-view-recording-fix.js?v=20261122"></script>
 <script src="./north-pole-adventure.js?v=20261123-magic-window-v4"></script>
-<script src="./hunt-print.js?v=20261125-hunt-navigation"></script>
+<script src="./hunt-print.js?v=20261126-eight-themes"></script>
 <script src="./mega-hunt-picker-upgrade.js?v=20261123"></script>
 </body>
 </html>

@@ -247,7 +247,7 @@ function renderHuntNav(){
  const label=(found,total)=>`${Math.min(new Set(found).size,total)}/${total} found`;
  const personal=personalBoard();
  const options=[{id:'',title:'Mega Hunt',sub:isDecemberMega(state.hunt.seed)?`${state.megaFound.size} found · goal 100`:label(state.megaFound,state.megaPicks.length)},...state.nights.map(n=>({id:n.id,title:n.title,sub:label(state.nightFound[n.id]||[],n.clues.length)}))];
- el.innerHTML=`<div class="hunt-hq-title"><strong>Themed hunts</strong><small>Choose a shared challenge or a themed hunt just for your team.</small></div><div class="hunt-hq-tabs">${options.map(n=>`<button type="button" data-night-id="${safe(n.id)}" aria-pressed="${!personal&&n.id===state.activeNightId}"><strong>${safe(n.title)}</strong><small>${safe(n.sub)}</small></button>`).join('')}</div><p class="hunt-hq-note">A find shared with Mega Hunt counts only once there. Bonus clues from older hunts can win a themed night without extra Mega points.</p>${isDecemberMega(state.hunt.seed)&&state.playerId?`<div class="personal-hunt-box"><strong>Your own themed hunt</strong><small>Choose a theme for your team. Finds count toward your Mega score without creating a new challenge for everyone.</small><div class="personal-hunt-controls"><select id="personalTheme" aria-label="Choose a hunt theme">${THEME_DEFS.map(([id,title])=>`<option value="${id}" ${personalChoice===id?'selected':''}>${safe(title)}</option>`).join('')}</select><button type="button" class="btn primary" data-personal-start ${state.hunt.archived?'disabled':''}>Start themed hunt</button></div>${state.personalAdventure?.indices?.length?`<button type="button" class="btn" data-personal-resume aria-pressed="${!!personal}">${personal?'Playing: ':'Resume: '}${safe(THEME_DEFS.find(x=>x[0]===state.personalAdventure.theme)?.[1]||'Our themed hunt')} · ${state.personalAdventure.indices.filter(i=>state.megaFound.has(i)).length}/${state.personalAdventure.indices.length}</button>`:''}</div>`:''}`;
+ el.innerHTML=`<div class="hunt-hq-title"><strong>Themed hunts</strong><small>Choose a shared challenge or a themed hunt just for your team.</small></div><div class="hunt-hq-tabs">${options.map(n=>`<button type="button" data-night-id="${safe(n.id)}" aria-pressed="${!personal&&n.id===state.activeNightId}"><strong>${safe(n.title)}</strong><small>${safe(n.sub)}</small></button>`).join('')}</div><p class="hunt-hq-note">A find shared with Mega Hunt counts only once there. Bonus clues from older hunts can win a themed night without extra Mega points.</p>${isDecemberMega(state.hunt.seed)&&state.playerId?`<div class="personal-hunt-box"><strong>Your own themed hunt</strong><small>Choose a theme for your team. Finds count toward your Mega score without creating a new challenge for everyone.</small><div class="personal-hunt-controls"><select id="personalTheme" aria-label="Choose a hunt theme">${ACTIVE_THEME_DEFS.map(([id,title])=>`<option value="${id}" ${personalChoice===id?'selected':''}>${safe(title)}</option>`).join('')}</select><button type="button" class="btn primary" data-personal-start ${state.hunt.archived?'disabled':''}>Start themed hunt</button></div>${state.personalAdventure?.indices?.length?`<button type="button" class="btn" data-personal-resume aria-pressed="${!!personal}">${personal?'Playing: ':'Resume: '}${safe(THEME_DEFS.find(x=>x[0]===state.personalAdventure.theme)?.[1]||'Our themed hunt')} · ${state.personalAdventure.indices.filter(i=>state.megaFound.has(i)).length}/${state.personalAdventure.indices.length}</button>`:''}</div>`:''}`;
 }
 function switchNight(id,updateURL=true){
  if(id&&!state.nights.some(n=>n.id===id))return;
@@ -301,19 +301,7 @@ function card(c,i){
  return `<div class="find photo-find ${found?'found':''}">${image}${content}<div class="photo-find-actions"><button type="button" class="btn primary" data-photo-for="${i}" ${locked?'disabled':''}>${myPhoto?'Replace photo':found?'Add photo':'Take / add photo'}</button>${manualAction}${myPhoto?`<button type="button" class="photo-small-action" data-photo-share="${safe(myPhoto.id)}">${myPhoto.shared?'Unshare':'Share'}</button><button type="button" class="photo-small-action" data-photo-remove="${safe(myPhoto.id)}">Remove</button>`:''}</div></div>`;
 }
 // Presentation only: group by the actual clue name; never change saved clue indices.
-const DEC_GROUPS=[
- ['classic','Classic Christmas characters','Santa, snowmen and familiar Christmas friends'],
- ['disney','Disney characters','Disney, Pixar and Star Wars favorites'],
- ['stories','Other story & TV characters','Peanuts, Bluey, the Grinch and more'],
- ['animals','Animals & magical creatures','Woodland friends, pets and imaginative creatures'],
- ['decor','Christmas decorations','Ornaments, bows, gifts and festive symbols'],
- ['candy','Candy & gingerbread','Sweet holiday decorations'],
- ['colors','Light colors & styles','Spot each color and light pattern'],
- ['home','Houses, trees & yards','Decorated windows, porches, fences and more'],
- ['scenes','Holiday scenes & big displays','Sleighs, villages and oversized displays'],
- ['words','Words in lights','Find festive glowing messages'],
- ['effects','Music, motion & special effects','Animated, musical and spectacular lights']
-];
+const DEC_GROUPS=[["workshop","Santa’s Workshop","Christmas friends, presents and toys"],["disney","Disney Night","Disney, Pixar and Star Wars favorites"],["stories","Storybook & TV Favorites","Peanuts, Bluey, the Grinch and more"],["animals","Christmas Critters","Animals, pets and magical creatures"],["festive-decor","Christmas Classics & Candy","Ornaments, holiday symbols and sweet treats"],["neighborhood","Neighborhood Glow","Houses, trees, yards and big holiday displays"],["colors","Color Quest","Colors, twinkles and light styles"],["light-show","Light Show & Messages","Glowing words, music, motion and effects"]];
 const decNamedGroups={
  classic:['Santa Claus','Snowman','Christmas elf','Gingerbread person','Mrs. Claus','The Nutcracker','Buddy the Elf','The Abominable Snow Monster','Bumble','Frosty the Snowman','Gingerbread Man','Rudolph','Reindeer'],
  disney:['Mickey Mouse','Minnie Mouse','Donald Duck','Goofy','Pluto','Winnie-the-Pooh','Winnie-the-Pooh and Piglet','Piglet','Tigger','Eeyore','Olaf','Elsa','Anna','Stitch','Jack Skellington','Zero (Nightmare Before Christmas)','Grogu (Baby Yoda)','The Mandalorian','Rapunzel','Simba'],
@@ -322,12 +310,24 @@ const decNamedGroups={
  words:['PEACE in lights','Lights spelling a word','JOY in lights','NOEL in lights','Merry Christmas in lights','Happy Holidays in lights']
 };
 const decNamedGroupMap=new Map(Object.entries(decNamedGroups).flatMap(([group,names])=>names.map(name=>[decSlug(name),group])));
-function decGroupFor(c){return decNamedGroupMap.get(decSlug(c.name))||({'Characters':'stories','Animals & creatures':'animals','Christmas decorations':'decor','Colors & styles':'colors','Holiday scenes':'scenes','Words, music & effects':'effects'}[c.category])||'decor'}
+function legacyDecGroupFor(c){return decNamedGroupMap.get(decSlug(c.name))||({'Characters':'stories','Animals & creatures':'animals','Christmas decorations':'decor','Colors & styles':'colors','Holiday scenes':'scenes','Words, music & effects':'effects'}[c.category])||'decor'}
 
-const THEME_DEFS=[["disney","Disney Night","disney"],["christmas-friends","Christmas Friends","classic"],["stories","Storybook & TV Favorites","stories"],["animals","Merry Menagerie","animals"],["classic","Christmas Classics","decor"],["candy","Candyland","candy"],["colors","Color Quest","colors"],["home","Neighborhood Glow","home"],["scenes","North Pole Adventure","scenes"],["words","Merry Messages","words"],["effects","Light Show Night","effects"],["random","Surprise Me","*"]];
+// The same eight pools power both Mega sections and new mini hunts. Old theme IDs stay playable.
+const workshopExtras=new Set(['Big light-up gift','Light-up gift stack','Christmas drum','Light-up rocking horse','Toy soldier','Lighted bicycle'].map(decSlug));
+function decGroupFor(c){
+ const old=legacyDecGroupFor(c);
+ if(old==='classic'||(old==='decor'&&workshopExtras.has(decSlug(c.name))))return 'workshop';
+ if(old==='decor'||old==='candy')return 'festive-decor';
+ if(old==='home'||old==='scenes')return 'neighborhood';
+ if(old==='words'||old==='effects')return 'light-show';
+ return old;
+}
+const ACTIVE_THEME_DEFS=[["workshop","Santa’s Workshop","workshop"],["disney","Disney Night","disney"],["stories","Storybook & TV Favorites","stories"],["animals","Christmas Critters","animals"],["festive-decor","Christmas Classics & Candy","festive-decor"],["neighborhood","Neighborhood Glow","neighborhood"],["colors","Color Quest","colors"],["light-show","Light Show & Messages","light-show"],["random","Surprise Me","*"]];
+const LEGACY_THEME_DEFS=[["christmas-friends","Christmas Friends","classic"],["classic","Christmas Classics","decor"],["candy","Candyland","candy"],["home","Neighborhood Glow","home"],["scenes","North Pole Adventure","scenes"],["words","Merry Messages","words"],["effects","Light Show Night","effects"]];
+const THEME_DEFS=[...ACTIVE_THEME_DEFS,...LEGACY_THEME_DEFS];
 function chooseThemeCards(cards,theme,seed,found=[],prior=[]){
  const def=THEME_DEFS.find(x=>x[0]===theme);if(!def)return [];
- const pool=cards.map((c,index)=>({...c,megaIndex:index})).filter(c=>def[2]==="*"||decGroupFor(c)===def[2]);
+ const pool=cards.map((c,index)=>({...c,megaIndex:index})).filter(c=>def[2]==="*"||(LEGACY_THEME_DEFS.includes(def)?legacyDecGroupFor(c):decGroupFor(c))===def[2]);
  let h=2166136261;for(const c of String(seed))h=Math.imul(h^c.charCodeAt(0),16777619);
  const rand=()=>{h+=0x6d2b79f5;let t=h;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296};
  for(let i=pool.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
@@ -352,11 +352,11 @@ function setDecGroupOpen(section,open){
  if(open)decOpenGroups.add(key);else decOpenGroups.delete(key);
  button.setAttribute('aria-expanded',String(open));body.hidden=!open;
 }
-const DEC_GROUP_ICONS={classic:'🎅',disney:'🏰',stories:'📖',animals:'🦌',decor:'🎄',candy:'🍬',colors:'💡',home:'🏠',scenes:'🛷',words:'✦',effects:'♫'};
+const DEC_GROUP_ICONS={workshop:'🎅',disney:'🏰',stories:'📖',animals:'🦌','festive-decor':'🎄',neighborhood:'🏠',colors:'💡','light-show':'✨'};
 function renderDecemberGroups(){
  const board=$('huntBoard'),entries=state.picks.map((c,i)=>({c,i}));
  const groups=DEC_GROUPS.map(([key,title,description])=>({key,title,description,entries:entries.filter(x=>decGroupFor(x.c)===key)})).filter(g=>g.entries.length);
- const matches=x=>(!decSearch||[x.c.name,x.c.category].some(v=>String(v||'').toLowerCase().includes(decSearch)))&&(!state.decRarity||x.c.tier===state.decRarity)&&(!state.decRemaining||!state.found.has(x.i));
+ const matches=x=>(!decSearch||[x.c.name,x.c.category,DEC_GROUPS.find(g=>g[0]===decGroupFor(x.c))?.[1]].some(v=>String(v||'').toLowerCase().includes(decSearch)))&&(!state.decRarity||x.c.tier===state.decRarity)&&(!state.decRemaining||!state.found.has(x.i));
  board.innerHTML=groups.map(g=>{
   const found=g.entries.filter(x=>state.found.has(x.i)).length,visible=g.entries.filter(matches).length,open=decOpenGroups.has(g.key),filtered=!!state.decRarity||!!state.decRemaining||!!decSearch;
   return `<section class="mega-group dec-group" data-dec-group="${g.key}" ${visible?'':'hidden'}><button type="button" class="dec-group-head" data-dec-toggle aria-expanded="${open}" aria-controls="dec-grid-${g.key}"><span class="dec-category-icon" aria-hidden="true">${DEC_GROUP_ICONS[g.key]||'✦'}</span><span class="dec-group-title"><strong>${safe(g.title)}</strong><small>${safe(g.description)}${filtered?' · '+visible+' shown':''}</small><span class="dec-group-progress" aria-hidden="true"><i style="width:${100*found/g.entries.length}%"></i></span></span><span class="dec-group-count">${found}/${g.entries.length}<small>found</small></span><span class="dec-chevron" aria-hidden="true"></span></button><div class="mega-grid" id="dec-grid-${g.key}" ${open?'':'hidden'}>${g.entries.map(x=>card(x.c,x.i)).join('')}</div></section>`;

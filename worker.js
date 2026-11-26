@@ -406,19 +406,7 @@ function decemberCards(characters=[],seed=''){
   // Hunt HQ: a Mega room owns all its themed mini hunts. One guest token and
   // one set of private player photos cover the entire linked competition.
   const MEGA_LABELS=['Christmas tree','Glowing star','Candy cane','Santa Claus','Snowman','Reindeer','Holiday wreath','Big light-up gift','Christmas elf','Icicle lights','Colorful roof','Gingerbread person','Penguin','Glowing snowflake','Santa sleigh','Pink or purple lights','Giant inflatable','Giant ornament','Nativity scene','Light-up mailbox','','','','','','Music-synced lights','Holiday projector','Chasing light pattern','Light tunnel or arch','Lights spelling a word'];
-const DEC_GROUPS=[
- ['classic','Classic Christmas characters','Santa, snowmen and familiar Christmas friends'],
- ['disney','Disney characters','Disney, Pixar and Star Wars favorites'],
- ['stories','Other story & TV characters','Peanuts, Bluey, the Grinch and more'],
- ['animals','Animals & magical creatures','Woodland friends, pets and imaginative creatures'],
- ['decor','Christmas decorations','Ornaments, bows, gifts and festive symbols'],
- ['candy','Candy & gingerbread','Sweet holiday decorations'],
- ['colors','Light colors & styles','Spot each color and light pattern'],
- ['home','Houses, trees & yards','Decorated windows, porches, fences and more'],
- ['scenes','Holiday scenes & big displays','Sleighs, villages and oversized displays'],
- ['words','Words in lights','Find festive glowing messages'],
- ['effects','Music, motion & special effects','Animated, musical and spectacular lights']
-];
+const DEC_GROUPS=[["workshop","Santa’s Workshop","Christmas friends, presents and toys"],["disney","Disney Night","Disney, Pixar and Star Wars favorites"],["stories","Storybook & TV Favorites","Peanuts, Bluey, the Grinch and more"],["animals","Christmas Critters","Animals, pets and magical creatures"],["festive-decor","Christmas Classics & Candy","Ornaments, holiday symbols and sweet treats"],["neighborhood","Neighborhood Glow","Houses, trees, yards and big holiday displays"],["colors","Color Quest","Colors, twinkles and light styles"],["light-show","Light Show & Messages","Glowing words, music, motion and effects"]];
 const decNamedGroups={
  classic:['Santa Claus','Snowman','Christmas elf','Gingerbread person','Mrs. Claus','The Nutcracker','Buddy the Elf','The Abominable Snow Monster','Bumble','Frosty the Snowman','Gingerbread Man','Rudolph','Reindeer'],
  disney:['Mickey Mouse','Minnie Mouse','Donald Duck','Goofy','Pluto','Winnie-the-Pooh','Winnie-the-Pooh and Piglet','Piglet','Tigger','Eeyore','Olaf','Elsa','Anna','Stitch','Jack Skellington','Zero (Nightmare Before Christmas)','Grogu (Baby Yoda)','The Mandalorian','Rapunzel','Simba'],
@@ -427,12 +415,24 @@ const decNamedGroups={
  words:['PEACE in lights','Lights spelling a word','JOY in lights','NOEL in lights','Merry Christmas in lights','Happy Holidays in lights']
 };
 const decNamedGroupMap=new Map(Object.entries(decNamedGroups).flatMap(([group,names])=>names.map(name=>[decSlug(name),group])));
-function decGroupFor(c){return decNamedGroupMap.get(decSlug(c.name))||({'Characters':'stories','Animals & creatures':'animals','Christmas decorations':'decor','Colors & styles':'colors','Holiday scenes':'scenes','Words, music & effects':'effects'}[c.category])||'decor'}
+function legacyDecGroupFor(c){return decNamedGroupMap.get(decSlug(c.name))||({'Characters':'stories','Animals & creatures':'animals','Christmas decorations':'decor','Colors & styles':'colors','Holiday scenes':'scenes','Words, music & effects':'effects'}[c.category])||'decor'}
 
-const THEME_DEFS=[["disney","Disney Night","disney"],["christmas-friends","Christmas Friends","classic"],["stories","Storybook & TV Favorites","stories"],["animals","Merry Menagerie","animals"],["classic","Christmas Classics","decor"],["candy","Candyland","candy"],["colors","Color Quest","colors"],["home","Neighborhood Glow","home"],["scenes","North Pole Adventure","scenes"],["words","Merry Messages","words"],["effects","Light Show Night","effects"],["random","Surprise Me","*"]];
+// The same eight pools power both Mega sections and new mini hunts. Old theme IDs stay playable.
+const workshopExtras=new Set(['Big light-up gift','Light-up gift stack','Christmas drum','Light-up rocking horse','Toy soldier','Lighted bicycle'].map(decSlug));
+function decGroupFor(c){
+ const old=legacyDecGroupFor(c);
+ if(old==='classic'||(old==='decor'&&workshopExtras.has(decSlug(c.name))))return 'workshop';
+ if(old==='decor'||old==='candy')return 'festive-decor';
+ if(old==='home'||old==='scenes')return 'neighborhood';
+ if(old==='words'||old==='effects')return 'light-show';
+ return old;
+}
+const ACTIVE_THEME_DEFS=[["workshop","Santa’s Workshop","workshop"],["disney","Disney Night","disney"],["stories","Storybook & TV Favorites","stories"],["animals","Christmas Critters","animals"],["festive-decor","Christmas Classics & Candy","festive-decor"],["neighborhood","Neighborhood Glow","neighborhood"],["colors","Color Quest","colors"],["light-show","Light Show & Messages","light-show"],["random","Surprise Me","*"]];
+const LEGACY_THEME_DEFS=[["christmas-friends","Christmas Friends","classic"],["classic","Christmas Classics","decor"],["candy","Candyland","candy"],["home","Neighborhood Glow","home"],["scenes","North Pole Adventure","scenes"],["words","Merry Messages","words"],["effects","Light Show Night","effects"]];
+const THEME_DEFS=[...ACTIVE_THEME_DEFS,...LEGACY_THEME_DEFS];
 function chooseThemeCards(cards,theme,seed,found=[],prior=[]){
  const def=THEME_DEFS.find(x=>x[0]===theme);if(!def)return [];
- const pool=cards.map((c,index)=>({...c,megaIndex:index})).filter(c=>def[2]==="*"||decGroupFor(c)===def[2]);
+ const pool=cards.map((c,index)=>({...c,megaIndex:index})).filter(c=>def[2]==="*"||(LEGACY_THEME_DEFS.includes(def)?legacyDecGroupFor(c):decGroupFor(c))===def[2]);
  let h=2166136261;for(const c of String(seed))h=Math.imul(h^c.charCodeAt(0),16777619);
  const rand=()=>{h+=0x6d2b79f5;let t=h;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296};
  for(let i=pool.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}

@@ -58,12 +58,13 @@ const SantaHQIllustrations = (() => {
    Printable library uses worker-matched default theme clue definitions in hunt-print.html. */
 (()=>{'use strict';
 if(window.__santaPrintV3)return;window.__santaPrintV3=true;
-const THEMES=[["disney","Disney Night"],["christmas-friends","Christmas Friends"],["stories","Storybook & TV Favorites"],["animals","Merry Menagerie"],["classic","Christmas Classics"],["candy","Candyland"],["colors","Color Quest"],["home","Neighborhood Glow"],["scenes","North Pole Adventure"],["words","Merry Messages"],["effects","Light Show Night"]];
-const NAMES=Object.fromEntries(THEMES);
+const THEMES=[["workshop","Santa’s Workshop"],["disney","Disney Night"],["stories","Storybook & TV Favorites"],["animals","Christmas Critters"],["festive-decor","Christmas Classics & Candy"],["neighborhood","Neighborhood Glow"],["colors","Color Quest"],["light-show","Light Show & Messages"]];
+const LEGACY_THEMES=[["christmas-friends","Christmas Friends"],["classic","Christmas Classics"],["candy","Candyland"],["home","Neighborhood Glow"],["scenes","North Pole Adventure"],["words","Merry Messages"],["effects","Light Show Night"]];
+const NAMES=Object.fromEntries([...THEMES,...LEGACY_THEMES]);
 const guest=!!document.getElementById('huntBoard');
 const escapeHTML=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function prettyTheme(name){const text=String(name||'').toLowerCase();return THEMES.find(([k,t])=>text===k||text.includes(t.toLowerCase()))?.[0]||''}
-function printLink(theme='classic'){const u=new URL('./hunt-print.html',document.baseURI);u.searchParams.set('theme',NAMES[theme]?theme:'classic');return u;}
+function printLink(theme='festive-decor'){const u=new URL('./hunt-print.html',document.baseURI);u.searchParams.set('theme',NAMES[theme]?theme:'festive-decor');return u;}
 function showSheet(url){const w=window.open(url.href,'_blank');if(w){try{w.opener=null}catch{}}else{window.location.assign(url.href)} }
 function openTheme(theme){if(theme==='random'){alert('Create the Surprise Me hunt first, then use Print matching hunt inside it so every clue matches.');return}showSheet(printLink(theme))}
 function readActiveClues(){const board=document.getElementById('huntBoard');if(!board)return null;
@@ -98,7 +99,7 @@ function library(){if(guest)return;
  const area=document.querySelector('.hunt-yearly-themes');
  if(area&&!document.querySelector('#santaPrintableLibrary')){
   const panel=document.createElement('section');panel.id='santaPrintableLibrary';panel.className='santa-print-library';
-  panel.innerHTML=`<div class="santa-print-title"><div><strong>Printable Lights Hunts</strong><small>Illustrated sample missions from the same Mega Hunt categories</small></div><button type="button" data-print-all>Print all 11</button></div><div class="santa-print-themes">${THEMES.map(([id,label])=>`<button type="button" data-print-theme="${id}"><span aria-hidden="true">✦</span> ${escapeHTML(label)}</button>`).join('')}</div><p class="santa-print-explain">For any actual themed, Surprise Me, or Mega hunt, open that hunt and select <b>Print matching hunt</b> to get its exact clues.</p>`;
+  panel.innerHTML=`<div class="santa-print-title"><div><strong>Printable Lights Hunts</strong><small>Illustrated sample missions from the same Mega Hunt categories</small></div><button type="button" data-print-all>Print all 8</button></div><div class="santa-print-themes">${THEMES.map(([id,label])=>`<button type="button" data-print-theme="${id}"><span aria-hidden="true">✦</span> ${escapeHTML(label)}</button>`).join('')}</div><p class="santa-print-explain">For any actual themed, Surprise Me, or Mega hunt, open that hunt and select <b>Print matching hunt</b> to get its exact clues.</p>`;
   area.insertAdjacentElement('afterend',panel);
  }
  const selected=document.getElementById('huntStandaloneTheme');
