@@ -75,11 +75,11 @@ function readActiveClues(){const board=document.getElementById('huntBoard');if(!
   const img=card.querySelector('img.custom-hunt-photo')?.getAttribute('src')||'';
   return {name,hint,img:img.startsWith('./hunt-images/')?img:''};
  });if(clues.some(x=>!x.name)||clues.length!==cards.length)return null;
- const title=document.getElementById('boardTitle')?.textContent?.trim()||'Christmas Lights Hunt';
+ const title=board.dataset.printTitle||document.getElementById('boardTitle')?.textContent?.trim()||'Christmas Lights Hunt';
  const sub=document.getElementById('boardSubtitle')?.textContent||'';
  const activeTab=[...document.querySelectorAll('.hunt-hq-tabs button[aria-pressed="true"]')][0];
  const tabName=activeTab?.querySelector('strong')?.textContent||'';
- const theme=prettyTheme(tabName)||prettyTheme(sub)||prettyTheme(title)||'classic';
+ const theme=board.dataset.printTheme||prettyTheme(tabName)||prettyTheme(sub)||prettyTheme(title)||'classic';
  return {title,theme,clues,created:Date.now()};
 }
 function openLiveSheet(){const job=readActiveClues();if(!job){alert('The hunt clues have not loaded yet. Open the hunt board, then try Print again.');return}
@@ -89,7 +89,10 @@ function openLiveSheet(){const job=readActiveClues();if(!job){alert('The hunt cl
  const id='p'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9);
  try{localStorage.setItem('santaHQPrintJob:'+id,JSON.stringify(job));url.searchParams.set('job',id)}
  catch{url.searchParams.set('clues',JSON.stringify(job.clues.map(c=>({name:c.name,hint:c.hint}))));url.searchParams.set('title',job.title)}
- showSheet(url);
+ // Return to the exact guest hunt in the same tab, without an account login.
+ // The room/night fragment is already part of the shareable guest link; no player token is copied.
+ if(/^#(?:room=[a-f0-9]{32}(?:&night=[a-f0-9]{32})?|h=[ef]_[a-f0-9]{24})$/.test(location.hash))url.hash=location.hash;
+ window.location.assign(url.href);
 }
 function library(){if(guest)return;
  const area=document.querySelector('.hunt-yearly-themes');
@@ -116,7 +119,6 @@ if(guest){const printBtn=document.getElementById('printBtn');if(printBtn){printB
 document.addEventListener('click',event=>{
  const btn=event.target.closest('button');if(!btn)return;
  if(guest&&btn.id==='printBtn'){
-  if(document.querySelectorAll('#huntBoard .find').length<8)return;
   event.preventDefault();event.stopImmediatePropagation();openLiveSheet();return;
  }
  if(btn.hasAttribute('data-print-theme')){event.preventDefault();event.stopImmediatePropagation();openTheme(btn.dataset.printTheme);return;}

@@ -230,7 +230,7 @@ function renderHuntNav(){
  const label=(found,total)=>`${Math.min(new Set(found).size,total)}/${total} found`;
  const personal=personalBoard();
  const options=[{id:'',title:'Mega Hunt',sub:isDecemberMega(state.hunt.seed)?`${state.megaFound.size} found · goal 100`:label(state.megaFound,state.megaPicks.length)},...state.nights.map(n=>({id:n.id,title:n.title,sub:label(state.nightFound[n.id]||[],n.clues.length)}))];
- el.innerHTML=`<div class="hunt-hq-title"><strong>Hunt HQ</strong><small>Shared challenges and adventures just for your team</small></div><div class="hunt-hq-tabs">${options.map(n=>`<button type="button" data-night-id="${safe(n.id)}" aria-pressed="${!personal&&n.id===state.activeNightId}"><strong>${safe(n.title)}</strong><small>${safe(n.sub)}</small></button>`).join('')}</div><p class="hunt-hq-note">A find shared with Mega Hunt counts only once there. Bonus clues from older hunts can win a themed night without extra Mega points.</p>${isDecemberMega(state.hunt.seed)&&state.playerId?`<div class="personal-hunt-box"><strong>Just our family</strong><small>Pick a themed adventure for your team only. Finds count toward your Mega score; no new challenge is created for other teams.</small><div class="personal-hunt-controls"><select id="personalTheme" aria-label="Choose your family theme">${THEME_DEFS.map(([id,title])=>`<option value="${id}" ${personalChoice===id?'selected':''}>${safe(title)}</option>`).join('')}</select><button type="button" class="btn primary" data-personal-start ${state.hunt.archived?'disabled':''}>Start our adventure</button></div>${state.personalAdventure?.indices?.length?`<button type="button" class="btn" data-personal-resume aria-pressed="${!!personal}">${personal?'Playing: ':'Resume: '}${safe(THEME_DEFS.find(x=>x[0]===state.personalAdventure.theme)?.[1]||'Our adventure')} · ${state.personalAdventure.indices.filter(i=>state.megaFound.has(i)).length}/${state.personalAdventure.indices.length}</button>`:''}</div>`:''}`;
+ el.innerHTML=`<div class="hunt-hq-title"><strong>Hunt HQ</strong><small>Shared challenges and adventures just for your team</small></div><div class="hunt-hq-tabs">${options.map(n=>`<button type="button" data-night-id="${safe(n.id)}" aria-pressed="${!personal&&n.id===state.activeNightId}"><strong>${safe(n.title)}</strong><small>${safe(n.sub)}</small></button>`).join('')}</div><p class="hunt-hq-note">A find shared with Mega Hunt counts only once there. Bonus clues from older hunts can win a themed night without extra Mega points.</p>${isDecemberMega(state.hunt.seed)&&state.playerId?`<div class="personal-hunt-box"><strong>Personal themed adventure</strong><small>Pick a themed adventure for your team only. Finds count toward your Mega score; no new challenge is created for other teams.</small><div class="personal-hunt-controls"><select id="personalTheme" aria-label="Choose your adventure theme">${THEME_DEFS.map(([id,title])=>`<option value="${id}" ${personalChoice===id?'selected':''}>${safe(title)}</option>`).join('')}</select><button type="button" class="btn primary" data-personal-start ${state.hunt.archived?'disabled':''}>Start adventure</button></div>${state.personalAdventure?.indices?.length?`<button type="button" class="btn" data-personal-resume aria-pressed="${!!personal}">${personal?'Playing: ':'Resume: '}${safe(THEME_DEFS.find(x=>x[0]===state.personalAdventure.theme)?.[1]||'Our adventure')} · ${state.personalAdventure.indices.filter(i=>state.megaFound.has(i)).length}/${state.personalAdventure.indices.length}</button>`:''}</div>`:''}`;
 }
 function switchNight(id,updateURL=true){
  if(id&&!state.nights.some(n=>n.id===id))return;
@@ -319,7 +319,7 @@ function personalBoard(){const p=state.personalAdventure;return !activeNight()&&
 function personalIndices(){return personalBoard()?.indices||state.picks.map((_,i)=>i)}
 function startPersonal(theme){
  if(!state.playerId||state.hunt?.archived||!isDecemberMega(state.hunt?.seed))return;
- const previous=state.personalAdventure;if(previous?.indices?.some(i=>!state.megaFound.has(i))&&!confirm('Start a new family adventure? Your Mega finds and photos stay saved, but this replaces your current adventure.'))return;
+ const previous=state.personalAdventure;if(previous?.indices?.some(i=>!state.megaFound.has(i))&&!confirm('Start a new themed adventure? Your Mega finds and photos stay saved, but this replaces your current adventure.'))return;
  const prior=previous?.theme===theme?previous.indices:[];
  const chosen=chooseThemeCards(state.megaPicks,theme,Date.now()+Math.random(),[...state.megaFound],prior);
  if(!chosen.length)return;
@@ -358,8 +358,12 @@ function renderBoard(){
  $('joinPanel').hidden=!!state.playerId;
  $('gamePanel').hidden=!state.playerId;
  $('classicHuntIntro').hidden=state.photoMode; $('photoModeIntro').hidden=!state.photoMode; $('photoFeedPanel').hidden=!state.photoMode||!!personal; $('photoTakeBtn').hidden=!state.photoMode;
- $('boardTitle').textContent=personal?(THEME_DEFS.find(x=>x[0]===personal.theme)?.[1]||'Our family adventure'):activeNight()?activeNight().title:(state.hunt?.title||'Christmas lights hunt');
- $('boardSubtitle').textContent=personal?`${count} clues · just your family · counts toward Mega`:activeNight()?`${count} clues · ${activeNight().title} · linked to your Mega competition`:state.hunt?.mode==='standalone'?`${count} clues · ${THEME_DEFS.find(x=>x[0]===state.hunt.theme)?.[1]||state.hunt.theme} · ${state.hunt.playMode==='solo'?'play independently':'play together'}`:december?'125 clues · find any 100 · December Mega Hunt':count===30?'30 clues · ongoing Mega lights hunt':count===16?'16 photo clues · family challenge':'9 photo clues · little lights hunt';
+ $('backToMega').hidden=!(state.hunt?.mode==='mega'&&(personal||night));
+ const themeTitle=THEME_DEFS.find(x=>x[0]===theme)?.[1]||night?.title||'';
+ $('huntBoard').dataset.printTheme=theme||'';
+ $('huntBoard').dataset.printTitle=theme?themeTitle:(state.hunt?.title||'Christmas Lights Hunt');
+ $('boardTitle').textContent=personal?(THEME_DEFS.find(x=>x[0]===personal.theme)?.[1]||'Personal adventure'):activeNight()?activeNight().title:(state.hunt?.title||'Christmas lights hunt');
+ $('boardSubtitle').textContent=personal?`${count} clues · personal adventure · counts toward Mega`:activeNight()?`${count} clues · ${activeNight().title} · linked to your Mega competition`:state.hunt?.mode==='standalone'?`${count} clues · ${THEME_DEFS.find(x=>x[0]===state.hunt.theme)?.[1]||state.hunt.theme} · ${state.hunt.playMode==='solo'?'play independently':'play together'}`:december?'125 clues · find any 100 · December Mega Hunt':count===30?'30 clues · ongoing Mega lights hunt':count===16?'16 photo clues · group challenge':'9 photo clues · little lights hunt';
  $('leaderPanel').hidden=!!personal||state.hunt?.playMode==='solo';$('resetBtn').hidden=!!personal;$('shareBtn').hidden=!!personal;
  $('huntEndedNote').hidden=!state.hunt?.archived;
  $('joinPanel').hidden=!!state.playerId||!!state.hunt?.archived;
@@ -408,7 +412,7 @@ function renderLeaders(){
   if(activeNight())$('megaNightList').innerHTML=(state.leaders||[]).slice(0,4).map((p,i)=>`<div><span>${i+1}. ${safe(p.nickname)}</span><strong>${p.score}/${isDecemberMega(state.hunt.seed)?125:30}</strong></div>`).join('')||'<small>Start spotting to see the overall competition.</small>';
  }
  const leaders=activeNight()?(state.nightLeaders[state.activeNightId]||[]):state.leaders,maximum=state.picks.length;
- if(!leaders.length){$('leaderText').textContent=state.legacy?'This older hunt keeps scores on each device. Start a new hunt for a live family leaderboard.':'Nobody has joined yet. Share this link and invite your teams!';$('leaderboard').innerHTML='';return;}
+ if(!leaders.length){$('leaderText').textContent=state.legacy?'This older hunt keeps scores on each device. Start a new hunt for a live leaderboard.':'Nobody has joined yet. Share this link and invite your teams!';$('leaderboard').innerHTML='';return;}
  const goal=!activeNight()&&isDecemberMega(state.hunt?.seed)?100:maximum;
  const high=leaders[0].score,winners=leaders.filter(p=>p.score===high),leaderNames=winners.map(p=>p.nickname);
  $('leaderText').textContent=high>=goal&&goal===100?`🏆 ${leaderNames.join(' & ')} reached Legend status · ${high} finds!`:high>=goal?`🏆 ${leaderNames.join(' & ')} finished!`:winners.length===1?`🏆 ${leaderNames[0]} is leading with ${high} finds!`:`🏆 It's a tie at ${high} finds: ${leaderNames.join(' & ')}`;
@@ -509,7 +513,7 @@ async function uploadPhoto(){
 }
 async function changePhoto(id,operation){
  const row=state.photos.find(p=>p.id===id&&p.playerId===state.playerId);if(!row)return;
- if(operation==='delete'&&!confirm('Remove this photo and its hunt find? This also removes it from the family photo feed if shared.'))return;
+ if(operation==='delete'&&!confirm('Remove this photo and its hunt find? This also removes it from the hunt photo feed if shared.'))return;
  try{
   const r=await fetch('/api/hunts/'+room+'/photos/'+operation+'/'+id,{method:'POST',headers:{...photoAuth(),'Content-Type':'application/json'},body:JSON.stringify(operation==='visibility'?{shared:!row.shared}:{})});
   const data=await r.json();if(!r.ok)throw Error(data.error||'Could not update photo');
@@ -545,11 +549,12 @@ $('familyPhotoFeed').addEventListener('click',e=>{
 });
 $('photoViewerClose').addEventListener('click',()=>{$('photoViewer').hidden=true;$('photoViewerImg').removeAttribute('src')});
 async function init(){
- if(!room&&!legacy){errors('This is not a valid hunt link. Ask your family for a fresh link.');$('joinPanel').hidden=true;return;}
+ if(!room&&!legacy){errors('This is not a valid hunt link. Ask the hunt host for a fresh link.');$('joinPanel').hidden=true;return;}
  try{if(room){const data=await api('/api/hunts/'+room);state.hunt=data.hunt;state.leaders=data.leaders||[];state.nights=data.nights||[];state.nightLeaders=data.nightLeaders||{};}else{state.hunt={mode:legacy.startsWith('f_')?'family':'easy',seed:legacy};state.leaders=[];$('liveStatus').textContent='Solo scoring';}}
  catch(e){errors(e.message);$('joinPanel').hidden=true;return}
  await loadPhotoOverrides();state.photoMode=!!state.hunt.photoMode;state.picks=legacy?legacyCards(legacy):state.hunt.mode==='standalone'?state.hunt.clues.map(cardFromClue):generate(state.hunt.seed,state.hunt.mode);state.megaPicks=state.picks.slice();loadLocal();rememberJoined();$('playerName').value=state.nickname;switchNight(requestedNight&&state.nights.some(n=>n.id===requestedNight)?requestedNight:'',false);if(room){if(state.playerId&&state.token)await refresh();if(state.photoMode&&state.playerId)await loadGallery();setInterval(refresh,8000)}
 }
+$('backToMega').addEventListener('click',()=>{state.personalActive=false;store();switchNight('');$('boardTitle').scrollIntoView({block:'start'});});
 $('startBtn').addEventListener('click',start);
 $('playerName').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();start()}});
 function toggleFind(i,manual=false){
@@ -569,7 +574,7 @@ $('huntBoard').addEventListener('click',e=>{
 });
 $('resetBtn').addEventListener('click',()=>{if(state.hunt?.archived||personalBoard())return;if(!confirm('Clear finds for this board? Mega keeps points earned in other themed nights.'))return;state.found.clear();if(activeNight())state.nightFound[state.activeNightId]=[];else{state.directFound.clear();state.megaFound.clear()}store();renderBoard();sendProgress()});
 $('printBtn').addEventListener('click',()=>window.print());
-$('shareBtn').addEventListener('click',async()=>{const url=room?location.origin+location.pathname+'#room='+room:location.href;try{if(navigator.share){await navigator.share({title:'Santa HQ Christmas lights hunt',url,text:'Join our family lights hunt!'});return}await navigator.clipboard.writeText(url);$('shareBtn').textContent='Link copied!';setTimeout(()=>$('shareBtn').textContent='Share hunt',2200)}catch(e){if(e.name!=='AbortError')prompt('Copy the hunt link:',url)}});
+$('shareBtn').addEventListener('click',async()=>{const url=room?location.origin+location.pathname+'#room='+room:location.href;try{if(navigator.share){await navigator.share({title:'Santa HQ Christmas lights hunt',url,text:'Join our Christmas lights hunt!'});return}await navigator.clipboard.writeText(url);$('shareBtn').textContent='Link copied!';setTimeout(()=>$('shareBtn').textContent='Share hunt',2200)}catch(e){if(e.name!=='AbortError')prompt('Copy the hunt link:',url)}});
 window.addEventListener('online',()=>{if(room){sendProgress();refresh()}});
 init();
 })();
