@@ -223,6 +223,23 @@ async function uploadToOtherHunt(item,blob,shared){
   await api('/api/hunts/'+record.id+'/nights/'+night.nightId+'/progress',{playerToken:record.token,add:[night.index],remove:[]});
  }
 }
+let megaView='play',megaInitialized=false,decSearch='';
+function setMegaView(view){
+ const button=document.querySelector(`#megaMenu [data-mega-view="${view}"]`);
+ if(!button||button.hidden)view='play';
+ megaView=view;document.body.dataset.megaView=view;
+ document.querySelectorAll('#megaMenu button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.megaView===view)));
+}
+$('megaMenu').addEventListener('click',e=>{const b=e.target.closest('[data-mega-view]');if(b)setMegaView(b.dataset.megaView)});
+function updateMegaMenu(){
+ const mega=state.hunt?.mode==='mega',solo=state.hunt?.playMode==='solo';
+ document.body.classList.toggle('mega-clean',mega);document.body.classList.toggle('mega-solo',!!solo);
+ $('megaMenu').hidden=!mega;$('megaTeamTag').hidden=!mega||!state.playerId;$('megaTeamTag').textContent=state.nickname||'';if(!mega)return;
+ const set=(name,hidden)=>{document.querySelector(`#megaMenu [data-mega-view="${name}"]`).hidden=hidden};
+ set('scores',!!personalBoard()||solo);set('photos',!state.photoMode||!state.playerId||!!personalBoard());set('more',!state.playerId);set('adventures',!state.playerId);
+ if(!megaInitialized){megaInitialized=true;if(state.hunt.ended&&!solo)megaView='scores'}
+ setMegaView(megaView);
+}
 function renderHuntNav(){
  const el=$('nightNav');if(!el)return;
  if(!state.hunt||state.hunt.mode!=='mega'){el.hidden=true;return}
@@ -265,7 +282,7 @@ async function fetchRoom(){
  return data;
 }
 $('nightNav')?.addEventListener('change',e=>{if(e.target.id==='personalTheme')personalChoice=e.target.value});
-$('nightNav')?.addEventListener('click',event=>{const b=event.target.closest('[data-night-id]');if(b){state.personalActive=false;store();switchNight(b.dataset.nightId||'');return}if(event.target.closest('[data-personal-start]')){startPersonal(personalChoice);return}if(event.target.closest('[data-personal-resume]')){state.personalActive=true;store();switchNight('')}});
+$('nightNav')?.addEventListener('click',event=>{const b=event.target.closest('[data-night-id]');if(b){state.personalActive=false;store();setMegaView('play');switchNight(b.dataset.nightId||'');return}if(event.target.closest('[data-personal-start]')){startPersonal(personalChoice);return}if(event.target.closest('[data-personal-resume]')){state.personalActive=true;store();setMegaView('play');switchNight('')}});
 function card(c,i){
  const picture=c.photo!==null&&c.photo!==undefined;
  const x=picture?(c.photo%4)*100/3:0,y=picture?Math.floor(c.photo/4)*100/3:0;
@@ -327,7 +344,7 @@ function startPersonal(theme){
  const prior=previous?.theme===theme?previous.indices:[];
  const chosen=chooseThemeCards(state.megaPicks,theme,Date.now()+Math.random(),[...state.megaFound],prior);
  if(!chosen.length)return;
- state.personalAdventure={theme,indices:chosen.map(c=>c.megaIndex)};state.personalActive=true;store();switchNight('');void syncAdventure(true);
+ state.personalAdventure={theme,indices:chosen.map(c=>c.megaIndex)};state.personalActive=true;store();setMegaView('play');switchNight('');void syncAdventure(true);
 }
 
 function setDecGroupOpen(section,open){
@@ -338,13 +355,13 @@ function setDecGroupOpen(section,open){
 function renderDecemberGroups(){
  const board=$('huntBoard'),entries=state.picks.map((c,i)=>({c,i}));
  const groups=DEC_GROUPS.map(([key,title,description])=>({key,title,description,entries:entries.filter(x=>decGroupFor(x.c)===key)})).filter(g=>g.entries.length);
- const matches=x=>(!state.decRarity||x.c.tier===state.decRarity)&&(!state.decRemaining||!state.found.has(x.i));
+ const matches=x=>(!decSearch||[x.c.name,x.c.category].some(v=>String(v||'').toLowerCase().includes(decSearch)))&&(!state.decRarity||x.c.tier===state.decRarity)&&(!state.decRemaining||!state.found.has(x.i));
  board.innerHTML=groups.map(g=>{
-  const found=g.entries.filter(x=>state.found.has(x.i)).length,visible=g.entries.filter(matches).length,open=decOpenGroups.has(g.key),filtered=!!state.decRarity||!!state.decRemaining;
+  const found=g.entries.filter(x=>state.found.has(x.i)).length,visible=g.entries.filter(matches).length,open=decOpenGroups.has(g.key),filtered=!!state.decRarity||!!state.decRemaining||!!decSearch;
   return `<section class="mega-group dec-group" data-dec-group="${g.key}" ${visible?'':'hidden'}><button type="button" class="dec-group-head" data-dec-toggle aria-expanded="${open}" aria-controls="dec-grid-${g.key}"><span class="dec-group-title"><strong>${safe(g.title)}</strong><small>${safe(g.description)}${filtered?' · '+visible+' shown':''}</small><span class="dec-group-progress" aria-hidden="true"><i style="width:${100*found/g.entries.length}%"></i></span></span><span class="dec-group-count">${found}/${g.entries.length}<small>found</small></span><span class="dec-chevron" aria-hidden="true"></span></button><div class="mega-grid" id="dec-grid-${g.key}" ${open?'':'hidden'}>${g.entries.map(x=>card(x.c,x.i)).join('')}</div></section>`;
  }).join('');
  board.querySelectorAll('.find').forEach(el=>{const index=Number(el.dataset.spot??el.querySelector('[data-photo-for]')?.dataset.photoFor);el.classList.toggle('dec-filtered-out',!matches({c:state.picks[index],i:index}))});
- if(!entries.some(matches))board.insertAdjacentHTML('beforeend','<p class="dec-empty">No clues match these filters. Try another rarity or turn off Still to find.</p>');
+ if(!entries.some(matches))board.insertAdjacentHTML('beforeend','<p class="dec-empty">No matching clues. Try another search or change your filters.</p>');
 }
 $('huntBoard').addEventListener('click',e=>{const toggle=e.target.closest('[data-dec-toggle]');if(toggle)setDecGroupOpen(toggle.closest('[data-dec-group]'),toggle.getAttribute('aria-expanded')!=='true')});
 
@@ -399,13 +416,13 @@ function renderBoard(){
  $('progressBar').style.width=percentage+'%';
  $('challengeSummary').textContent=`Challenge progress · ${done} of ${count} found`;
  $('challengeClues').innerHTML=indices.map(index=>{const clue=state.picks[index];return `<li><span>${safe(clue.name)}</span><strong>${state.found.has(index)?'Found':'Still to find'}</strong></li>`}).join('');
- renderHuntNav();
+ renderHuntNav();updateMegaMenu();
  $('huntBoard').classList.toggle('challenge',count===16);
  $('huntBoard').classList.toggle('mega',count===30||december);
  let milestones=$('decemberMilestones');
- if(!milestones){milestones=document.createElement('section');milestones.id='decemberMilestones';milestones.style.cssText='margin:14px 0;padding:16px;border:1px solid #d8bda0;background:#fffdf5;color:#294b38;border-radius:18px';$('huntBoard').before(milestones)}
+ if(!milestones){milestones=document.createElement('details');milestones.id='decemberMilestones';milestones.style.cssText='margin:14px 0;padding:16px;border:1px solid #d8bda0;background:#fffdf5;color:#294b38;border-radius:18px';$('huntBoard').before(milestones)}
  milestones.hidden=!december;
- if(december){const levels=[[25,'Junior Light Explorer'],[50,'Christmas Light Detective'],[75,'North Pole Scout'],[90,'Master Light Hunter'],[100,'Christmas Lights Legend']];const next=levels.find(x=>x[0]>done);milestones.innerHTML=`<strong style="font-family:Georgia,serif;font-size:1.2rem">Your December adventure</strong><p style="margin:5px 0 10px;font-size:.85rem">${done} of 125 discovered · ${next?`${next[0]-done} until ${next[1]}`:done===125?'Every clue discovered!':'Legend achieved! Keep looking for bonus finds.'}</p><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:8px">${levels.map(([n,label])=>`<div style="padding:9px;border:1px solid ${done>=n?'#39744c':'#ddd3c2'};border-radius:12px;background:${done>=n?'#e7f1df':'#faf7ef'}"><strong>${done>=n?'✓ ':'✦ '}${n}</strong><div style="font-size:.75rem">${label}</div></div>`).join('')}</div>`;}
+ if(december){const levels=[[25,'Junior Light Explorer'],[50,'Christmas Light Detective'],[75,'North Pole Scout'],[90,'Master Light Hunter'],[100,'Christmas Lights Legend']];const next=levels.find(x=>x[0]>done);milestones.innerHTML=`<summary>${done} of 125 discovered · ${next?`${next[0]-done} until ${next[1]}`:done===125?'Every clue discovered!':'Legend achieved!'}</summary><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:8px">${levels.map(([n,label])=>`<div style="padding:9px;border:1px solid ${done>=n?'#39744c':'#ddd3c2'};border-radius:12px;background:${done>=n?'#e7f1df':'#faf7ef'}"><strong>${done>=n?'✓ ':'✦ '}${n}</strong><div style="font-size:.75rem">${label}</div></div>`).join('')}</div>`;}
  $('huntBoard').classList.toggle('december-board',december);
  if(personal)$('huntBoard').innerHTML=indices.map(index=>card(state.picks[index],index)).join('');
  else if(december)renderDecemberGroups();
@@ -420,11 +437,12 @@ function renderBoard(){
  let filters=$('decemberFilters');
  if(!filters){
   filters=document.createElement('div');filters.id='decemberFilters';$('huntBoard').before(filters);
+  const search=document.createElement('div');search.id='decSearchWrap';search.innerHTML='<label for="decSearch">Find a clue</label><input type="search" id="decSearch" placeholder="Search clues, e.g. snowman" autocomplete="off">';filters.before(search);search.addEventListener('input',e=>{decSearch=e.target.value.trim().toLowerCase();decOpenGroups.clear();if(decSearch)DEC_GROUPS.forEach(([key])=>decOpenGroups.add(key));renderDecemberGroups();$('huntBoard').querySelectorAll('.custom-hunt-photo').forEach(img=>img.addEventListener('error',()=>img.remove(),{once:true}))});
   filters.addEventListener('change',e=>{if(e.target.id==='decRarity')state.decRarity=e.target.value;if(e.target.id==='decRemaining')state.decRemaining=e.target.checked;renderBoard()});
   filters.addEventListener('click',e=>{const action=e.target.closest('[data-dec-all]')?.dataset.decAll;if(action)$('huntBoard').querySelectorAll('[data-dec-group]:not([hidden])').forEach(section=>setDecGroupOpen(section,action==='open'))});
  }
- filters.hidden=!december;
- if(december){filters.innerHTML=`<div class="dec-filter-top"><strong>Explore by category</strong><span>Tap a category to reveal its clues.</span></div><div class="dec-filter-controls"><label><input id="decRemaining" type="checkbox" ${state.decRemaining?'checked':''}> Still to find</label><label>Rarity <select id="decRarity"><option value="">All</option>${['common','uncommon','rare','legendary'].map(t=>`<option value="${t}" ${state.decRarity===t?'selected':''}>${t[0].toUpperCase()+t.slice(1)}</option>`).join('')}</select></label></div><div class="dec-filter-actions"><button type="button" data-dec-all="open">Expand all</button><button type="button" data-dec-all="close">Collapse all</button></div>`;}
+ filters.hidden=!december;$('decSearchWrap').hidden=!december;
+ if(december){filters.innerHTML=`<div class="dec-filter-controls"><label><input id="decRemaining" type="checkbox" ${state.decRemaining?'checked':''}> Still to find</label><label>Rarity <select id="decRarity"><option value="">All</option>${['common','uncommon','rare','legendary'].map(t=>`<option value="${t}" ${state.decRarity===t?'selected':''}>${t[0].toUpperCase()+t.slice(1)}</option>`).join('')}</select></label></div><div class="dec-filter-actions"><button type="button" data-dec-all="open">Expand all</button><button type="button" data-dec-all="close">Collapse all</button></div>`;}
  // Images are visual examples only; the tappable whole-card behavior stays intact.
  $('huntBoard').querySelectorAll('.custom-hunt-photo').forEach(img=>img.addEventListener('error',()=>img.remove(),{once:true}));
  $('winBanner').textContent=december?(done===125?'All 125 finds! You discovered every clue!':'Christmas Lights Legend! You reached 100 finds. Keep hunting for bonus discoveries.'):activeNight()?'All themed-night finds complete! Great spotting!':count===30?'All 30 clues found! You are a Mega Lights Hunt champion!':'Every clue found! Well done!';
@@ -609,7 +627,7 @@ async function init(){
  catch(e){errors(e.message);$('joinPanel').hidden=true;return}
  await loadPhotoOverrides();state.photoMode=!!state.hunt.photoMode;state.picks=legacy?legacyCards(legacy):state.hunt.mode==='standalone'?state.hunt.clues.map(cardFromClue):generate(state.hunt.seed,state.hunt.mode);state.megaPicks=state.picks.slice();loadLocal();rememberJoined();$('playerName').value=state.nickname;switchNight(requestedNight&&state.nights.some(n=>n.id===requestedNight)?requestedNight:'',false);if(room){if(state.playerId&&state.token)await refresh();if(state.photoMode&&state.playerId)await loadGallery();setInterval(refresh,8000)}
 }
-$('backToMega').addEventListener('click',()=>{state.personalActive=false;store();switchNight('');$('boardTitle').scrollIntoView({block:'start'});});
+$('backToMega').addEventListener('click',()=>{state.personalActive=false;store();setMegaView('play');switchNight('');$('boardTitle').scrollIntoView({block:'start'});});
 $('startBtn').addEventListener('click',()=>start('join'));
 $('resumeBtn').addEventListener('click',()=>start('resume'));
 $('accountResume').addEventListener('click',()=>start('account'));
