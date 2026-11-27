@@ -1,4 +1,4 @@
-/* Santa HQ sharing: publish ONLY explicitly selected gift names and recipients. */
+/* Santa HQ sharing: publish explicitly selected gifts and shopping links for available ideas. */
 (function(){
 'use strict';
 if(typeof render!=='function'||!window.SantaFamilies)return;
@@ -7,17 +7,17 @@ const current={ideas:[],bag:[],shareId:'',claims:[],loaded:false,loading:false,d
 if(!navItems.some(x=>x[0]==='family'))navItems.splice(navItems.length-1,0,['family','users','Family List']);
 function eligible(type){return appState.gifts.filter(g=>type==='ideas'?['Idea','To buy'].includes(g.status):['Bought','Ordered','Arrived','Wrapped'].includes(g.status))}
 function giftsByRecipient(gs){return [...configuredChildren().map(c=>[c.id,c.name]),['both',sharedLabel()],['unassigned','Still deciding']].map(([id,name])=>[name,gs.filter(g=>g.kid===id)]).filter(([,items])=>items.length)}
-function giftButton(g,type){const selected=current[type].includes(g.id);return `<div class="mf-item"><label class="mf-item-choice"><input type="checkbox" data-mf-type="${type}" data-mf-id="${E(g.id)}" ${selected?'checked':''} aria-label="Share ${E(g.name)}"><span><strong>${E(g.name)}</strong><small>${E(g.status==='Idea'?'Idea':g.status)}</small></span></label><button type="button" class="mf-edit" data-mf="edit" data-id="${E(g.id)}" aria-label="Edit ${E(g.name)}">${ico('edit')}<span>Edit</span></button></div>`}
+function giftButton(g,type){const selected=current[type].includes(g.id);return `<div class="mf-item"><label class="mf-item-choice"><input type="checkbox" data-mf-type="${type}" data-mf-id="${E(g.id)}" ${selected?'checked':''} aria-label="Share ${E(g.name)}"><span><strong>${E(g.name)}</strong><small>${E(g.status==='Idea'?'Idea':g.status)}${type==='ideas'&&safeLink(g.link)?' · Shopping link included':''}</small></span></label><button type="button" class="mf-edit" data-mf="edit" data-id="${E(g.id)}" aria-label="Edit ${E(g.name)}">${ico('edit')}<span>Edit</span></button></div>`}
 function editFamilyGift(id){
  const g=appState.gifts.find(x=>x.id===id);if(!g)return;
  saveProfileEdits();
  const recipients=[...configuredChildren().map(c=>[c.id,c.name]),['both',sharedLabel()],['unassigned','Still deciding']];
  const stages=['Idea','To buy','Bought','Ordered','Arrived','Wrapped'];
  const select=(items,value)=>items.map(([v,label])=>`<option value="${E(v)}" ${String(value)===String(v)?'selected':''}>${E(label)}</option>`).join('');
- modalOpen('Edit gift details',`<form id="mfGiftEdit" class="mf-edit-form"><p class="mf-edit-help">Edit this gift without leaving the Family List. Only the gift name and recipient are shared when you publish. Planning details remain private.</p>
+ modalOpen('Edit gift details',`<form id="mfGiftEdit" class="mf-edit-form"><p class="mf-edit-help">Edit this gift without leaving the Family List. Gift names, recipients and shopping links for shared gift ideas are visible to relatives after publishing. Other planning details remain private.</p>
  <label>Gift name<input name="name" required maxlength="160" value="${E(g.name)}"></label>
  <div class="mf-edit-grid"><label>For<select name="kid">${select(recipients,g.kid)}</select></label><label>Gift status<select name="status">${select(stages.map(x=>[x,x]),g.status)}</select></label></div>
- <label>Product link (private)<input name="link" type="url" value="${E(g.link)}" placeholder="https://…"></label>
+ <label>Product link (shared with gift ideas)<input name="link" type="url" value="${E(g.link)}" placeholder="https://…"></label>
  <div class="mf-edit-grid"><label>Price (private)<input name="price" type="number" min="0" step="0.01" value="${E(g.price??'')}"></label><label>Store (private)<input name="store" value="${E(g.store)}" maxlength="160"></label></div>
  <label>Notes (private)<textarea name="notes" rows="3">${E(g.notes)}</textarea></label></form>`,`<button type="button" class="secondary" data-action="close">Cancel</button><button class="primary" type="submit" form="mfGiftEdit">Save changes</button>`);
  const form=document.getElementById('mfGiftEdit');form.querySelector('[name="name"]').focus();
@@ -67,11 +67,11 @@ function sharingPage(){
  const stale=current.ideas.some(id=>!ideaIds.has(id))||current.bag.some(id=>!bagIds.has(id));
  const selected=current.ideas.filter(id=>ideaIds.has(id)).length+current.bag.filter(id=>bagIds.has(id)).length;
  return `<div class="mf-wrap">${heading('SHARE ONLY WHAT YOU CHOOSE','Family gift list','Choose gifts to show relatives. Your private planner stays private.',false)}
- <div class="mf-safety"><span>${ico('shield')}</span><p><strong>Private by default.</strong> Your link shows only selected gift names and recipients. No prices, budgets, private notes, product links, order details, or hiding spots.</p></div>
+ <div class="mf-safety"><span>${ico('shield')}</span><p><strong>Private by default.</strong> Your shared list includes selected gift names, recipients, and shopping links for available gift ideas, plus any favorites you choose to share. No private prices, budgets, notes, order details, or hiding spots.</p></div>
  ${current.error?`<p class="mf-error" role="alert">${E(current.error)}</p>`:''}
  ${stale?'<p class="mf-notice">Some saved selections changed stage. Republish to keep the shared list accurate.</p>':''}
  ${favoritesCards()}
- ${shareGroup('ideas','Ideas relatives can buy','Choose the gifts relatives can claim, so others know they are covered.')}
+ ${shareGroup('ideas','Ideas relatives can buy','Choose gifts relatives can claim. Product links, when available, are included so they can shop directly.')}
  ${shareGroup('bag',"In Santa's Bag (optional)",'Only show purchased gifts you are comfortable revealing to relatives.')}
  <div class="mf-publish-bar"><div><b>${selected} selected</b><small>${current.dirty?'Unpublished changes':'Changes go live when you publish'}</small></div><button type="button" class="primary" data-mf="publish">${current.shareId?'Update shared list':'Create shared list'}</button></div>
  ${link?`<div class="mf-link-row"><div><b>Your family's link</b><small>Anyone with the link can view only published items. Send it to relatives when ready.</small></div><button type="button" class="secondary" data-mf="copy">Copy link</button><a class="secondary" href="${E(link)}" target="_blank" rel="noopener noreferrer">Preview list</a></div>`:''}

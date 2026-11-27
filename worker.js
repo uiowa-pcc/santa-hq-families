@@ -1,3 +1,8 @@
+// Only ordinary web product links can be published; never expose URL credentials.
+function publicShoppingLink(value){
+  if(typeof value!=='string'||value.length>2048)return '';
+  try{const u=new URL(value);return ['https:','http:'].includes(u.protocol)&&u.hostname&&!u.username&&!u.password?u.href:'';}catch{return '';}
+}
 /** Santa HQ — shared website, private household accounts. Deploy with wrangler.json and a NEW D1. */
 const MAX_BODY=850000;
 const MAX_PRIVATE_MEDIA=15*1024*1024;
@@ -1127,7 +1132,10 @@ function chooseThemeCards(cards,theme,seed,found=[],prior=[]){
     const gifts=new Map((current.results||[]).map(r=>[r.id,JSON.parse(r.data)]));
     const p=await profile(db,family);
     const make=(ids,stages)=>Array.from(new Set(ids.filter(x=>typeof x==='string'))).map(x=>gifts.get(x)).filter(g=>g&&stages.includes(g.status)).map(g=>({id:String(g.id).slice(0,160),name:String(g.name||'Gift').slice(0,160),recipient:(Array.isArray(p.children)?p.children.map(c=>String(c.id)):['1','2']).includes(String(g.kid))?String(g.kid):g.kid==='both'?'both':'unassigned'}));
-    const visibleIdeas=make(ideas,['Idea','To buy']);
+    const visibleIdeas=make(ideas,['Idea','To buy']).map(g=>{
+      const link=publicShoppingLink(gifts.get(g.id)?.link);
+      return link?{...g,link}:g;
+    });
     const visibleBag=make(bag,['Bought','Ordered','Arrived','Wrapped']);
     const data={familyName:String(p.familyName||'A Santa HQ family').slice(0,70),child1:String(p.child1||'Child 1').slice(0,50),child2:String(p.child2||'Child 2').slice(0,50),children:Array.isArray(p.children)?p.children.map(c=>({id:String(c.id).slice(0,2),name:String(c.name||'Child').slice(0,50),icon:['star','heart','flower','moon','sparkle','snow','elf-purple-girl','elf-pink-girl','elf-red-girl','elf-lilac-girl','elf-green-boy','elf-blue-boy','elf-teal-boy','elf-navy-boy','elf-gold','elf-mint','elf-coral','elf-classic'].includes(c.icon)?c.icon:'star'})):undefined,profiles:(Array.isArray(p.children)?p.children:[]).filter(c=>c&&c.shareFavorites===true).map(c=>({id:String(c.id||'').slice(0,2),name:String(c.name||'Child').slice(0,50),interests:String(c.interests||'').slice(0,350),favorites:String(c.favorites||'').slice(0,350),favoriteColors:String(c.favoriteColors||'').trim().slice(0,120),favoriteCharacters:String(c.favoriteCharacters||'').trim().slice(0,120),favoriteActivities:String(c.favoriteActivities||'').trim().slice(0,120),favoriteThings:String(c.favoriteThings||'').trim().slice(0,120)})).filter(c=>c.name&&(c.interests||c.favorites||c.favoriteColors||c.favoriteCharacters||c.favoriteActivities||c.favoriteThings)).slice(0,6),ideas:visibleIdeas,bag:visibleBag,updatedAt:new Date().toISOString()};
     const existing=await db.prepare('SELECT share_id FROM public_lists WHERE household_id=?').bind(family).first();
